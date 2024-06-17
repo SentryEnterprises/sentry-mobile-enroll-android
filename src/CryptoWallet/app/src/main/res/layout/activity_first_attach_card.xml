@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize" />
+
+<!--    <RelativeLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:background="@color/secondaryBackground"-->
+<!--        android:paddingStart="@dimen/instrumentation_screen_side_margin"-->
+<!--        android:paddingTop="@dimen/instrumentation_screen_top_margin"-->
+<!--        android:paddingEnd="@dimen/instrumentation_screen_side_margin">-->
+
+<!--        <FrameLayout-->
+<!--            android:id="@+id/content"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_alignParentTop="true" />-->
+
+<!--    </RelativeLayout>-->
+
+</LinearLayout>

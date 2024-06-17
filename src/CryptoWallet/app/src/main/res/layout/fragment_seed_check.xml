@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            style="@style/ButtonBack"
+            android:layout_width="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="11dp"
+            android:gravity="center"
+            android:text="@string/create_seed_title"
+            android:textAppearance="@style/Text_B2_Regular"
+            android:textColor="@color/color_on_background_high"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintBottom_toTopOf="@id/btnContinue"
+            >
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="360dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/ic_seed_progress_4"
+                    tools:ignore="ContentDescription" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/create_seed_check_title"
+                    android:textAppearance="@style/Text_H2_Bold"
+                    android:textColor="@color/color_on_background_high"
+                    />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/create_seed_check_subtitle"
+                    android:textAppearance="@style/Text_B2_Regular"
+                    android:textColor="@color/color_on_background_medium"
+                    />
+
+                <TextView
+                    android:id="@+id/tvWordCounter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/create_seed_check_word_counter"
+                    android:textAppearance="@style/Text_B3_Regular"
+                    android:textColor="@color/color_primary"
+                    />
+
+                <TextView
+                    android:id="@+id/tvWordNumber"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/create_seed_check_word_number"
+                    android:textAppearance="@style/Text_H2_Regular"
+                    android:textColor="@color/color_on_background_high"
+                    />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    >
+
+                    <TextView
+                        android:id="@+id/tvWord1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:paddingStart="21dp"
+                        android:paddingEnd="21dp"
+                        android:gravity="center"
+                        android:text="security"
+                        android:textAppearance="@style/Text_B2_Regular"
+                        android:textColor="@color/color_on_surface_high"
+                        android:background="@drawable/bg_seed_word"
+                        />
+
+                    <TextView
+                        android:id="@+id/tvWord2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:paddingStart="21dp"
+                        android:paddingEnd="21dp"
+                        android:gravity="center"
+                        android:text="sun"
+                        android:textAppearance="@style/Text_B2_Regular"
+                        android:textColor="@color/color_on_surface_high"
+                        android:background="@drawable/bg_seed_word"
+                        />
+
+                    <TextView
+                        android:id="@+id/tvWord3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:paddingTop="8dp"
+                        android:paddingBottom="8dp"
+                        android:paddingStart="21dp"
+                        android:paddingEnd="21dp"
+                        android:gravity="center"
+                        android:text="map"
+                        android:textAppearance="@style/Text_B2_Regular"
+                        android:textColor="@color/color_on_surface_high"
+                        android:background="@drawable/bg_seed_word"
+                        />
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center_horizontal"
+                    android:text="@string/create_seed_check_error"
+                    android:textAppearance="@style/Text_B3_Regular"
+                    android:textColor="@color/color_error"
+                    android:visibility="gone"
+                    />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <Button
+            android:id="@+id/btnContinue"
+            style="@style/ButtonBlue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+            android:text="@string/create_seed_check_btn"
+            android:enabled="false"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

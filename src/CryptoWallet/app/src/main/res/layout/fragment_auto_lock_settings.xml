@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/color_background">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            style="@style/ButtonBack"
+            android:layout_width="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="11dp"
+            android:gravity="center"
+            android:text="@string/auto_lock_title"
+            android:textAppearance="@style/Text_B2_Regular"
+            android:textColor="@color/color_on_background_high"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" >
+
+            <LinearLayout
+                android:id="@+id/btn15Sec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="17dp"
+                android:paddingBottom="17dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/after_15_seconds"
+                    android:textAppearance="@style/Text_B2_Regular"
+                    android:textColor="@color/color_on_background_high" />
+
+                <View
+                    android:id="@+id/viewChecked15Sec"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_gravity="center_vertical"
+                    android:visibility="gone"
+                    android:background="@drawable/ic_check_circle" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/color_outline" />
+
+            <LinearLayout
+                android:id="@+id/btn30Sec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="17dp"
+                android:paddingBottom="17dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/after_30_seconds"
+                    android:textAppearance="@style/Text_B2_Regular"
+                    android:textColor="@color/color_on_background_high" />
+
+                <View
+                    android:id="@+id/viewChecked30Sec"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_gravity="center_vertical"
+                    android:visibility="gone"
+                    android:background="@drawable/ic_check_circle" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/color_outline" />
+
+            <LinearLayout
+                android:id="@+id/btn60Sec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="17dp"
+                android:paddingBottom="17dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/after_60_seconds"
+                    android:textAppearance="@style/Text_B2_Regular"
+                    android:textColor="@color/color_on_background_high" />
+
+                <View
+                    android:id="@+id/viewChecked60Sec"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_gravity="center_vertical"
+                    android:background="@drawable/ic_check_circle" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/color_outline" />
+
+            <LinearLayout
+                android:id="@+id/btn5min"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="17dp"
+                android:paddingBottom="17dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:text="@string/after_5_minutes"
+                    android:textAppearance="@style/Text_B2_Regular"
+                    android:textColor="@color/color_on_background_high" />
+
+                <View
+                    android:id="@+id/viewChecked5min"
+                    android:layout_height="16dp"
+                    android:layout_width="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_gravity="center_vertical"
+                    android:visibility="gone"
+                    android:background="@drawable/ic_check_circle" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/color_outline" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--  TextAppearance  -->
+    <style name="Text_H1_Bold">
+        <item name="android:textSize">32sp</item>
+        <item name="android:fontFamily">@font/lexend_bold</item>
+    </style>
+
+    <style name="Text_H1_Regular">
+        <item name="android:textSize">32sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_H2_Bold">
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">@font/lexend_bold</item>
+    </style>
+
+    <style name="Text_H2_Regular">
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_B1_Semibold">
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/lexend_semibold</item>
+    </style>
+
+    <style name="Text_B1_Regular">
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_B2_Semibold">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">@font/lexend_semibold</item>
+    </style>
+
+    <style name="Text_B2_Regular">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_B3_Medium">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">@font/lexend_medium</item>
+    </style>
+
+    <style name="Text_B3_Regular">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_Button">
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/lexend_semibold</item>
+    </style>
+
+    <style name="Text_GhostButton">
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_Label">
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="Text_Caption">
+        <item name="android:textSize">11sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+    </style>
+
+    <style name="TabsTextAppearance" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">15sp</item>
+        <item name="android:fontFamily">@font/lexend_regular</item>
+        <item name="textAllCaps">false</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
+</resources>

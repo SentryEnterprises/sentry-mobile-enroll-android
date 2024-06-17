@@ -1,0 +1,159 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+    id 'kotlin-parcelize'
+    id 'androidx.navigation.safeargs.kotlin'
+    id 'com.google.dagger.hilt.android'
+}
+
+//def keystorePropertiesFile = rootProject.file("keystore.properties")
+//def keystoreProperties = new Properties()
+//
+//if (keystorePropertiesFile.exists()) {
+//    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+//} else {
+//    throw new FileNotFoundException("Keystore properties file not found: $keystorePropertiesFile")
+//}
+
+android {
+    namespace 'com.secure.jnet.wallet'
+
+    compileSdk project.compileSdk
+
+    defaultConfig {
+        minSdkVersion project.minSdk
+        targetSdkVersion project.targetSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters 'arm64-v8a', 'x86_64'
+        }
+    }
+
+//    signingConfigs {
+//        release {
+//            keyAlias keystoreProperties['keyAlias']
+//            keyPassword keystoreProperties['keyPassword']
+//            storeFile file(keystoreProperties['storeFile'])
+//            storePassword keystoreProperties['storePassword']
+//        }
+//    }
+
+    def isTestnet = project.hasProperty('testnet') ? project.testnet.toBoolean() : false
+
+    buildTypes {
+        release {
+//            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField("Boolean", "TESTNET", isTestnet.toString())
+        }
+
+        debug {
+            buildConfigField("Boolean", "TESTNET", isTestnet.toString())
+        }
+    }
+
+    flavorDimensions = ["wallet"]
+    productFlavors {
+        Sentinel {
+            dimension "wallet"
+            applicationId "com.secure.sentry.wallet"
+            versionCode 87
+            versionName "1.0.0-$versionCode"
+
+            manifestPlaceholders = [
+                    appIcon: "@mipmap/ic_sentinel_launcher",
+                    appIconRound: "@mipmap/ic_sentinel_launcher_round"
+            ]
+
+            getIsDefault().set(true)
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+
+    buildFeatures {
+        dataBinding = true
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def testnetSuffix = isTestnet ? 'TestNet' : 'MainNet'
+            def newVersionName = "${variant.versionName}-${testnetSuffix}"
+            archivesBaseName = "${variant.flavorName}-Wallet-${newVersionName}"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+
+    implementation project(':JCWKit')
+
+    // Android
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.fragment:fragment-ktx:1.6.2'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.viewpager2:viewpager2:1.0.0'
+
+    // Lifecycle
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:${project.lifecycleVersion}"
+
+    // Navigation
+    implementation "androidx.navigation:navigation-fragment-ktx:${project.navVersion}"
+    implementation "androidx.navigation:navigation-ui-ktx:${project.navVersion}"
+
+    // Hilt
+    implementation("com.google.dagger:hilt-android:${project.hiltVErsion}")
+    kapt("com.google.dagger:hilt-compiler:${project.hiltVErsion}")
+    implementation("androidx.hilt:hilt-navigation-fragment:1.2.0")
+
+    // OkHttp
+    implementation "com.squareup.okhttp3:okhttp:4.10.0"
+
+    // Retrofit
+    implementation "com.squareup.retrofit2:retrofit:${project.retrofitVersion}"
+    implementation "com.squareup.retrofit2:converter-gson:${project.retrofitVersion}"
+    implementation("com.squareup.retrofit2:adapter-rxjava2:2.9.0")
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.10.0'
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // Glide
+    implementation "com.github.bumptech.glide:glide:${project.glideVersion}"
+    annotationProcessor "com.github.bumptech.glide:compiler:${project.glideVersion}"
+
+    // Lottie
+    implementation 'com.airbnb.android:lottie:5.2.0'
+
+    // Secure shared preferences
+    implementation "androidx.security:security-crypto:1.0.0"
+
+    // Tests
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'io.mockk:mockk:1.13.8'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+
+    // Timber
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    // Others
+    implementation 'com.google.zxing:core:3.4.1'
+
+    // RxJava
+    implementation "io.reactivex.rxjava2:rxjava:2.2.21"
+    implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
+}

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:background="@drawable/bg_seed_phrase">
+
+        <TextView
+            android:id="@+id/tvNumber"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/Text_B3_Regular"
+            android:textColor="@color/color_on_surface_medium"
+            tools:text="1"
+            />
+
+        <EditText
+            android:id="@+id/etWord"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="2dp"
+            android:background="@android:color/transparent"
+            android:textAppearance="@style/Text_B3_Regular"
+            android:textColor="@color/color_on_surface_high"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionDone"
+            tools:ignore="LabelFor"
+            />
+
+    </LinearLayout>
+</layout>
