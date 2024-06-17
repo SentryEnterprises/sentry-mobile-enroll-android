@@ -8,14 +8,10 @@ import com.secure.jnet.jcwkit.JCWIOException
 import com.secure.jnet.jcwkit.JCWKit
 import com.secure.jnet.jcwkit.SmartCardApduCallback
 import com.secure.jnet.wallet.data.JCWCardWallet
-//import com.secure.jnet.wallet.data.crypto.models.BitcoinRawTransactionDTO
-//import com.secure.jnet.wallet.data.crypto.models.EthereumRawTransactionDTO
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
-import com.secure.jnet.wallet.util.BIOMETRIC_MODE
 import com.secure.jnet.wallet.util.ByteUtility
 import com.secure.jnet.wallet.util.SingleLiveEvent
-import com.secure.jnet.wallet.util.TESTNET
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject

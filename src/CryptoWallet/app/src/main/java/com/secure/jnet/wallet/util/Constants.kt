@@ -10,9 +10,6 @@ const val START_DELAY = 1000L
 // skip nfc flow, so app can be run on emulator
 const val WORK_WITHOUT_CARD = false
 
-// use testnet for testing
-var TESTNET: Boolean = BuildConfig.TESTNET
-
 // work only with biometric cards
 const val BIOMETRIC_MODE = true
 
