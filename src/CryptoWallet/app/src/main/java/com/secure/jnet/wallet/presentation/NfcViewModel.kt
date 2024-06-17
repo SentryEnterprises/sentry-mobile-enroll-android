@@ -64,8 +64,6 @@ class NfcViewModel @Inject constructor() : ViewModel() {
 
             1000
         }
-
-  //      0
     }
 
     private val jcwCardWallet by lazy { JCWCardWallet(callBack, TESTNET, JCWKit()) }
@@ -100,8 +98,7 @@ class NfcViewModel @Inject constructor() : ViewModel() {
 
         if (!openConnection()) return
 
-        //if (inProcess) return
-        inProcess = true
+         inProcess = true
 
         _nfcShowProgress.postValue(true)
 
@@ -117,52 +114,6 @@ class NfcViewModel @Inject constructor() : ViewModel() {
                         status
                     }
 
-//                    is NfcAction.ResetWallet -> {
-//                        val resetWallet = jcwCardWallet.resetWallet()
-//
-//                        Timber.d("-----> resetWallet = $resetWallet")
-//
-//                        resetWallet
-//                    }
-//
-//                    is NfcAction.GetCardStatus -> {
-//                        val walletStatus = if (BIOMETRIC_MODE) {
-//                            jcwCardWallet.getWalletStatus(nfcAction.pinCode)
-//                        } else {
-//                            jcwCardWallet.getWalletStatusPin(nfcAction.pinCode)
-//                        }
-//
-//                        Timber.d("-----> walletStatus = $walletStatus")
-//
-//                        walletStatus
-//                    }
-//
-//                    is NfcAction.CreateWallet -> {
-//                        val createWallet = jcwCardWallet.createWallet(
-//                            nfcAction.pinCode,
-//                            nfcAction.wordsCount
-//                        ) {
-//                            _nfcProgress.postValue(it)
-//                        }
-//
-//                        Timber.d("-----> createWallet = $createWallet")
-//
-//                        createWallet
-//                    }
-//
-//                    is NfcAction.RestoreWallet -> {
-//                        val restoreWallet = jcwCardWallet.restoreWallet(
-//                            nfcAction.pinCode,
-//                            nfcAction.mnemonic
-//                        ) {
-//                            _nfcProgress.postValue(it)
-//                        }
-//
-//                        Timber.d("-----> restoreWallet = $restoreWallet")
-//
-//                        restoreWallet
-//                    }
-
                     is NfcAction.VerifyPin -> {
                         val verifyPin = jcwCardWallet.verifyPin(nfcAction.pinCode)
                         Timber.d("-----> verifyPin = $verifyPin")
@@ -177,41 +128,6 @@ class NfcViewModel @Inject constructor() : ViewModel() {
                         Timber.d("-----> changePin = $changePin")
                         changePin
                     }
-
-//                    is NfcAction.SignTransaction -> {
-//                        val signedTransaction = when (val tx = nfcAction.transaction) {
-//                            is BitcoinRawTransactionDTO -> {
-//                                Timber.d("------> BitcoinTransactionDTO")
-//                                jcwCardWallet.createBitcoinTransaction(
-//                                    pinCode = nfcAction.pinCode,
-//                                    inputs = tx.inputsToSign,
-//                                    inputsCount = tx.inputsCount,
-//                                    outputs = tx.outputsToSign,
-//                                    outputsCount = tx.outputsCount
-//                                )
-//                            }
-//
-//                            is EthereumRawTransactionDTO -> {
-//                                Timber.d("------> createEthereumTransaction")
-//                                jcwCardWallet.createEthereumTransaction(
-//                                    pinCode = nfcAction.pinCode,
-//                                    chainId = tx.chainId,
-//                                    nonce = tx.nonce,
-//                                    maxFeePerGas = tx.maxFeePerGas,
-//                                    maxPriorityFeePerGas = tx.maxPriorityFeePerGas,
-//                                    gasLimit = tx.gasLimit,
-//                                    amount = tx.amountEncoded,
-//                                    addressTo = tx.addressToEncoded,
-//                                )
-//                            }
-//                        }
-//
-//                        Timber.d("-----> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-//                        Timber.d("-----> signedTransaction = $signedTransaction")
-//                        Timber.d("-----> !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-//
-//                        NfcActionResult.SignTransactionResult(signedTransaction)
-//                    }
 
                     is NfcAction.BiometricEnrollment -> {
                         val enrollFinger = jcwCardWallet.enrollFinger { progress ->
@@ -234,11 +150,8 @@ class NfcViewModel @Inject constructor() : ViewModel() {
                 var errorMessage = ErrorMessageHelper(e).getErrorMessage()
 
                 if (e.errorCode == 1000) {
-                    errorMessage = ErrorMessageHelper(internalException).getErrorMessage() // internalException?.message ?: "Internal exception thrown but no exception found."
+                    errorMessage = ErrorMessageHelper(internalException).getErrorMessage()
                 }
-//                else {
-//                    errorMessage = "${e.errorCode}"
-//                }
 
                 val nfcActionResult = NfcActionResult.ErrorResult(
                     errorMessage

@@ -18,7 +18,4 @@ const val BIOMETRIC_MODE = true
 
 // static pin for biometric cards
 // fix, do we need this PIN anymore
-const val PIN = "111111"
 const val PIN_BIOMETRIC = "111111"
-
-const val DEFAULT_WORDS_COUNT = 24

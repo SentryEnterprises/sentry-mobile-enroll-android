@@ -5,6 +5,6 @@ pluginManagement {
         mavenCentral()
     }
 }
-rootProject.name = "CryptoWallet"
+rootProject.name = "SentryBiometricEnrollAndVerify"
 include ':app'
 include ':JCWKit'

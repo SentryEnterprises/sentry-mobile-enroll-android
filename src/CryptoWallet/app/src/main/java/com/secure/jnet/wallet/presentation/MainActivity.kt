@@ -23,16 +23,11 @@ class MainActivity : BaseActivity(), NfcAdapter.ReaderCallback {
     @Inject
     lateinit var preferencesInteractor: PreferencesInteractor
 
-//    @Inject
-//    lateinit var jcwCardWalletManager: JCWCardWalletManager
-
     private val nfcViewModel: NfcViewModel by viewModels()
 
     private var nfcAdapter: NfcAdapter? = null
 
-    private var timestamp: Long = 0L
-
-    private lateinit var handler: Handler
+     private lateinit var handler: Handler
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +43,6 @@ class MainActivity : BaseActivity(), NfcAdapter.ReaderCallback {
         handler = Handler(Looper.getMainLooper())
     }
 
-//    override fun onUserInteraction() {
-//        super.onUserInteraction()
-//
-//        startAutoLockTimer()
-//    }
-
     override fun onResume() {
         super.onResume()
         Timber.d("Getting NFC Adapter")
@@ -61,20 +50,10 @@ class MainActivity : BaseActivity(), NfcAdapter.ReaderCallback {
         Timber.d("NFC Adapter: $nfcAdapter")
 
         enableReaderMode()
-
-//        if (timestamp != 0L && System.currentTimeMillis() - timestamp > BACKGROUND_LOCK_TIMEOUT) {
-//            navigateToLockScreen()
-//        }
-
- //       startAutoLockTimer()
     }
 
     override fun onPause() {
         disableReaderMode()
-
-        timestamp = System.currentTimeMillis()
-
- //       stopAutoLockTimer()
         super.onPause()
     }
 
@@ -105,64 +84,5 @@ class MainActivity : BaseActivity(), NfcAdapter.ReaderCallback {
 
     override fun onTagDiscovered(tag: Tag?) {
         nfcViewModel.onTagDiscovered(tag)
-
-//        jcwCardWalletManager.onTagDiscovered(tag)
     }
-//
-//    private fun startAutoLockTimer() {
-//        handler.removeCallbacksAndMessages(null)
-//
-//        handler.postDelayed({
-//            navigateToLockScreen()
-//
-//            startAutoLockTimer()
-//        }, INACTIVITY_LOCK_TIMEOUT)
-//    }
-//
-//    private fun stopAutoLockTimer() {
-//        handler.removeCallbacksAndMessages(null)
-//    }
-//
-//    private fun isScreenNeedLock(): Boolean {
-//        when (findNavController(R.id.mainContainer).currentDestination?.id) {
-//            R.id.splashFragment,
-//            R.id.attachCardFragment,
-//            R.id.protectWalletFragment,
-//            R.id.restoreWalletBeginFragment,
-//            R.id.createPinFragment,
-//            R.id.biometricBeginFragment,
-//            R.id.biometricDescriptionFragment,
-//            R.id.biometricTutorialFragment,
-//            R.id.biometricFingerEnrollFragment,
-//            R.id.biometricDoneFragment,
-//            R.id.recoverySeedFragment,
-//            R.id.restoreWalletFragment,
-//            R.id.restoreWalletSuccessFragment,
-//            R.id.creatingWalletFragment,
-//            R.id.seedTutorialFragment,
-//            R.id.seedAgreementFragment,
-//            R.id.seedShowPhraseFragment,
-//            R.id.seedCheckFragment,
-//            R.id.seedDoneFragment,
-//            R.id.onboardingFragment,
-//            -> return false
-//        }
-//
-//        return true
-//    }
-
-//    private fun navigateToLockScreen() {
-//        if (findNavController(R.id.mainContainer).currentDestination?.id == R.id.lockFragment
-//            || !isScreenNeedLock()
-//        ) {
-//            return
-//        }
-//
-//        findNavController(R.id.mainContainer).navigate(R.id.action_global_lockFragment)
-//    }
-//
-//    private companion object {
-//        private const val BACKGROUND_LOCK_TIMEOUT: Long = 5 * 60 * 1000 // 5 minutes in milliseconds
-//        private const val INACTIVITY_LOCK_TIMEOUT: Long = 1 * 60 * 1000 // 1 minute in milliseconds
-//    }
 }

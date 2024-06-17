@@ -34,26 +34,12 @@ class SplashFragment : BaseFragment<FragmentSplashBinding>(
         observe(viewModel.navigateToAttachCardScreen) {
             navigateToAttachCardScreen()
         }
-
-//        observe(viewModel.navigateToOnboardingScreen) {
-//            navigateToOnboardingScreen()
-//        }
     }
 
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
     }
-
-//    private fun navigateToOnboardingScreen() {
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            view?.post {
-//                findNavController().navigate(
-//                    SplashFragmentDirections.actionSplashFragmentToOnboardingFragment()
-//                )
-//            }
-//        }, START_DELAY)
-//    }
 
     private fun navigateToAttachCardScreen() {
         Handler(Looper.getMainLooper()).postDelayed({

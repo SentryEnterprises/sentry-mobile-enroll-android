@@ -7,20 +7,20 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
+//import androidx.navigation.fragment.navArgs
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.databinding.FragmentGetCardStateBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.presentation.auth.biometric.description.BiometricDescriptionFragmentDirections
+//import com.secure.jnet.wallet.presentation.auth.biometric.description.BiometricDescriptionFragmentDirections
 import com.secure.jnet.wallet.presentation.base.BaseFragment
-import com.secure.jnet.wallet.presentation.cardState.GetCardStateFragmentDirections.Companion.actionAttachCardFragmentToBiometricTutorialFragment
+////import com.secure.jnet.wallet.presentation.cardState.GetCardStateFragmentDirections.Companion.actionAttachCardFragmentToBiometricTutorialFragment
 import com.secure.jnet.wallet.presentation.view.pin.PinView
 import com.secure.jnet.wallet.util.BIOMETRIC_MODE
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import com.secure.jnet.wallet.util.ext.asUri
+////import com.secure.jnet.wallet.util.ext.asUri
 import com.secure.jnet.wallet.util.ext.observe
-import com.secure.jnet.wallet.util.ext.openInBrowser
+//import com.secure.jnet.wallet.util.ext.openInBrowser
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -32,40 +32,12 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
- //   private val args by navArgs<GetCardStateFragmentArgs>()
- //   private val afterReset by lazy { args.afterReset }
-
     private var pinEntered = false
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.apply {
-//            btnCreateNewWallet.setOnClickListener {
-//                navigateToCreateWalletScreen()
-//            }
-//
-//            btnRestoreWallet.setOnClickListener {
-//                navigateToRestoreWalletScreen()
-//            }
-//
-//            btnResetWallet.setOnClickListener {
-//                navigateToResetWalletScreen()
-//            }
-//
-//            btnNoCard.setOnClickListener {
-//                openSupportLink()
-//            }
-        }
-
-        //openGetSmartCardStatusNfcActivity("")
         nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
-
-//        if (afterReset) {
-//            showCreateOrRestoreButtons()
-//        } else {
-//            openGetSmartCardStatusNfcActivity("")
-//        }
     }
 
     override fun onBindLiveData() {
@@ -81,20 +53,12 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
             showError(it)
         }
 
-//        observe(viewModel.showCreateOrRestoreDialog) {
-//            showCreateOrRestoreButtons()
-//        }
-
         observe(viewModel.showEnrollmentStatus) {
             showEnrollmentStatus(it)
         }
         observe(viewModel.showPinView) {
             showPinView()
         }
-
-//        observe(viewModel.navigateToHomeScreen) {
-//            navigateToHomeScreen()
-//        }
     }
 
     private fun showPinView() {
@@ -106,15 +70,11 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
 
             pinView.setupWithKeyboard(pinKeyboard)
             pinView.setPinListener(this@GetCardStateFragment)
-//
-//            btnResetWallet.isVisible = false
-//            btnNoCard.isVisible = false
         }
     }
 
     override fun onPinEntered(pinCode: String) {
-        //openGetSmartCardStatusNfcActivity(pinCode)
-        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(pinCode))
+         nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(pinCode))
 
         // hide pin pad, show card animation
         binding.viewBiometricCard.isVisible = true
@@ -122,10 +82,6 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
 
         pinEntered = true
     }
-
-//    private fun openGetSmartCardStatusNfcActivity(pinCode: String) {
-//        nfcViewModel.startNfcAction(NfcAction.GetCardStatus(pinCode))
-//    }
 
     private fun showEnrollmentStatus(isEnrolled: Boolean) {
         val title = when(isEnrolled) {
@@ -164,46 +120,12 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
                 dialog.dismiss()
 
                 if (BIOMETRIC_MODE) {
-                    //openGetSmartCardStatusNfcActivity("")
-                    //nfcViewModel.startNfcAction(NfcAction.GetCardStatus(""))
                     nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
                 }
             }
             .create()
             .show()
     }
-
-//    private fun showCreateOrRestoreButtons() {
-//        binding.buttonsContainer.isVisible = true
-//    }
-
-//    private fun openSupportLink() {
-//        "https://sentinelwallet.com".asUri()?.openInBrowser(requireContext())
-//    }
-
-//    private fun navigateToResetWalletScreen() {
-//        findNavController().navigate(
-//            GetCardStateFragmentDirections.actionAttachCardFragmentToResetWalletFragment()
-//        )
-//    }
-//
-//    private fun navigateToCreateWalletScreen() {
-//        findNavController().navigate(
-//            GetCardStateFragmentDirections.actionAttachCardFragmentToProtectWalletFragment()
-//        )
-//    }
-//
-//    private fun navigateToRestoreWalletScreen() {
-//        findNavController().navigate(
-//            GetCardStateFragmentDirections.actionAttachCardFragmentToRestoreWalletBeginFragment()
-//        )
-//    }
-
-//    private fun navigateToHomeScreen() {
-//        findNavController().navigate(
-//            GetCardStateFragmentDirections.actionAttachCardFragmentToHomeFragment()
-//        )
-//    }
 
     private fun navigateToEnrollmentScreen() {
         findNavController().navigate(

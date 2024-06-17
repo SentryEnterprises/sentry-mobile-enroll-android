@@ -15,16 +15,7 @@ class SplashViewModel @Inject constructor(
     private val _navigateToAttachCardScreen = SingleLiveEvent<Boolean>()
     val navigateToAttachCardScreen: LiveData<Boolean> = _navigateToAttachCardScreen
 
-//    private val _navigateToOnboardingScreen = SingleLiveEvent<Boolean>()
-//    val navigateToOnboardingScreen: LiveData<Boolean> = _navigateToOnboardingScreen
-
     fun onResume() {
         _navigateToAttachCardScreen.value = true
-
-//        if (preferencesInteractor.onboardingPassed) {
-//            _navigateToAttachCardScreen.value = true
-//        } else {
-//            _navigateToOnboardingScreen.value = true
-//        }
     }
 }
