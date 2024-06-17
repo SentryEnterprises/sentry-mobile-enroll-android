@@ -17,15 +17,12 @@ class CreatePinFragment : BaseFragment<FragmentCreatePinBinding>(
     R.layout.fragment_create_pin
 ), PinView.PinListener {
 
-    private val args by navArgs<CreatePinFragmentArgs>()
-    private val mode by lazy { args.mode }
-
     private val viewModel: CreatePinViewModel by viewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        viewModel.init(mode)
+        viewModel.init()
 
         binding.apply {
             ivBack.setOnClickListener { findNavController().popBackStack() }
@@ -51,28 +48,28 @@ class CreatePinFragment : BaseFragment<FragmentCreatePinBinding>(
             binding.pinView.showError()
         }
 
-        observe(viewModel.navigateToCreateWalletScreen) {
-            navigateToCreateWalletScreen(it)
-        }
-
-        observe(viewModel.navigateToRestoreWalletScreen) {
-            navigateToRestoreWalletScreen(it)
-        }
+//        observe(viewModel.navigateToCreateWalletScreen) {
+//            navigateToCreateWalletScreen(it)
+//        }
+//
+//        observe(viewModel.navigateToRestoreWalletScreen) {
+//            navigateToRestoreWalletScreen(it)
+//        }
     }
 
     override fun onPinEntered(pin: String) {
         viewModel.onPinEntered(pin)
     }
 
-    private fun navigateToCreateWalletScreen(pinCode: String) {
-        findNavController().navigate(
-            CreatePinFragmentDirections.actionCreatePinFragmentToCreatingWalletFragment(pinCode)
-        )
-    }
-
-    private fun navigateToRestoreWalletScreen(pinCode: String) {
-        findNavController().navigate(
-            CreatePinFragmentDirections.actionCreatePinFragmentToRecoverySeedFragment(pinCode)
-        )
-    }
+//    private fun navigateToCreateWalletScreen(pinCode: String) {
+////        findNavController().navigate(
+////            CreatePinFragmentDirections.actionCreatePinFragmentToCreatingWalletFragment(pinCode)
+////        )
+//    }
+//
+//    private fun navigateToRestoreWalletScreen(pinCode: String) {
+////        findNavController().navigate(
+////            CreatePinFragmentDirections.actionCreatePinFragmentToRecoverySeedFragment(pinCode)
+////        )
+//    }
 }

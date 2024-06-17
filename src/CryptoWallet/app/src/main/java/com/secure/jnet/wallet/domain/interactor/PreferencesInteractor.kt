@@ -10,18 +10,6 @@ class PreferencesInteractor @Inject constructor(
     private val appPreferences: AppPreferences,
 ) {
 
-//    var onboardingPassed: Boolean
-//        get() = appPreferences.onboardingPassed
-//        set(value) { appPreferences.onboardingPassed = value }
-//
-//    var autoLockTime: Long
-//        get() = appPreferences.autoLockTime
-//        set(value) { appPreferences.autoLockTime = value }
-//
-//    var primaryCurrency: PrimaryCurrency
-//        get() = appPreferences.primaryCurrency
-//        set(value) { appPreferences.primaryCurrency = value }
-
     var darkModeEnabled: Boolean
         get() = appPreferences.darkModeEnabled
         set(value) { appPreferences.darkModeEnabled = value }

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/splashFragment">
 
@@ -25,24 +24,6 @@
         <action
             android:id="@+id/action_attachCardFragment_to_biometricTutorialFragment"
             app:destination="@id/biometricTutorialFragment" />
-<!--        <action-->
-<!--            android:id="@+id/action_attachCardFragment_to_protectWalletFragment"-->
-<!--            app:destination="@id/protectWalletFragment" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_attachCardFragment_to_restoreWalletBeginFragment"-->
-<!--            app:destination="@id/restoreWalletBeginFragment" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_attachCardFragment_to_homeFragment"-->
-<!--            app:destination="@id/homeFragment"-->
-<!--            app:popUpTo="@id/nav_graph"-->
-<!--            app:popUpToInclusive="true" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_attachCardFragment_to_resetWalletFragment"-->
-<!--            app:destination="@id/resetWalletFragment" />-->
-<!--        <argument-->
-<!--            android:name="afterReset"-->
-<!--            app:argType="boolean"-->
-<!--            android:defaultValue="false" />-->
     </fragment>
     <fragment
         android:id="@+id/biometricTutorialFragment"
@@ -56,80 +37,12 @@
         android:id="@+id/biometricFingerEnrollFragment"
         android:name="com.secure.jnet.wallet.presentation.auth.biometric.enroll.BiometricFingerEnrollFragment"
         android:label="BiometricFingerEnrollFragment">
-        <action
-            android:id="@+id/action_biometricFingerEnrollFragment_to_biometricDoneFragment"
-            app:destination="@id/biometricDoneFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/onboardingFragment"
-        android:name="com.secure.jnet.wallet.presentation.onboarding.OnboardingFragment"
-        android:label="OnboardingFragment" >
-        <action
-            android:id="@+id/action_onboardingMainFragment_to_attachCardFragment"
-            app:destination="@id/attachCardFragment" />
-    </fragment>
-
-<!--    <fragment-->
-<!--        android:id="@+id/homeFragment"-->
-<!--        android:name="com.secure.jnet.wallet.presentation.home.main.HomeFragment"-->
-<!--        android:label="HomeFragment" >-->
-<!--        <action-->
-<!--            android:id="@+id/action_homeFragment_to_receiveFragment"-->
-<!--            app:destination="@id/receiveFragment" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_homeFragment_to_sendFragment"-->
-<!--            app:destination="@id/send_graph" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_homeFragment_to_settingsFragment"-->
-<!--            app:destination="@id/settingsFragment" />-->
-<!--        <action-->
-<!--            android:id="@+id/action_homeFragment_to_tokenDetailsFragment"-->
-<!--            app:destination="@id/tokenDetailsFragment" />-->
-<!--    </fragment>-->
 
     <fragment
         android:id="@+id/createPinFragment"
         android:name="com.secure.jnet.wallet.presentation.auth.pin.CreatePinFragment"
         android:label="CreatePinFragment" >
-        <action
-            android:id="@+id/action_createPinFragment_to_creatingWalletFragment"
-            app:destination="@id/create_wallet_graph" />
-        <argument
-            android:name="mode"
-            app:argType="com.secure.jnet.wallet.domain.models.enums.Mode" />
-        <action
-            android:id="@+id/action_createPinFragment_to_recoverySeedFragment"
-            app:destination="@id/restore_wallet_graph" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/receiveFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.receive.choosetoken.ReceiveFragment"
-        android:label="ReceiveFragment" >
-        <action
-            android:id="@+id/action_receiveFragment_to_receiveDetailsFragment"
-            app:destination="@id/receiveDetailsFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/protectWalletFragment"
-        android:name="com.secure.jnet.wallet.presentation.auth.createWallet.protectwallet.ProtectWalletFragment"
-        android:label="ProtectWalletFragment" >
-        <action
-            android:id="@+id/action_protectWalletFragment_to_createPinFragment"
-            app:destination="@id/createPinFragment" />
-        <action
-            android:id="@+id/action_protectWalletFragment_to_biometricBeginFragment"
-            app:destination="@id/biometric_graph" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/receiveDetailsFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.receive.details.ReceiveDetailsFragment"
-        android:label="ReceiveDetailsFragment" >
-        <argument
-            android:name="cryptoCurrency"
-            app:argType="com.secure.jnet.wallet.domain.models.enums.CryptoCurrency" />
     </fragment>
 
     <fragment
@@ -139,20 +52,8 @@
         <action
             android:id="@+id/action_settingsFragment_to_changePinFragment"
             app:destination="@id/changePinFragment" />
-        <action
-            android:id="@+id/action_settingsFragment_to_resetWalletFragment"
-            app:destination="@id/resetWalletFragment" />
     </fragment>
 
-    <fragment
-        android:id="@+id/currencySettingsFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.menu.currency.CurrencySettingsFragment"
-        android:label="CurrencySettingsFragment" />
-
-    <fragment
-        android:id="@+id/autoLockSettingsFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.menu.autolock.AutoLockSettingsFragment"
-        android:label="AutoLockSettingsFragment" />
     <fragment
         android:id="@+id/changePinFragment"
         android:name="com.secure.jnet.wallet.presentation.home.menu.changepin.ChangePinFragment"
@@ -166,263 +67,7 @@
         android:id="@+id/changePinSuccessFragment"
         android:name="com.secure.jnet.wallet.presentation.home.menu.changepin.ChangePinSuccessFragment"
         android:label="ChangePinSuccessFragment" />
-    <fragment
-        android:id="@+id/restoreWalletBeginFragment"
-        android:name="com.secure.jnet.wallet.presentation.auth.restoreWallet.begin.RestoreWalletBeginFragment"
-        android:label="RestoreWalletBeginFragment" >
-        <action
-            android:id="@+id/action_restoreWalletBeginFragment_to_biometricBeginFragment"
-            app:destination="@id/biometric_graph" />
-        <action
-            android:id="@+id/action_restoreWalletBeginFragment_to_createPinFragment"
-            app:destination="@id/createPinFragment" />
-    </fragment>
-    <navigation android:id="@+id/biometric_graph"
-        app:startDestination="@id/biometricBeginFragment">
-        <fragment
-            android:id="@+id/biometricBeginFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.biometric.begin.BiometricBeginFragment"
-            android:label="BiometricBeginFragment">
-            <action
-                android:id="@+id/action_biometricBeginFragment_to_biometricDescriptionFragment"
-                app:destination="@id/biometricDescriptionFragment" />
-            <action
-                android:id="@+id/action_biometricBeginFragment_to_biometricTutorialFragment"
-                app:destination="@id/biometricTutorialFragment" />
-            <argument
-                android:name="mode"
-                app:argType="com.secure.jnet.wallet.domain.models.enums.Mode" />
-        </fragment>
-        <fragment
-            android:id="@+id/biometricDescriptionFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.biometric.description.BiometricDescriptionFragment"
-            android:label="BiometricDescriptionFragment">
-            <action
-                android:id="@+id/action_biometricDescriptionFragment_to_biometricTutorialFragment"
-                app:destination="@id/biometricTutorialFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/biometricTutorialFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.biometric.tutorial.BiometricTutorialFragment"
-            android:label="BiometricTutorialFragment">
-            <action
-                android:id="@+id/action_biometricTutorialFragment_to_biometricFingerEnrollFragment"
-                app:destination="@id/biometricFingerEnrollFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/biometricFingerEnrollFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.biometric.enroll.BiometricFingerEnrollFragment"
-            android:label="BiometricFingerEnrollFragment">
-            <action
-                android:id="@+id/action_biometricFingerEnrollFragment_to_biometricDoneFragment"
-                app:destination="@id/biometricDoneFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/biometricDoneFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.biometric.done.BiometricDoneFragment"
-            android:label="BiometricDoneFragment" >
-            <action
-                android:id="@+id/action_biometricDoneFragment_to_recoverySeedFragment"
-                app:destination="@id/restore_wallet_graph" />
-            <action
-                android:id="@+id/action_biometricDoneFragment_to_creatingWalletFragment"
-                app:destination="@id/create_wallet_graph" />
-        </fragment>
-        <argument
-            android:name="mode"
-            app:argType="com.secure.jnet.wallet.domain.models.enums.Mode" />
-    </navigation>
-    <fragment
-        android:id="@+id/tokenDetailsFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.tokendetails.TokenDetailsFragment"
-        android:label="TokenDetailsFragment" >
-        <action
-            android:id="@+id/action_tokenDetailsFragment_to_receiveDetailsFragment"
-            app:destination="@id/receiveDetailsFragment" />
-        <argument
-            android:name="cryptoCurrency"
-            app:argType="com.secure.jnet.wallet.domain.models.enums.CryptoCurrency" />
-        <action
-            android:id="@+id/action_tokenDetailsFragment_to_send_graph"
-            app:destination="@id/send_graph" />
-    </fragment>
-    <navigation android:id="@+id/send_graph"
-        app:startDestination="@id/chooseSendTokenFragment">
-        <fragment
-            android:id="@+id/confirmTransactionFragment"
-            android:name="com.secure.jnet.wallet.presentation.home.send.confirm.ConfirmTransactionFragment"
-            android:label="ConfirmTransactionFragment">
-            <action
-                android:id="@+id/action_confirmTransactionFragment_to_signTransactionFragment"
-                app:destination="@id/signTransactionFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/sentFragment"
-            android:name="com.secure.jnet.wallet.presentation.home.send.send.SendTransactionFragment"
-            android:label="SentFragment">
-<!--            <action-->
-<!--                android:id="@+id/action_sentFragment_to_homeFragment"-->
-<!--                app:destination="@id/homeFragment"-->
-<!--                app:popUpTo="@id/homeFragment" />-->
-            <action
-                android:id="@+id/action_sentFragment_to_confirmTransactionFragment"
-                app:destination="@id/confirmTransactionFragment"
-                app:popUpTo="@id/confirmTransactionFragment"
-                app:popUpToInclusive="true" />
-        </fragment>
-        <fragment
-            android:id="@+id/sendTransactionFragment"
-            android:name="com.secure.jnet.wallet.presentation.home.send.details.TransactionDetailsFragment"
-            android:label="SendTransactionFragment">
-            <action
-                android:id="@+id/action_sendTransactionFragment_to_confirmTransactionFragment"
-                app:destination="@id/confirmTransactionFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/signTransactionFragment"
-            android:name="com.secure.jnet.wallet.presentation.home.send.sign.SignTransactionFragment"
-            android:label="SignTransactionFragment">
-            <action
-                android:id="@+id/action_signTransactionFragment_to_sentFragment"
-                app:destination="@id/sentFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/chooseSendTokenFragment"
-            android:name="com.secure.jnet.wallet.presentation.home.send.choosetoken.ChooseTokenToSendFragment"
-            android:label="ChooseSendTokenFragment">
-            <action
-                android:id="@+id/action_chooseSendTokenFragment_to_sendTransactionFragment"
-                app:destination="@id/sendTransactionFragment" />
-        </fragment>
-        <argument
-            android:name="cryptoCurrencyName"
-            app:argType="string"
-            app:nullable="true" />
-        <argument
-            android:name="address"
-            app:argType="string"
-            app:nullable="true" />
-    </navigation>
-    <navigation android:id="@+id/create_wallet_graph"
-        app:startDestination="@id/chooseMnemonicCountFragment">
-        <fragment
-            android:id="@+id/chooseMnemonicCountFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.chooseMnemonicCount.ChooseMnemonicCountFragment"
-            android:label="ChooseMnemonicCountFragment" >
-            <action
-                android:id="@+id/action_chooseMnemonicCountFragment_to_creatingWalletFragment"
-                app:destination="@id/creatingWalletFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/seedShowPhraseFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.seedshowphrase.SeedShowPhraseFragment"
-            android:label="SeedShowPhraseFragment">
-            <action
-                android:id="@+id/action_seedShowPhraseFragment_to_seedCheckFragment"
-                app:destination="@id/seedCheckFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/seedAgreementFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.seedagreement.SeedAgreementFragment"
-            android:label="SeedAgreementFragment">
-            <action
-                android:id="@+id/action_seedAgreementFragment_to_seedShowPhraseFragment"
-                app:destination="@id/seedShowPhraseFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/seedDoneFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.signupsuccess.SeedDoneFragment"
-            android:label="SeedDoneFragment">
-<!--            <action-->
-<!--                android:id="@+id/action_seedDoneFragment_to_homeFragment"-->
-<!--                app:destination="@id/homeFragment"-->
-<!--                app:popUpTo="@id/nav_graph"-->
-<!--                app:popUpToInclusive="true" />-->
-        </fragment>
-        <fragment
-            android:id="@+id/creatingWalletFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.createwallet.CreatingWalletFragment"
-            android:label="CreatingWalletFragment">
-            <action
-                android:id="@+id/action_creatingWalletFragment_to_seedTutorialFragment"
-                app:destination="@id/seedTutorialFragment"
-                app:popUpTo="@id/nav_graph"
-                app:popUpToInclusive="true" />
-            <argument
-                android:name="pinCode"
-                app:argType="string" />
-        </fragment>
-        <fragment
-            android:id="@+id/seedTutorialFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.seedtutorial.SeedTutorialFragment"
-            android:label="SeedTutorialFragment">
-            <action
-                android:id="@+id/action_seedTutorialFragment_to_seedAgreementFragment"
-                app:destination="@id/seedAgreementFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/seedCheckFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.createWallet.seedcheck.SeedCheckFragment"
-            android:label="SeedCheckFragment">
-            <action
-                android:id="@+id/action_seedCheckFragment_to_seedDoneFragment"
-                app:destination="@id/seedDoneFragment"
-                app:popUpTo="@id/splashFragment"
-                app:popUpToInclusive="true" />
-        </fragment>
-        <argument
-            android:name="pinCode"
-            app:argType="string" />
-    </navigation>
-    <navigation android:id="@+id/restore_wallet_graph"
-        app:startDestination="@id/chooseWalletToRestoreFragment">
-        <fragment
-            android:id="@+id/restoreWalletSuccessFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.restoreWallet.restoresucess.RestoreWalletSuccessFragment"
-            android:label="RestoreWalletSuccessFragment"
-            tools:layout="@layout/fragment_restore_wallet_success">
-<!--            <action-->
-<!--                android:id="@+id/action_restoreWalletSuccessFragment_to_homeFragment"-->
-<!--                app:destination="@id/homeFragment"-->
-<!--                app:popUpTo="@id/nav_graph"-->
-<!--                app:popUpToInclusive="true" />-->
-        </fragment>
-        <fragment
-            android:id="@+id/restoreWalletFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.restoreWallet.restorewallet.RestoreWalletFragment"
-            android:label="RestoreWalletFragment">
-            <action
-                android:id="@+id/action_restoreWalletFragment_to_restoreWalletSuccessFragment"
-                app:destination="@id/restoreWalletSuccessFragment"
-                app:popUpTo="@id/splashFragment"
-                app:popUpToInclusive="true" />
-        </fragment>
-        <fragment
-            android:id="@+id/recoverySeedFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.restoreWallet.recoveryseed.RecoverySeedFragment"
-            android:label="RecoverySeedFragment"
-            tools:layout="@layout/fragment_recovery_seed">
-            <action
-                android:id="@+id/action_recoverySeedFragment_to_restoreWalletFragment"
-                app:destination="@id/restoreWalletFragment" />
-        </fragment>
-        <fragment
-            android:id="@+id/chooseWalletToRestoreFragment"
-            android:name="com.secure.jnet.wallet.presentation.auth.restoreWallet.chooseWallet.ChooseWalletToRestoreFragment"
-            android:label="ChooseWalletToRestoreFragment"
-            tools:layout="@layout/fragment_choose_wallet_restore">
-            <action
-                android:id="@+id/action_chooseWalletToRestoreFragment_to_recoverySeedFragment"
-                app:destination="@id/recoverySeedFragment" />
-        </fragment>
-        <argument
-            android:name="pinCode"
-            app:argType="string" />
-    </navigation>
-<!--    <fragment-->
-<!--        android:id="@+id/scanQRCodeFragment"-->
-<!--        android:name="com.secure.jnet.wallet.presentation.home.scanqr.ScanQRCodeFragment"-->
-<!--        android:label="ScanQRCodeFragment" /><action android:id="@+id/action_global_scanQRCodeFragment" app:destination="@id/scanQRCodeFragment"/>-->
+
     <fragment
         android:id="@+id/lockFragment"
         android:name="com.secure.jnet.wallet.presentation.home.lock.LockFragment"
@@ -430,22 +75,4 @@
     <action
         android:id="@+id/action_global_lockFragment"
         app:destination="@id/lockFragment" />
-    <fragment
-        android:id="@+id/resetWalletFragment"
-        android:name="com.secure.jnet.wallet.presentation.reset.ResetWalletFragment"
-        android:label="ResetWalletFragment" >
-        <action
-            android:id="@+id/action_resetWalletFragment_to_resetWalletNfcFragment"
-            app:destination="@id/resetWalletNfcFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/resetWalletNfcFragment"
-        android:name="com.secure.jnet.wallet.presentation.reset.ResetWalletNfcFragment"
-        android:label="ResetWalletNfcFragment" >
-        <action
-            android:id="@+id/action_resetWalletNfcFragment_to_attachCardFragment"
-            app:destination="@id/attachCardFragment"
-            app:popUpTo="@id/nav_graph"
-            app:popUpToInclusive="true" />
-    </fragment>
 </navigation>

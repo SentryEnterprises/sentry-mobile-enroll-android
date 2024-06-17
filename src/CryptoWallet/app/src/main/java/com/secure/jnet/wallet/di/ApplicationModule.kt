@@ -13,9 +13,7 @@ import javax.inject.Singleton
 
 @Module(
     includes = [
-        CryptoModule::class,
         NfcModule::class,
-        RepositoryModule::class,
     ]
 )
 @InstallIn(SingletonComponent::class)

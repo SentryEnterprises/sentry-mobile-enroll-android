@@ -25,8 +25,7 @@ class BiometricTutorialFragment : BaseFragment<FragmentBiometricTutorialBinding>
 
     private fun navigateToEnrollFingerScreen() {
         findNavController().navigate(
-            BiometricTutorialFragmentDirections
-                .actionBiometricTutorialFragmentToBiometricFingerEnrollFragment()
+            BiometricTutorialFragmentDirections.actionBiometricTutorialFragmentToBiometricFingerEnrollFragment()
         )
     }
 }

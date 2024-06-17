@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
-import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
@@ -23,7 +22,6 @@ class BiometricFingerEnrollFragment : BaseFragment<FragmentBiometricFingerEnroll
     R.layout.fragment_biometric_finger_enroll
 ) {
 
-    //private val viewModel: BiometricViewModel by hiltNavGraphViewModels(R.id.biometric_graph)
     private val viewModel: BiometricViewModel = BiometricViewModel()
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
@@ -106,9 +104,9 @@ class BiometricFingerEnrollFragment : BaseFragment<FragmentBiometricFingerEnroll
     }
 
     private fun navigateToBiometricDoneScreen() {
-        findNavController().navigate(
-            BiometricFingerEnrollFragmentDirections
-                .actionBiometricFingerEnrollFragmentToBiometricDoneFragment()
-        )
+//        findNavController().navigate(
+//            BiometricFingerEnrollFragmentDirections
+//                .actionBiometricFingerEnrollFragmentToBiometricDoneFragment()
+//        )
     }
 }

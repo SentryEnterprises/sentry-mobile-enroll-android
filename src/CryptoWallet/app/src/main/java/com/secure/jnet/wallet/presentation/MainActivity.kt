@@ -5,12 +5,9 @@ import android.nfc.Tag
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.navigation.findNavController
 import com.secure.jnet.wallet.R
-//import com.secure.jnet.wallet.data.JCWCardWalletManager
 import com.secure.jnet.wallet.domain.interactor.PreferencesInteractor
 import com.secure.jnet.wallet.presentation.base.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint

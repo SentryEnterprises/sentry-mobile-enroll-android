@@ -2,26 +2,16 @@ package com.secure.jnet.wallet.data
 
 import com.secure.jnet.jcwkit.JCWKit
 import com.secure.jnet.jcwkit.SmartCardApduCallback
-//import com.secure.jnet.jcwkit.models.AccountDTO
-//import com.secure.jnet.jcwkit.models.AccountStatus
 import com.secure.jnet.jcwkit.models.BiometricMode
-//import com.secure.jnet.jcwkit.models.Bip
-//import com.secure.jnet.wallet.data.mappers.WalletStatusDataModelMapper
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.domain.CardWallet
-//import com.secure.jnet.wallet.domain.ProgressListener
-////import com.secure.jnet.wallet.domain.models.AccountEntity
-//import com.secure.jnet.wallet.domain.models.enums.CryptoCurrency
-//import com.secure.jnet.wallet.domain.models.enums.WalletStatus
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class JCWCardWallet @Inject constructor(
     private val callback: SmartCardApduCallback,
-    private val testNet: Boolean,
     private val jcwKit: JCWKit,
 ) : CardWallet {
 

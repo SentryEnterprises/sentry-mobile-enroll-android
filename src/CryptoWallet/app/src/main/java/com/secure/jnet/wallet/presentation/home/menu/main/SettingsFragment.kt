@@ -18,21 +18,21 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding>(R.layout.fragment
         binding.apply {
             ivBack.setOnClickListener { findNavController().popBackStack() }
 
-            btnResetWallet.setOnClickListener { navigateToResetWalletScreen() }
+        //    btnResetWallet.setOnClickListener { navigateToResetWalletScreen() }
 
             viewContainer.isVisible = true
         }
     }
 
-    private fun navigateToResetWalletScreen() {
-        findNavController().navigate(
-            SettingsFragmentDirections.actionSettingsFragmentToResetWalletFragment()
-        )
-    }
-
-    private fun navigateToChangePinScreen() {
-        findNavController().navigate(
-            SettingsFragmentDirections.actionSettingsFragmentToChangePinFragment()
-        )
-    }
+//    private fun navigateToResetWalletScreen() {
+//        findNavController().navigate(
+//            SettingsFragmentDirections.actionSettingsFragmentToResetWalletFragment()
+//        )
+//    }
+//
+//    private fun navigateToChangePinScreen() {
+//        findNavController().navigate(
+//            SettingsFragmentDirections.actionSettingsFragmentToChangePinFragment()
+//        )
+//    }
 }

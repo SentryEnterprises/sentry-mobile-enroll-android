@@ -66,7 +66,7 @@ class NfcViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private val jcwCardWallet by lazy { JCWCardWallet(callBack, TESTNET, JCWKit()) }
+    private val jcwCardWallet by lazy { JCWCardWallet(callBack, JCWKit()) }
 
     private var nfcAction: NfcAction? = null
 
