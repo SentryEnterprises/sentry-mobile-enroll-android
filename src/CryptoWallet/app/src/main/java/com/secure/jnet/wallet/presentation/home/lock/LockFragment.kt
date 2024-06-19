@@ -16,7 +16,6 @@ import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.base.BaseFragment
 import com.secure.jnet.wallet.presentation.view.pin.PinView
 import com.secure.jnet.wallet.util.BIOMETRIC_MODE
-import com.secure.jnet.wallet.util.WORK_WITHOUT_CARD
 import com.secure.jnet.wallet.util.ext.observe
 import dagger.hilt.android.AndroidEntryPoint
 

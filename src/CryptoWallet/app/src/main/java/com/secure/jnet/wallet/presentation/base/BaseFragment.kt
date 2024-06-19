@@ -20,13 +20,6 @@ abstract class BaseFragment<T : ViewDataBinding>(
 
     protected lateinit var activityLauncher: BetterActivityResult<Intent, ActivityResult>
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        val baseActivity = requireActivity() as BaseActivity
-        activityLauncher = baseActivity.activityLauncher
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

@@ -13,7 +13,6 @@ import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.auth.biometric.BiometricViewModel
 import com.secure.jnet.wallet.presentation.base.BaseFragment
-import com.secure.jnet.wallet.util.WORK_WITHOUT_CARD
 import com.secure.jnet.wallet.util.ext.observe
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -67,11 +66,6 @@ class BiometricFingerEnrollFragment : BaseFragment<FragmentBiometricFingerEnroll
     }
 
     private fun startFingerprintEnroll() {
-        if (WORK_WITHOUT_CARD) {
-            binding.btnContainer.isVisible = true
-            return
-        }
-
         binding.apply {
             tvProgress.text = "0%"
             ivProgress.progress = 0.0F

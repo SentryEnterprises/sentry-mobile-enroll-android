@@ -12,15 +12,11 @@ import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.databinding.FragmentGetCardStateBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
-//import com.secure.jnet.wallet.presentation.auth.biometric.description.BiometricDescriptionFragmentDirections
 import com.secure.jnet.wallet.presentation.base.BaseFragment
-////import com.secure.jnet.wallet.presentation.cardState.GetCardStateFragmentDirections.Companion.actionAttachCardFragmentToBiometricTutorialFragment
 import com.secure.jnet.wallet.presentation.view.pin.PinView
 import com.secure.jnet.wallet.util.BIOMETRIC_MODE
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-////import com.secure.jnet.wallet.util.ext.asUri
 import com.secure.jnet.wallet.util.ext.observe
-//import com.secure.jnet.wallet.util.ext.openInBrowser
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

@@ -7,15 +7,16 @@ import android.os.Handler
 import android.os.Looper
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.app.AppCompatActivity
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.domain.interactor.PreferencesInteractor
-import com.secure.jnet.wallet.presentation.base.BaseActivity
+//import com.secure.jnet.wallet.presentation.base.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : BaseActivity(), NfcAdapter.ReaderCallback {
+class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     @Inject
     lateinit var preferencesInteractor: PreferencesInteractor

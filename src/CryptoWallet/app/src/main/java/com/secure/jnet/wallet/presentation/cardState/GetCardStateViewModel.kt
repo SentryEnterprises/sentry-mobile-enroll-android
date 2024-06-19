@@ -2,15 +2,16 @@ package com.secure.jnet.wallet.presentation.cardState
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
-import com.secure.jnet.wallet.presentation.base.BaseViewModel
+//import com.secure.jnet.wallet.presentation.base.BaseViewModel
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class GetCardStateViewModel @Inject constructor() : BaseViewModel() {
+class GetCardStateViewModel @Inject constructor() : ViewModel() {
 
 private val _showNfcError = SingleLiveEvent<String>()
     val showNfcError: LiveData<String> = _showNfcError
