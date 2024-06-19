@@ -4,10 +4,6 @@ import com.secure.jnet.wallet.data.nfc.NfcActionResult
 
 interface CardWallet {
 
-    fun verifyPin(pinCode: String): NfcActionResult.VerifyPinResult
-
-    fun changePin(oldPinCode: String, newPinCode: String): NfcActionResult.ChangePinResult
-
     fun enrollFinger(
         onBiometricProgressChanged: (Int) -> Unit
     ): NfcActionResult.BiometricEnrollmentResult

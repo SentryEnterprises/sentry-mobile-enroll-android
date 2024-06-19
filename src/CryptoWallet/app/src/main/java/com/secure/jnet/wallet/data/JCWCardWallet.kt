@@ -28,35 +28,6 @@ class JCWCardWallet @Inject constructor(
         )
     }
 
-    override fun verifyPin(pinCode: String): NfcActionResult.VerifyPinResult {
-        jcwKit.initWalletSdk(callback)
-
-        val verifyPin = jcwKit.verifyPin(pinCode)
-
-        jcwKit.deinitWalletSdk()
-
-        return NfcActionResult.VerifyPinResult(
-            verifyPin
-        )
-    }
-
-    override fun changePin(
-        oldPinCode: String,
-        newPinCode: String
-    ): NfcActionResult.ChangePinResult {
-        jcwKit.initWalletSdk(callback)
-
-        jcwKit.verifyPin(oldPinCode)
-
-        jcwKit.storePin(newPinCode)
-
-        jcwKit.deinitWalletSdk()
-
-        return NfcActionResult.ChangePinResult(
-            true
-        )
-    }
-
     override fun verifyBiometric(): NfcActionResult.VerifyBiometricResult {
         jcwKit.initWalletSdk(callback)
 

@@ -40,33 +40,9 @@
     </fragment>
 
     <fragment
-        android:id="@+id/createPinFragment"
-        android:name="com.secure.jnet.wallet.presentation.auth.pin.CreatePinFragment"
-        android:label="CreatePinFragment" >
-    </fragment>
-
-    <fragment
         android:id="@+id/settingsFragment"
         android:name="com.secure.jnet.wallet.presentation.home.menu.main.SettingsFragment"
-        android:label="SettingsFragment" >
-        <action
-            android:id="@+id/action_settingsFragment_to_changePinFragment"
-            app:destination="@id/changePinFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/changePinFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.menu.changepin.ChangePinFragment"
-        android:label="ChangePinFragment" >
-        <action
-            android:id="@+id/action_changePinFragment_to_changePinSuccessFragment"
-            app:destination="@id/changePinSuccessFragment"
-            app:popUpTo="@id/settingsFragment" />
-    </fragment>
-    <fragment
-        android:id="@+id/changePinSuccessFragment"
-        android:name="com.secure.jnet.wallet.presentation.home.menu.changepin.ChangePinSuccessFragment"
-        android:label="ChangePinSuccessFragment" />
+        android:label="SettingsFragment" />
 
     <fragment
         android:id="@+id/lockFragment"

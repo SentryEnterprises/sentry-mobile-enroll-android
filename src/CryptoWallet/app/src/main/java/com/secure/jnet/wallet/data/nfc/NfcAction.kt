@@ -3,10 +3,10 @@ package com.secure.jnet.wallet.data.nfc
 import com.secure.jnet.jcwkit.models.BiometricMode
 
 sealed class NfcAction {
-    data class VerifyPin(val pinCode: String) : NfcAction()
-    data class ChangePin(val currentPinCode: String, val newPinCode: String) : NfcAction()
+//    data class VerifyPin(val pinCode: String) : NfcAction()
 
     data object BiometricEnrollment : NfcAction()
+
     data object VerifyBiometric : NfcAction()
 
     data class GetEnrollmentStatus(val pinCode: String) : NfcAction()
@@ -18,13 +18,9 @@ sealed class NfcActionResult {
         val error: String,
     ) : NfcActionResult()
 
-    data class VerifyPinResult(
-        val isPinCorrect: Boolean,
-    ) : NfcActionResult()
-
-    data class ChangePinResult(
-        val isPinCorrect: Boolean,
-    ) : NfcActionResult()
+//    data class VerifyPinResult(
+//        val isPinCorrect: Boolean,
+//    ) : NfcActionResult()
 
     data class BiometricEnrollmentResult(
         val isSuccess: Boolean,

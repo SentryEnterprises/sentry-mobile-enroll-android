@@ -110,21 +110,6 @@ class NfcViewModel @Inject constructor() : ViewModel() {
                         status
                     }
 
-                    is NfcAction.VerifyPin -> {
-                        val verifyPin = jcwCardWallet.verifyPin(nfcAction.pinCode)
-                        Timber.d("-----> verifyPin = $verifyPin")
-                        verifyPin
-                    }
-
-                    is NfcAction.ChangePin -> {
-                        val changePin = jcwCardWallet.changePin(
-                            nfcAction.currentPinCode,
-                            nfcAction.newPinCode
-                        )
-                        Timber.d("-----> changePin = $changePin")
-                        changePin
-                    }
-
                     is NfcAction.BiometricEnrollment -> {
                         val enrollFinger = jcwCardWallet.enrollFinger { progress ->
                             _nfcBiometricProgress.postValue(progress)
