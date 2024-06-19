@@ -3,43 +3,28 @@ package com.secure.jnet.wallet.presentation.cardState
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
-import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-//import androidx.navigation.fragment.navArgs
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.databinding.FragmentGetCardStateBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.presentation.base.BaseFragment
-import com.secure.jnet.wallet.presentation.view.pin.PinView
-import com.secure.jnet.wallet.util.BIOMETRIC_MODE
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.ext.observe
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
+class GetCardStateFragment : Fragment(
     R.layout.fragment_get_card_state
-), PinView.PinListener {
+) {
 
     private val viewModel: GetCardStateViewModel by viewModels()
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
-    private var pinEntered = false
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
-    }
-
-    override fun onBindLiveData() {
-        observe(nfcViewModel.nfcShowProgress) {
-            binding.progressContainer.isVisible = it
-        }
 
         observe(nfcViewModel.nfcActionResult) {
             viewModel.processNfcActionResult(it)
@@ -52,31 +37,8 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
         observe(viewModel.showEnrollmentStatus) {
             showEnrollmentStatus(it)
         }
-        observe(viewModel.showPinView) {
-            showPinView()
-        }
-    }
 
-    private fun showPinView() {
-        binding.apply {
-            viewBiometricCard.isVisible = false
-            viewPinPad.isVisible = true
-
-            pinKeyboard.randomizeKeyboard()
-
-            pinView.setupWithKeyboard(pinKeyboard)
-            pinView.setPinListener(this@GetCardStateFragment)
-        }
-    }
-
-    override fun onPinEntered(pinCode: String) {
-         nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(pinCode))
-
-        // hide pin pad, show card animation
-        binding.viewBiometricCard.isVisible = true
-        binding.viewPinPad.isVisible = false
-
-        pinEntered = true
+        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
     }
 
     private fun showEnrollmentStatus(isEnrolled: Boolean) {
@@ -114,10 +76,7 @@ class GetCardStateFragment : BaseFragment<FragmentGetCardStateBinding>(
             .setCancelable(false)
             .setPositiveButton(R.string.try_again) { dialog, _ ->
                 dialog.dismiss()
-
-                if (BIOMETRIC_MODE) {
-                    nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
-                }
+                nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
             }
             .create()
             .show()

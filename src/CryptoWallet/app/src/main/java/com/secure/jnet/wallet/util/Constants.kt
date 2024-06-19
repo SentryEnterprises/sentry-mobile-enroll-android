@@ -2,16 +2,8 @@
 
 package com.secure.jnet.wallet.util
 
-import com.secure.jnet.wallet.BuildConfig
-
 // delay for splash screen
 const val START_DELAY = 1000L
-
-// skip nfc flow, so app can be run on emulator
-const val WORK_WITHOUT_CARD = false
-
-// work only with biometric cards
-const val BIOMETRIC_MODE = true
 
 // static pin for biometric cards
 // fix, do we need this PIN anymore

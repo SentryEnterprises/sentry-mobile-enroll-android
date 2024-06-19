@@ -23,7 +23,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:visibility="gone"
+            android:visibility="visible"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -50,42 +50,6 @@
                 android:text="@string/attach_card_title"
                 android:textAppearance="@style/Text_B1_Regular"
                 android:textColor="@color/color_on_background_high" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/viewPinPad"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/tvAction"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:gravity="center_horizontal"
-                android:text="@string/login_enter_pin"
-                android:textAppearance="@style/Text_H2_Regular"
-                android:textColor="@color/color_on_background_high" />
-
-            <com.secure.jnet.wallet.presentation.view.pin.PinView
-                android:id="@+id/pinView"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:gravity="center" />
-
-            <com.secure.jnet.wallet.presentation.view.pin.PinKeyboard
-                android:id="@+id/pinKeyboard"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp" />
 
         </LinearLayout>
 
