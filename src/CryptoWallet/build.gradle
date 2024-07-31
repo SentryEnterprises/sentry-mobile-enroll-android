@@ -11,7 +11,7 @@ buildscript {
         hiltVErsion = '2.51'
         retrofitVersion = '2.9.0'
 
-        kotlin_version = '1.8.21'
+        kotlin_version = '1.9.21'
         room_version = '2.4.3'
     }
 
