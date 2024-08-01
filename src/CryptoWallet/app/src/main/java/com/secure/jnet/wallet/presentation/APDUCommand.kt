@@ -3,6 +3,7 @@ package com.secure.jnet.wallet.presentation
 import com.secure.jnet.wallet.presentation.SentrySDKError.DataSizeNotSupported
 import com.secure.jnet.wallet.presentation.SentrySDKError.EnrollCodeDigitOutOfBounds
 import kotlin.Byte
+import kotlin.experimental.and
 
 /**
 Encapsulates the various `APDU` command bytes used throughout the SDK.
@@ -117,40 +118,22 @@ enum class APDUCommand (val value: ByteArray) {
 
     // Returns a padded buffer that contains the indicated enroll code digits.
     private fun constructCodeBuffer(code: ByteArray): ByteArray {
-        var bufferIndex = 1
         val codeBuffer: ByteArray = byteArrayOf(
             0x20 + code.size,
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-        )
+        ) + (0..<code.size).map { index ->
+            val digit = code[index]
+            if (digit > 9) {
+                throw EnrollCodeDigitOutOfBounds
+            }
 
-//        (0..<code.size).map { index ->
-//            val digit = code.get(index)
-//            if (digit > 9) {
-//                throw EnrollCodeDigitOutOfBounds
-//            }
-//
-//            if (index % 2 == 0) {
-//                0x0f or (digit shl 4)
-//                // TODO finish converting below to kotlin
-//            }
-//            0
-//        }
+            if (index % 2 == 0) {
+                ((digit and 0x0F).toInt() shl 4).toByte()
+            } else {
+                digit and 0xF0.toByte()
 
-//        for index in 0..<code.count {
-//            let digit = code[index]
-//            if digit > 9 {
-//                throw EnrollCodeDigitOutOfBounds
-//            }
-//
-//            if index % 2 == 0 {
-//                codeBuffer[bufferIndex] &= 0x0F
-//                codeBuffer[bufferIndex] |= digit << 4
-//            } else {
-//                codeBuffer[bufferIndex] &= 0xF0
-//                codeBuffer[bufferIndex] |= digit
-//                bufferIndex = bufferIndex + 1
-//            }
-//        }
+            }
+        }
 
         return codeBuffer
     }
