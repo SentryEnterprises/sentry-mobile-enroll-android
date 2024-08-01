@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatActivity
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.domain.interactor.PreferencesInteractor
-//import com.secure.jnet.wallet.presentation.base.BaseActivity
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
@@ -56,6 +55,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun enableReaderMode() {
+
         if (nfcAdapter != null) {
             val options = Bundle().apply {
                 // Work around for some broken Nfc firmware implementations that poll the card too fast

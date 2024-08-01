@@ -10,8 +10,8 @@ import com.secure.jnet.jcwkit.SmartCardApduCallback
 import com.secure.jnet.wallet.data.JCWCardWallet
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
-import com.secure.jnet.wallet.util.ByteUtility
 import com.secure.jnet.wallet.util.SingleLiveEvent
+import com.secure.jnet.wallet.util.byteArrayToHexString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
@@ -185,16 +185,14 @@ class NfcViewModel @Inject constructor() : ViewModel() {
     private fun ByteArray.logCommand() {
         Timber.d("---------------------------")
         Timber.d("=> ${
-            ByteUtility
-                .byteArrayToHexString(this)
+            byteArrayToHexString(this)
                 .chunked(2).joinToString(separator = " ")
         }")
     }
 
     private fun ByteArray.logResponse() {
         Timber.d("<= ${
-            ByteUtility
-                .byteArrayToHexString(this)
+            byteArrayToHexString(this)
                 .chunked(2).joinToString(separator = " ")
         }")
         Timber.d("---------------------------\n")

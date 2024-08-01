@@ -2,8 +2,8 @@ package com.secure.jnet.wallet.presentation
 
 import com.secure.jnet.wallet.presentation.SentrySDKError.DataSizeNotSupported
 import com.secure.jnet.wallet.presentation.SentrySDKError.EnrollCodeDigitOutOfBounds
-import kotlin.Byte
 import kotlin.experimental.and
+import com.secure.jnet.wallet.util.intToByteArray
 
 /**
 Encapsulates the various `APDU` command bytes used throughout the SDK.
@@ -12,49 +12,49 @@ For more information on `APDU` commands, see the ISO7816-3 spec, ISO7816-4 spec,
  */
 enum class APDUCommand (val value: ByteArray) {
     // Selects the IDEX Enrollment applet (AID 494445585F4C5F0101)
-    SELECT_ENROLL_APPLET(byteArrayOf(0x00, 0xA4, 0x04, 0x00, 0x09, 0x49, 0x44, 0x45, 0x58, 0x5F, 0x4C, 0x5F, 0x01, 0x01, 0x00)),
+    SELECT_ENROLL_APPLET(intToByteArray(0x00, 0xA4, 0x04, 0x00, 0x09, 0x49, 0x44, 0x45, 0x58, 0x5F, 0x4C, 0x5F, 0x01, 0x01, 0x00)),
 
     // Selects the CDCVM applet (AID F04A4E45545F1001)
-    SELECT_CVM_APPLET(byteArrayOf(0x00, 0xA4, 0x04, 0x00, 0x08, 0xF0, 0x4A, 0x4E, 0x45, 0x54, 0x5F, 0x10, 0x01, 0x00)),
+    SELECT_CVM_APPLET(intToByteArray(0x00, 0xA4, 0x04, 0x00, 0x08, 0xF0, 0x4A, 0x4E, 0x45, 0x54, 0x5F, 0x10, 0x01, 0x00)),
 
     // Selects the Verify applet (AID 4A4E45545F0102030405)
-    SELECT_VERIFY_APPLET(byteArrayOf(0x00, 0xA4, 0x04, 0x00, 0x0A, 0x4A, 0x4E, 0x45, 0x54, 0x5F, 0x01, 0x02, 0x03, 0x04, 0x05, 0x00)),
+    SELECT_VERIFY_APPLET(intToByteArray(0x00, 0xA4, 0x04, 0x00, 0x0A, 0x4A, 0x4E, 0x45, 0x54, 0x5F, 0x01, 0x02, 0x03, 0x04, 0x05, 0x00)),
 
     // Gets the enrollment status.
-    GET_ENROLL_STATUS(byteArrayOf(0x84, 0x59, 0x04, 0x00, 0x01, 0x00)),
+    GET_ENROLL_STATUS(intToByteArray(0x84, 0x59, 0x04, 0x00, 0x01, 0x00)),
 
     // Verifies that the finger on the sensor matches the one recorded during enrollment.
-    GET_FINGERPRINT_VERIFY(byteArrayOf(0x80, 0xB6, 0x01, 0x00, 0x00)),
+    GET_FINGERPRINT_VERIFY(intToByteArray(0x80, 0xB6, 0x01, 0x00, 0x00)),
 
     // Enrolls a fingerprint.
-    PROCESS_FINGERPRINT(byteArrayOf(0x84, 0x59, 0x03, 0x00, 0x02, 0x00, 0x01)), // note: the last byte indicates the finger number; this will need updating if/when 2 fingers are supported
+    PROCESS_FINGERPRINT(intToByteArray(0x84, 0x59, 0x03, 0x00, 0x02, 0x00, 0x01)), // note: the last byte indicates the finger number; this will need updating if/when 2 fingers are supported
 
     // Verifies fingerprint enrollment.
-    VERIFY_FINGERPRINT_ENROLLMENT(byteArrayOf(0x84, 0x59, 0x00, 0x00, 0x01, 0x00)),
+    VERIFY_FINGERPRINT_ENROLLMENT(intToByteArray(0x84, 0x59, 0x00, 0x00, 0x01, 0x00)),
 
     // Retrieves the on-card OS version.
-    GET_OSVERSION(byteArrayOf(0xB1, 0x05, 0x40, 0x00, 0x00)),
+    GET_OS_VERSION(intToByteArray(0xB1, 0x05, 0x40, 0x00, 0x00)),
 
     // Retrieves the Verify applet version information.
-    GET_VERIFY_APPLET_VERSION(byteArrayOf(0x80, 0xCA, 0x5F, 0xC1, 0x00)),
+    GET_VERIFY_APPLET_VERSION(intToByteArray(0x80, 0xCA, 0x5F, 0xC1, 0x00)),
 
     // Retrieves the data stored in the huge data slot of the Verify applet (requires biometric verification).
-    GET_VERIFY_APPLET_STORED_DATA_HUGE_SECURED(byteArrayOf(0x80, 0xCB, 0x01, 0xC2, 0x00, 0x0F, 0xFF)),       // up to 2048 bytes
+    GET_VERIFY_APPLET_STORED_DATA_HUGE_SECURED(intToByteArray(0x80, 0xCB, 0x01, 0xC2, 0x00, 0x0F, 0xFF)),       // up to 2048 bytes
 
     // Retrieves the data stored in the small data slot of the Verify applet.
-    GET_VERIFY_APPLET_STORED_DATA_SMALL_UNSECURED(byteArrayOf(0x80, 0xCA, 0x5F, 0xB0, 0xFF)),                // up to 255 bytes
+    GET_VERIFY_APPLET_STORED_DATA_SMALL_UNSECURED(intToByteArray(0x80, 0xCA, 0x5F, 0xB0, 0xFF)),                // up to 255 bytes
 
     // Retrieves the data stored in the small data slot of the Verify applet (requires biometric verification).
-    GET_VERIFY_APPLET_STORED_DATA_SMALL_SECURED(byteArrayOf(0x80, 0xCB, 0x01, 0xD0, 0xFF)),                  // up to 255 bytes
+    GET_VERIFY_APPLET_STORED_DATA_SMALL_SECURED(intToByteArray(0x80, 0xCB, 0x01, 0xD0, 0xFF)),                  // up to 255 bytes
 
     // Resets biometric data. DEVELOPMENT USE ONLY! This command works only on development cards.
-    RESET_BIOMETRIC_DATA(byteArrayOf(0xED, 0x57, 0xC1, 0x00, 0x01, 0x00));
+    RESET_BIOMETRIC_DATA(intToByteArray(0xED, 0x57, 0xC1, 0x00, 0x01, 0x00));
 
     // Verifies the enroll code.
-    fun verifyEnrollCode(code: ByteArray) = byteArrayOf(0x80, 0x20, 0x00, 0x80, 0x08) + code
+    fun verifyEnrollCode(code: ByteArray) = intToByteArray(0x80, 0x20, 0x00, 0x80, 0x08) + code
 
     // Sets the enroll code.
-    fun setEnrollCode(code: ByteArray) = byteArrayOf(0x80, 0xE2, 0x08, 0x00, 0x0B, 0x90, 0x00, 0x08) + code
+    fun setEnrollCode(code: ByteArray) = intToByteArray(0x80, 0xE2, 0x08, 0x00, 0x0B, 0x90, 0x00, 0x08) + code
 
     // Sets the data stored in the huge data slot of the Verify applet.
     // NOTE: Both the secure and unsecure version of this command write to the same data store slot
@@ -64,7 +64,7 @@ enum class APDUCommand (val value: ByteArray) {
             throw DataSizeNotSupported
         }
 
-        val setVerifyAppletStoredData = byteArrayOf(
+        val setVerifyAppletStoredData = intToByteArray(
             0x80, 0xDA, 0x5F, 0xC2, 0x00,
             ((data.size and 0xFF00) shr 8),
             data.size and 0x00FF,
@@ -79,7 +79,7 @@ enum class APDUCommand (val value: ByteArray) {
             throw DataSizeNotSupported
         }
 
-        val setVerifyAppletStoredData = byteArrayOf(
+        val setVerifyAppletStoredData = intToByteArray(
             0x80, 0xDB, 0x01, 0xC2, 0x00,
             ((data.size and 0xFF00) shr 8),
             data.size and 0x00FF,
@@ -94,7 +94,7 @@ enum class APDUCommand (val value: ByteArray) {
             throw DataSizeNotSupported
         }
 
-        val setVerifyAppletStoredData = byteArrayOf(
+        val setVerifyAppletStoredData = intToByteArray(
             0x80, 0xDA, 0x5F, 0xB0,
             data.size and 0x00FF,
         ) + data
@@ -108,7 +108,7 @@ enum class APDUCommand (val value: ByteArray) {
             throw DataSizeNotSupported
         }
 
-        val setVerifyAppletStoredData = byteArrayOf(
+        val setVerifyAppletStoredData = intToByteArray(
             0x80, 0xDB, 0x01, 0xD0,
             data.size and 0x00FF,
         ) + data
@@ -117,8 +117,8 @@ enum class APDUCommand (val value: ByteArray) {
     }
 
     // Returns a padded buffer that contains the indicated enroll code digits.
-    private fun constructCodeBuffer(code: ByteArray): ByteArray {
-        val codeBuffer: ByteArray = byteArrayOf(
+    fun constructCodeBuffer(code: ByteArray): ByteArray {
+        val codeBuffer: ByteArray = intToByteArray(
             0x20 + code.size,
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
         ) + (0..<code.size).map { index ->
@@ -137,16 +137,10 @@ enum class APDUCommand (val value: ByteArray) {
 
         return codeBuffer
     }
+
+
 }
 
-fun byteArrayOf(vararg elements: Int): ByteArray {
-    return elements.map { it.toByte() }.toByteArray()
-}
-
-sealed class SentrySDKError : Exception() {
-    data object DataSizeNotSupported : SentrySDKError()
-    data object EnrollCodeDigitOutOfBounds : SentrySDKError()
-}
 
 // The maximum amount of data (in bytes) that can be stored in the huge slot on the SentryCard.
 const val HUGE_MAX_DATA_SIZE = 2048
