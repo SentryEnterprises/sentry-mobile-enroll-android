@@ -4,6 +4,7 @@ import com.secure.jnet.wallet.presentation.SentrySDKError.DataSizeNotSupported
 import com.secure.jnet.wallet.presentation.SentrySDKError.EnrollCodeDigitOutOfBounds
 import kotlin.experimental.and
 import com.secure.jnet.wallet.util.intToByteArray
+import kotlin.experimental.or
 
 /**
 Encapsulates the various `APDU` command bytes used throughout the SDK.
@@ -50,100 +51,102 @@ enum class APDUCommand (val value: ByteArray) {
     // Resets biometric data. DEVELOPMENT USE ONLY! This command works only on development cards.
     RESET_BIOMETRIC_DATA(intToByteArray(0xED, 0x57, 0xC1, 0x00, 0x01, 0x00));
 
-    // Verifies the enroll code.
-    fun verifyEnrollCode(code: ByteArray) = intToByteArray(0x80, 0x20, 0x00, 0x80, 0x08) + code
+    companion object {
 
-    // Sets the enroll code.
-    fun setEnrollCode(code: ByteArray) = intToByteArray(0x80, 0xE2, 0x08, 0x00, 0x0B, 0x90, 0x00, 0x08) + code
+        // Verifies the enroll code.
+        fun verifyEnrollCode(code: ByteArray) =
+            intToByteArray(0x80, 0x20, 0x00, 0x80, 0x08) + constructCodeBuffer(code)
 
-    // Sets the data stored in the huge data slot of the Verify applet.
-    // NOTE: Both the secure and unsecure version of this command write to the same data store slot
-    // NOTE: This command is only included in case we want to reverse some changes to the way the large data slot is used. This command will likely become obsolete.
-    fun setVerifyAppletStoredDataHugeUnsecure(data: ByteArray): ByteArray {
-        if (data.size > HUGE_MAX_DATA_SIZE) {
-            throw DataSizeNotSupported
-        }
 
-        val setVerifyAppletStoredData = intToByteArray(
-            0x80, 0xDA, 0x5F, 0xC2, 0x00,
-            ((data.size and 0xFF00) shr 8),
-            data.size and 0x00FF,
-        ) + data
+        // Sets the enroll code.
+        fun setEnrollCode(code: ByteArray) =
+            intToByteArray(0x80, 0xE2, 0x08, 0x00, 0x0B, 0x90, 0x00, 0x08) + constructCodeBuffer(code)
 
-        return setVerifyAppletStoredData
-    }
-
-    // Sets the data stored in the huge data slot of the Verify applet (requires biometric verification).
-    fun setVerifyAppletStoredDataHugeSecure(data: ByteArray): ByteArray {
-        if (data.size > HUGE_MAX_DATA_SIZE) {
-            throw DataSizeNotSupported
-        }
-
-        val setVerifyAppletStoredData = intToByteArray(
-            0x80, 0xDB, 0x01, 0xC2, 0x00,
-            ((data.size and 0xFF00) shr 8),
-            data.size and 0x00FF,
-        ) + data
-
-        return setVerifyAppletStoredData
-    }
-
-    // Sets the data stored in the small data slot of the Verify applet.
-    fun setVerifyAppletStoredDataSmallUnsecure(data: ByteArray): ByteArray {
-        if (data.size > HUGE_MAX_DATA_SIZE) {
-            throw DataSizeNotSupported
-        }
-
-        val setVerifyAppletStoredData = intToByteArray(
-            0x80, 0xDA, 0x5F, 0xB0,
-            data.size and 0x00FF,
-        ) + data
-
-        return setVerifyAppletStoredData
-    }
-
-    // Sets the data stored in the small data slot of the Verify applet (requires biometric verification).
-    fun setVerifyAppletStoredDataSmallSecure(data: ByteArray): ByteArray {
-        if (data.size > HUGE_MAX_DATA_SIZE) {
-            throw DataSizeNotSupported
-        }
-
-        val setVerifyAppletStoredData = intToByteArray(
-            0x80, 0xDB, 0x01, 0xD0,
-            data.size and 0x00FF,
-        ) + data
-
-        return setVerifyAppletStoredData
-    }
-
-    // Returns a padded buffer that contains the indicated enroll code digits.
-    fun constructCodeBuffer(code: ByteArray): ByteArray {
-        val codeBuffer: ByteArray = intToByteArray(
-            0x20 + code.size,
-            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
-        ) + (0..<code.size).map { index ->
-            val digit = code[index]
-            if (digit > 9) {
-                throw EnrollCodeDigitOutOfBounds
+        // Sets the data stored in the huge data slot of the Verify applet.
+        // NOTE: Both the secure and unsecure version of this command write to the same data store slot
+        // NOTE: This command is only included in case we want to reverse some changes to the way the large data slot is used. This command will likely become obsolete.
+        fun setVerifyAppletStoredDataHugeUnsecure(data: ByteArray): ByteArray {
+            if (data.size > HUGE_MAX_DATA_SIZE) {
+                throw DataSizeNotSupported
             }
 
-            if (index % 2 == 0) {
-                ((digit and 0x0F).toInt() shl 4).toByte()
-            } else {
-                digit and 0xF0.toByte()
+            val setVerifyAppletStoredData = intToByteArray(
+                0x80, 0xDA, 0x5F, 0xC2, 0x00,
+                ((data.size and 0xFF00) shr 8),
+                data.size and 0x00FF,
+            ) + data
 
-            }
+            return setVerifyAppletStoredData
         }
 
-        return codeBuffer
+        // Sets the data stored in the huge data slot of the Verify applet (requires biometric verification).
+        fun setVerifyAppletStoredDataHugeSecure(data: ByteArray): ByteArray {
+            if (data.size > HUGE_MAX_DATA_SIZE) {
+                throw DataSizeNotSupported
+            }
+
+            val setVerifyAppletStoredData = intToByteArray(
+                0x80, 0xDB, 0x01, 0xC2, 0x00,
+                ((data.size and 0xFF00) shr 8),
+                data.size and 0x00FF,
+            ) + data
+
+            return setVerifyAppletStoredData
+        }
+
+        // Sets the data stored in the small data slot of the Verify applet.
+        fun setVerifyAppletStoredDataSmallUnsecure(data: ByteArray): ByteArray {
+            if (data.size > HUGE_MAX_DATA_SIZE) {
+                throw DataSizeNotSupported
+            }
+
+            val setVerifyAppletStoredData = intToByteArray(
+                0x80, 0xDA, 0x5F, 0xB0,
+                data.size and 0x00FF,
+            ) + data
+
+            return setVerifyAppletStoredData
+        }
+
+        // Sets the data stored in the small data slot of the Verify applet (requires biometric verification).
+        fun setVerifyAppletStoredDataSmallSecure(data: ByteArray): ByteArray {
+            if (data.size > HUGE_MAX_DATA_SIZE) {
+                throw DataSizeNotSupported
+            }
+
+            val setVerifyAppletStoredData = intToByteArray(
+                0x80, 0xDB, 0x01, 0xD0,
+                data.size and 0x00FF,
+            ) + data
+
+            return setVerifyAppletStoredData
+        }
+
+        // Returns a padded buffer that contains the indicated enroll code digits.
+        fun constructCodeBuffer(code: ByteArray): ByteArray {
+
+            val codeBuffer: ByteArray = intToByteArray(
+                0x20 + code.size,
+            ) + code.asList().chunked(2).map {
+                if (it.size > 1) {
+                    (it[0].toInt() shl 4 and 0xF0).toByte() or (it[1] and 0x0F.toByte())
+                } else {
+                    (it[0].toInt() shl 4 and 0xF0).toByte() or (0x0F.toByte())
+                }
+            }.toByteArray().copyInto(
+                ByteArray(7) { 0xFF.toByte() }
+            )
+
+            return codeBuffer
+        }
+
+
+        // The maximum amount of data (in bytes) that can be stored in the huge slot on the SentryCard.
+        const val HUGE_MAX_DATA_SIZE = 2048
+
+        // The maximum amount of data (in bytes) that can be stored in the small slot on the SentryCard.
+        const val SMALL_MAX_DATA_SIZE = 255
     }
 
 
 }
-
-
-// The maximum amount of data (in bytes) that can be stored in the huge slot on the SentryCard.
-const val HUGE_MAX_DATA_SIZE = 2048
-
-// The maximum amount of data (in bytes) that can be stored in the small slot on the SentryCard.
-const val SMALL_MAX_DATA_SIZE = 255
