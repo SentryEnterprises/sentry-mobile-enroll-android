@@ -7,15 +7,6 @@ plugins {
     id 'com.google.dagger.hilt.android'
 }
 
-//def keystorePropertiesFile = rootProject.file("keystore.properties")
-//def keystoreProperties = new Properties()
-//
-//if (keystorePropertiesFile.exists()) {
-//    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-//} else {
-//    throw new FileNotFoundException("Keystore properties file not found: $keystorePropertiesFile")
-//}
-
 android {
     namespace 'com.secure.jnet.wallet'
 
@@ -32,20 +23,10 @@ android {
         }
     }
 
-//    signingConfigs {
-//        release {
-//            keyAlias keystoreProperties['keyAlias']
-//            keyPassword keystoreProperties['keyPassword']
-//            storeFile file(keystoreProperties['storeFile'])
-//            storePassword keystoreProperties['storePassword']
-//        }
-//    }
-
     def isTestnet = project.hasProperty('testnet') ? project.testnet.toBoolean() : false
 
     buildTypes {
         release {
-//            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             buildConfigField("Boolean", "TESTNET", isTestnet.toString())
@@ -85,13 +66,6 @@ android {
         dataBinding = true
     }
 
-    applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            def testnetSuffix = isTestnet ? 'TestNet' : 'MainNet'
-            def newVersionName = "${variant.versionName}-${testnetSuffix}"
-            archivesBaseName = "${variant.flavorName}-Wallet-${newVersionName}"
-        }
-    }
 }
 
 dependencies {
@@ -143,6 +117,7 @@ dependencies {
     implementation "androidx.security:security-crypto:1.0.0"
 
     // Tests
+    testImplementation 'org.jetbrains.kotlin:kotlin-test'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'io.mockk:mockk:1.13.8'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
