@@ -3,6 +3,24 @@ package com.secure.jnet.jcwkit.utils
 import java.math.BigInteger
 import java.util.Locale
 
+
+fun ByteArray.formatted(): String =
+    byteArrayToHexString(this).chunked(2).joinToString(" ")
+
+@OptIn(ExperimentalStdlibApi::class)
+fun byteArrayToHexString(data: ByteArray?): String =
+    data
+        ?.map {
+            it.toHexString()
+        }?.joinToString("")
+        ?.toUpperCase()
+        ?: ""
+
+fun intToByteArray(vararg elements: Int): ByteArray =
+    elements
+        .map { it.toByte() }
+        .toByteArray()
+
 fun ByteArray.toHexString(): String {
     return byteArrayToHexString(this)
 }
