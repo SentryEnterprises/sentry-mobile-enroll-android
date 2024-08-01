@@ -86,6 +86,7 @@ int apdu_secure_channel(const char* caller, uint8_t* DataIn, uint32_t DataInLen,
 
     syslog(LOG_CRIT, "Secure Channel - Getting Status Word, len: %i", *DataOutLen);
     uint16_t SW = lib_get_sw(DataOut, *DataOutLen);
+    syslog(LOG_CRIT, "Secure Channel - Getting Status Word, sw: %i", SW);
     if (SW != 0x9000)
     {
         return SW;

@@ -69,8 +69,10 @@ class NfcViewModel @Inject constructor() : ViewModel() {
     @Volatile
     private var inProcess = false
 
+
     fun onTagDiscovered(tag: Tag?) {
-        Timber.d("----> onTagDiscovered()")
+        Timber.d("----> onTagDiscovered() $tag")
+
 
         this@NfcViewModel.tag = tag
 
