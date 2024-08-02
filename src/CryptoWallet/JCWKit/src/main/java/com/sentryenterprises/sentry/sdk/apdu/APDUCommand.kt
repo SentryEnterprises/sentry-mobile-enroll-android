@@ -2,7 +2,6 @@ package com.secure.jnet.wallet.presentation
 
 import com.secure.jnet.jcwkit.utils.intToByteArray
 import com.secure.jnet.wallet.presentation.SentrySDKError.DataSizeNotSupported
-import com.secure.jnet.wallet.presentation.SentrySDKError.EnrollCodeDigitOutOfBounds
 import kotlin.experimental.and
 import kotlin.experimental.or
 

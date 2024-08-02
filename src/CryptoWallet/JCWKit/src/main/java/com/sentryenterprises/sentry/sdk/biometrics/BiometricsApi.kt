@@ -1,21 +1,29 @@
-package com.secure.jnet.jcwkit
+package com.sentryenterprises.sentry.sdk.biometrics
 
-import android.nfc.Tag
+
+import com.secure.jnet.jcwkit.NativeLib
 import com.secure.jnet.jcwkit.utils.formatted
 import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
+import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
+import com.sentryenterprises.sentry.sdk.models.AuthInitData
+import com.sentryenterprises.sentry.sdk.models.Keys
+import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
+import kotlin.collections.indices
 
+
+// A `tuple` containing an `APDU` command result data buffer and a status word.
 private data class APDUReturnResult(val data: ByteArray, val statusWord: Int)
-class BiometricsApi(
+
+/**
+Communicates with the IDEX Enroll applet by sending various `APDU` commands in the appropriate order.
+ */
+internal class BiometricsApi(
     val isDebugOutputVerbose: Boolean = true,
     val useSecureChannel: Boolean = true,
 ) {
-
-
-    /// A `tuple` containing an `APDU` command result data buffer and a status word.
-
 
     // Note - This is reset when selecting a new applet (i.e. after initing the secure channel)
     private var encryptionCounter: ByteArray = byteArrayOf()
@@ -47,7 +55,7 @@ class BiometricsApi(
      * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the BioVerify applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
-    fun initializeVerify(tag: NonNativeSmartCardApduCallback) {
+    fun initializeVerify(tag: NfcIso7816Tag) {
         var debugOutput = "----- BiometricsAPI Initialize Verify\n"
 
         if (isDebugOutputVerbose) {
@@ -130,7 +138,7 @@ class BiometricsApi(
         val publicKey: Pointer = Memory(64)
         val secretShses: Pointer = Memory(32)
 
-        NativeLib.INSTANCE.LibSecureChannelInit(
+        val response = NativeLib.INSTANCE.LibSecureChannelInit(
             apduCommand,
             apduCommandLen,
             privateKey,
@@ -293,7 +301,7 @@ class BiometricsApi(
      * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the Enroll applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
-    fun initializeEnroll(tag: NonNativeSmartCardApduCallback, enrollCode: ByteArray) {
+    fun initializeEnroll(tag: NfcIso7816Tag, enrollCode: ByteArray) {
         var debugOutput = "----- BiometricsAPI Initialize Enroll - Enroll Code: ${enrollCode}\n"
 
         if (isDebugOutputVerbose) {
@@ -387,7 +395,7 @@ class BiometricsApi(
     private fun sendAndConfirm(
         apduCommand: ByteArray,
         name: String? = null,
-        tag: NonNativeSmartCardApduCallback
+        tag: NfcIso7816Tag
     ): APDUReturnResult {
         val returnData = send(apduCommand = apduCommand, name = name, toTag = tag)
 
@@ -403,7 +411,7 @@ class BiometricsApi(
     private fun send(
         apduCommand: ByteArray,
         name: String? = null,
-        toTag: NonNativeSmartCardApduCallback
+        toTag: NfcIso7816Tag
     ): APDUReturnResult {
         var debugOutput = "\n---------- Sending ($name ??  -----------\n"
 
@@ -417,7 +425,7 @@ class BiometricsApi(
 //    guard let command = NFCISO7816APDU(data: data) else {
 //        throw SentrySDKError.invalidAPDUCommand
 //    }
-        val result = toTag.call(apduCommand)
+        val result = toTag.transceive(apduCommand)
 
         if (result.isSuccess) {
             return APDUReturnResult(result.getOrNull()!!, result.getOrNull()!![1].toInt())

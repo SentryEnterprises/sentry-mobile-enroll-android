@@ -1,4 +1,4 @@
-package com.secure.jnet.jcwkit
+package com.sentryenterprises.sentry.sdk.apdu
 
 enum class APDUResponseCode(val value: Int) {
     /// Normal operation.

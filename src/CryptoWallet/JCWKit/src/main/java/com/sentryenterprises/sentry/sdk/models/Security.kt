@@ -1,4 +1,4 @@
-package com.secure.jnet.jcwkit
+package com.sentryenterprises.sentry.sdk.models
 
 /**
 Contains internal data necessary to initiate communication with the card over a secure channel.
