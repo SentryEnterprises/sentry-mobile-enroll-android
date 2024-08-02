@@ -2,6 +2,7 @@ package com.secure.jnet.jcwkit
 
 import android.util.Log
 import com.secure.jnet.jcwkit.models.AccountDTO
+import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.jcwkit.models.CapabilitiesDTO
 import com.secure.jnet.jcwkit.models.EnrollStatusDTO
 import com.secure.jnet.jcwkit.models.VerifyCVMDTO
@@ -10,6 +11,7 @@ import com.secure.jnet.jcwkit.models.WalletVersionDTO
 import com.secure.jnet.jcwkit.models.mapToBiometricMode
 import com.secure.jnet.jcwkit.utils.hexStringToByteArray
 import com.secure.jnet.jcwkit.utils.toHexString
+import com.secure.jnet.wallet.presentation.APDUCommand
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import com.sun.jna.ptr.IntByReference
@@ -332,6 +334,21 @@ class JCWKit {
         }
     }
 
+    fun getEnrollStatus(nonNativeSmartCardApduCallback: NonNativeSmartCardApduCallback): EnrollStatusDTO {
+
+        val response = nonNativeSmartCardApduCallback.call(APDUCommand.GET_ENROLL_STATUS.value)
+        if (response.isSuccess) {
+            return EnrollStatusDTO(
+                maxFingerNumber = response.getOrNull()?.get(31)?.toInt() ?: 0,
+                enrolledTouches = response.getOrNull()?.get(32)?.toInt() ?: 0,
+                remainingTouches = response.getOrNull()?.get(33)?.toInt() ?: 0,
+                biometricMode = response.getOrNull()?.get(39)?.toInt()?.mapToBiometricMode() ?: BiometricMode.UNKNOWN_MODE,
+            )
+        } else {
+            throw response.exceptionOrNull() ?: IllegalStateException()
+        }
+
+    }
     fun getEnrollStatus(): EnrollStatusDTO {
         val maxFingersNumbers: Pointer = Memory(1)
         val enrolledTouches: Pointer = Memory(1)
@@ -577,4 +594,6 @@ class JCWKit {
         private const val ETH_DATA = 0x80.toByte()
         private const val ETH_ACCESS_LIST = 0xC0.toByte()
     }
+
+
 }

@@ -132,6 +132,25 @@ interface NativeLib : Library {
         transactionHash: Pointer,
     ): Int
 
+    fun LibSecureChannelInit(
+        apduCommand: Pointer,
+        apduCommandLen: Int,
+        privateKey: Pointer,
+        publicKey: Pointer,
+        secretShses: Pointer,
+    )
+
+    fun LibCalcSecretKeys(
+        pubKey: Pointer,
+        shses: Pointer,
+        privatekey: Pointer,
+        keyRespt: Pointer,
+        keyENC: Pointer,
+        keyCMAC: Pointer,
+        keyRMAC: Pointer,
+        chaining: Pointer,
+    )
+
     fun LibSdkEip1559(
         chainId: Pointer,
         nonce: Pointer,

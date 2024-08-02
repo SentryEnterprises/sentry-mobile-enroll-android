@@ -24,8 +24,6 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     private var nfcAdapter: NfcAdapter? = null
 
-     private lateinit var handler: Handler
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,8 +34,6 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         }
 
         setContentView(R.layout.activity_main)
-
-        handler = Handler(Looper.getMainLooper())
     }
 
     override fun onResume() {

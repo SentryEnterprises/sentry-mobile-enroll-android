@@ -1,4 +1,4 @@
-package com.secure.jnet.wallet.presentation
+package com.secure.jnet.jcwkit
 
 enum class APDUResponseCode(val value: Int) {
     /// Normal operation.

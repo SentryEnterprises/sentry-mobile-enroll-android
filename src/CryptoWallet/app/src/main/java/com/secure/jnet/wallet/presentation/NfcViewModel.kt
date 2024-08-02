@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.secure.jnet.jcwkit.JCWIOException
 import com.secure.jnet.jcwkit.JCWKit
+import com.secure.jnet.jcwkit.NonNativeSmartCardApduCallback
 import com.secure.jnet.jcwkit.SmartCardApduCallback
 import com.secure.jnet.jcwkit.utils.formatted
 import com.secure.jnet.wallet.data.JCWCardWallet
@@ -15,6 +16,7 @@ import com.secure.jnet.wallet.util.SingleLiveEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.Result
 import kotlin.concurrent.thread
 
 @HiltViewModel
@@ -61,23 +63,35 @@ class NfcViewModel @Inject constructor() : ViewModel() {
             1000
         }
     }
+    private val nonNativeCallBack = NonNativeSmartCardApduCallback { dataIn ->
+        try {
+            dataIn.logCommand()
 
-    private val jcwCardWallet by lazy { JCWCardWallet(callBack, JCWKit()) }
+            val response = mIsoDep!!.transceive(dataIn)
+
+            response.logResponse()
+
+            Result.success(response)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
+    }
+
+    private val jcwCardWallet by lazy { JCWCardWallet(callBack, nonNativeCallBack, JCWKit()) }
 
     private var nfcAction: NfcAction? = null
 
     @Volatile
     private var inProcess = false
 
-
     fun onTagDiscovered(tag: Tag?) {
         Timber.d("----> onTagDiscovered() $tag")
-
 
         this@NfcViewModel.tag = tag
 
         nfcAction?.let {
-            Timber.d("----> Starting Action")
+            Timber.d("----> Starting Action $nfcAction")
             startCardExchange(it)
         }
     }
@@ -91,10 +105,19 @@ class NfcViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun startCardExchange(nfcAction: NfcAction) {
-        if (tag == null) return
-        if (inProcess) return
+        if (tag == null) {
+            Timber.d("----> startCardExchange() tag was null, exiting")
+            return
+        }
+        if (inProcess) {
+            Timber.d("----> already in process, exiting")
+            return
+        }
 
-        if (!openConnection()) return
+        if (!openConnection()) {
+            Timber.d("----> could not open connection, exiting")
+            return
+        }
 
          inProcess = true
 

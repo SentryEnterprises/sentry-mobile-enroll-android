@@ -1,6 +1,7 @@
 package com.secure.jnet.wallet.data
 
 import com.secure.jnet.jcwkit.JCWKit
+import com.secure.jnet.jcwkit.NonNativeSmartCardApduCallback
 import com.secure.jnet.jcwkit.SmartCardApduCallback
 import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
@@ -9,16 +10,23 @@ import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import javax.inject.Inject
 import javax.inject.Singleton
 
+const val useNonNative = false
+
 @Singleton
 class JCWCardWallet @Inject constructor(
     private val callback: SmartCardApduCallback,
+    private val nonNativeCallback: NonNativeSmartCardApduCallback,
     private val jcwKit: JCWKit,
 ) : CardWallet {
 
     override fun getEnrollmentStatus(pinCode: String): NfcActionResult.EnrollmentStatusResult {
         jcwKit.initEnrollSdk(pinCode, callback)
 
-        val status = jcwKit.getEnrollStatus()
+        val status = if (useNonNative) {
+            jcwKit.getEnrollStatus(nonNativeCallback)
+        } else {
+            jcwKit.getEnrollStatus()
+        }
 
         return NfcActionResult.EnrollmentStatusResult(
             maxFingerNumber = status.maxFingerNumber,
