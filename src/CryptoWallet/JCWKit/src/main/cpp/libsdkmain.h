@@ -27,6 +27,7 @@ _Export_ int LibSdkVerifyPin(uint8_t* pin, int len);
 _Export_ int LibSdkGetGGUID(uint8_t* gguid);
 _Export_ int LibSdkGetOSVersion(uint8_t* version);
 _Export_ int LibSdkGetStatus(uint8_t* GWLCS, uint8_t* WPSM, uint8_t* WSSM);
+_Export_ int LibAuthUnwrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_len,uint8_t* key_enc, uint8_t* key_rmac);
 _Export_ int LibSdkGetAccounts(uint8_t* NumberAccounts, uint8_t* AccountInfo);
 _Export_ int LibSdkCreateWallet(int Iteration, int Words, int Lang, uint8_t* passphrase, int len_passphrase, uint8_t* mnemonics, int* len_mnemonic);
 _Export_ int LibSdkRecoveryWallet(int Iteration, uint8_t* mnemonics, int len_mnemonics, uint8_t* passphrase, int len_passphrase);

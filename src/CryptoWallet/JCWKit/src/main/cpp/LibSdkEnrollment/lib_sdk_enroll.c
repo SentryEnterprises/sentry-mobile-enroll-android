@@ -1,4 +1,5 @@
 
+#include <syslog.h>
 #include "lib_wallet.h"
 #include "secure.h"
 #include "preliminary.h"
@@ -212,6 +213,7 @@ int lib_enroll_process(int num_finger, uint8_t* enrolled_touches, uint8_t* remai
 		uint8_t apdu_process[] = { 0x80, 0x59, 0x03, 0x00, 0x02, 0x00, 0x01 };
 		apdu_enroll_out_len = 0;
 		Ret = apdu_secure_channel("== Enroll Process", apdu_process, sizeof(apdu_process), apdu_enroll_out, &apdu_enroll_out_len);
+        if (Ret != 0) syslog(LOG_CRIT, "lib_enroll_process - Ret1 (%d)", Ret);
 		if (Ret != 0) return _SDK_ERROR_EXCHANGE_;
 		Ret = lib_enroll_check_sw(apdu_enroll_out, apdu_enroll_out_len);
 		if (Ret == 0) break;
@@ -222,6 +224,7 @@ int lib_enroll_process(int num_finger, uint8_t* enrolled_touches, uint8_t* remai
 	{
 		uint8_t max_num_fingers[1];
 		Ret = lib_enroll_status(max_num_fingers, enrolled_touches, remaining_touches, biometric_mode);
+        if (Ret != 0) syslog(LOG_CRIT, "lib_enroll_process - Ret3 (%d)", Ret);
 		if (Ret != 0) return _SDK_ERROR_EXCHANGE_;
 		Ret = lib_check_sw_err(apdu_enroll_out, apdu_enroll_out_len);
 		if (Ret != 0) return Ret;

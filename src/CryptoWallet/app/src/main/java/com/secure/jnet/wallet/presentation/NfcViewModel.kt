@@ -13,6 +13,7 @@ import com.secure.jnet.wallet.data.JCWCardWallet
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
+import com.sentryenterprises.sentry.sdk.SentrySdk
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
@@ -79,6 +80,11 @@ class NfcViewModel @Inject constructor() : ViewModel() {
     }
 
     private val jcwCardWallet by lazy { JCWCardWallet(callBack, nonNativeCallBack, JCWKit()) }
+    private val sentrySdk by lazy {
+        SentrySdk(
+            enrollCode = byteArrayOf(1, 2, 3, 4),
+        )
+    }
 
     private var nfcAction: NfcAction? = null
 
@@ -119,38 +125,37 @@ class NfcViewModel @Inject constructor() : ViewModel() {
             return
         }
 
-         inProcess = true
+        inProcess = true
 
         _nfcShowProgress.postValue(true)
 
         thread {
             try {
-                val nfcActionResult: NfcActionResult = when (nfcAction) {
-
+                when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
-                        val status = jcwCardWallet.getEnrollmentStatus(nfcAction.pinCode)
-
-                        Timber.d("-----> getEnrollmentStatus = $status")
-
-                        status
+//                        sentrySdk.getEnrollmentStatus()
+                        jcwCardWallet.getEnrollmentStatus(nfcAction.pinCode).also {
+                            Timber.d("-----> getEnrollmentStatus = $it")
+                        }
                     }
 
                     is NfcAction.BiometricEnrollment -> {
-                        val enrollFinger = jcwCardWallet.enrollFinger { progress ->
+                        jcwCardWallet.enrollFinger { progress ->
                             _nfcBiometricProgress.postValue(progress)
+                        }.also {
+                            Timber.d("-----> enrollFinger = $it")
                         }
-                        Timber.d("-----> enrollFinger = $enrollFinger")
-                        enrollFinger
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        val verifyBiometric = jcwCardWallet.verifyBiometric()
-                        Timber.d("-----> verifyBiometric = $verifyBiometric")
-                        verifyBiometric
+                        jcwCardWallet.verifyBiometric().also {
+                            Timber.d("-----> verifyBiometric = $it")
+                        }
                     }
+                }.let { nfcActionResult ->
+                    _nfcActionResult.postValue(nfcActionResult)
                 }
 
-                _nfcActionResult.postValue(nfcActionResult)
             } catch (e: JCWIOException) {
                 Timber.e(e)
                 var errorMessage = ErrorMessageHelper(e).getErrorMessage()
@@ -207,15 +212,19 @@ class NfcViewModel @Inject constructor() : ViewModel() {
 
     private fun ByteArray.logCommand() {
         Timber.d("---------------------------")
-        Timber.d("=> ${
-            this.formatted()
-        }")
+        Timber.d(
+            "=> ${
+                this.formatted()
+            }"
+        )
     }
 
     private fun ByteArray.logResponse() {
-        Timber.d("<= ${
-            this.formatted()
-        }")
+        Timber.d(
+            "<= ${
+                this.formatted()
+            }"
+        )
         Timber.d("---------------------------\n")
     }
 }

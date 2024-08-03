@@ -20,6 +20,9 @@ interface NativeLib : Library {
     fun LibSdkGetGGUID(gguid: Pointer?): Int
     fun LibSdkGetStatus(gwlcs: Pointer?, wpsm: Pointer?, wssm: Pointer?): Int
 
+    fun LibAuthWrap(apdu_in: Pointer?, in_len: Int, apdu_out: Pointer?, out_len: Pointer?, key_enc: Pointer?, key_cmac: Pointer?, chaining_value: Pointer?, encryption_counter: Pointer?): Int;
+    fun LibAuthUnwrap(apdu_in: Pointer?, in_len: Int, apdu_out: Pointer?, out_len: Pointer?, key_enc: Pointer?, key_rmac: Pointer?, chaining_value: Pointer?, encryption_counter: Pointer?): Int;
+
     // Verify PIN / Fingerprint
     fun LibSdkStorePin(pin: Pointer?, pinLength: Int): Int
     fun LibSdkVerifyPin(pin: Pointer?, pinLength: Int): Int

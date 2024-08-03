@@ -3,12 +3,16 @@ package com.sentryenterprises.sentry.sdk.biometrics
 
 import com.secure.jnet.jcwkit.NativeLib
 import com.secure.jnet.jcwkit.utils.formatted
+import com.secure.jnet.jcwkit.utils.intToByteArray
 import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
+import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.Keys
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
+import com.sentryenterprises.sentry.sdk.utils.asPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import kotlin.collections.indices
@@ -16,6 +20,13 @@ import kotlin.collections.indices
 
 // A `tuple` containing an `APDU` command result data buffer and a status word.
 private data class APDUReturnResult(val data: ByteArray, val statusWord: Int)
+
+private const val SUCCESS = 0
+
+private const val ERROR_KEYGENERATION = -100
+private const val ERROR_SHAREDSECRETEXTRACTION = -101
+private const val ERROR_INVALIDPARAMETER = -1
+private const val ERROR_CRITERION = -5
 
 /**
 Communicates with the IDEX Enroll applet by sending various `APDU` commands in the appropriate order.
@@ -40,6 +51,215 @@ internal class BiometricsApi(
     private var keyCMAC: ByteArray = byteArrayOf()
     private var keyRMAC: ByteArray = byteArrayOf()
 
+    data class WrapAPDUCommandResponse(
+        val encryptionCounter: ByteArray,
+        val chainingValue: ByteArray,
+        val wrapped: ByteArray
+    )
+
+    // Encodes an APDU command.
+    private fun wrapAPDUCommand(
+        apduCommand: ByteArray,
+        keyEnc: ByteArray,
+        keyCmac: ByteArray,
+        chainingValue: ByteArray,
+        encryptionCounter: ByteArray
+    ): WrapAPDUCommandResponse {
+        val command = apduCommand.asPointer()
+        val wrappedCommand = Memory(300)
+        val enc = keyEnc.asPointer()
+        val cmac = keyCmac.asPointer()
+        val chaining = chainingValue.asPointer()
+        val counter = encryptionCounter.asPointer()
+        val wrappedLength = Memory(1)
+
+        val response = NativeLib.INSTANCE.LibAuthWrap(
+            command,
+            apduCommand.size,
+            wrappedCommand,
+            wrappedLength,
+            enc,
+            cmac,
+            chaining,
+            counter
+        )
+
+        if (response != SUCCESS) {
+            if (response == ERROR_KEYGENERATION) {
+                throw SentrySDKError.KeyGenerationError
+            }
+            if (response == ERROR_SHAREDSECRETEXTRACTION) {
+                throw SentrySDKError.SharedSecretExtractionError
+            }
+
+            // TODO: Fix once we've converted security to pure Swift
+            error("Unknown return value $response")
+        }
+
+        return WrapAPDUCommandResponse(
+            encryptionCounter = counter.getByteArray(0, encryptionCounter.size),
+            chainingValue = chaining.getByteArray(0, chainingValue.size),
+            wrapped = wrappedCommand.getByteArray(0, wrappedLength.getInt(0))
+        )
+    }
+
+    /**
+    Retrieves the biometric enrollment status recorded by the Enrollment applet on the card.
+
+    - Parameters:
+    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+
+    - Returns: A `BiometricEnrollmentStatus` structure containing information on the fingerprint enrollment status.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.enrollmentStatusBufferTooSmall` if the buffer returned from the `APDU` command was unexpectedly too small.
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+
+     */
+    fun getEnrollmentStatus(tag: NfcIso7816Tag): BiometricEnrollmentStatus {
+        var debugOutput = "----- BiometricsAPI Get Enrollment Status\n"
+        var dataArray: ByteArray = byteArrayOf()
+
+//        defer {
+//            if isDebugOutputVerbose { print(debugOutput) }
+//        }
+
+        debugOutput += "     Getting enrollment status\n"
+
+        if (useSecureChannel) {
+            val enrollStatusCommand = wrapAPDUCommand(
+                apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
+                keyEnc = keyENC,
+                keyCmac = keyCMAC,
+                chainingValue = chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+            val returnData =
+                send(apduCommand = enrollStatusCommand.wrapped, name = "Get Enroll Status", tag = tag)
+
+            if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+                throw SentrySDKError.ApduCommandError(returnData.statusWord)
+            }
+
+            dataArray = unwrapAPDUResponse(
+                response = returnData.data,
+                statusWord = returnData.statusWord,
+                chainingValue = chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+        } else {
+            val returnData = sendAndConfirm(
+                apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
+                name = "Get Enrollment Status",
+                tag = tag
+            )
+            dataArray = returnData.data
+        }
+
+        // sanity check - this buffer should be at least 40 bytes in length, possibly more
+        if (dataArray.size < 40) {
+            throw SentrySDKError.EnrollmentStatusBufferTooSmall
+        }
+
+        // extract values from specific index in the array
+        val maxNumberOfFingers = dataArray[31]
+        val enrolledTouches = dataArray[32]
+        val remainingTouches = dataArray[33]
+        val mode = dataArray[39]
+
+        debugOutput += "     # Fingers: $maxNumberOfFingers\n" +
+                "     Enrolled Touches: $enrolledTouches\n" +
+                "     Remaining Touches: $remainingTouches\n" +
+                "     Mode: $mode\n"
+        val biometricMode: BiometricMode = if (mode == 0.toByte()) {
+            BiometricMode.Enrollment
+        } else {
+            BiometricMode.Verification
+        }
+
+
+        debugOutput += "------------------------------\n"
+
+        return BiometricEnrollmentStatus(
+            maximumFingers = maxNumberOfFingers,
+            enrolledTouches = enrolledTouches,
+            remainingTouches = remainingTouches,
+            mode = biometricMode
+        )
+    }
+
+
+    /// Decodes an APDU command response.
+    private fun unwrapAPDUResponse(
+        response: ByteArray,
+        statusWord: Int,
+        chainingValue: ByteArray,
+        encryptionCounter: ByteArray
+    ): ByteArray {
+        val responseData = Memory(response.size + 2L).apply {
+            response.forEachIndexed { index, i ->
+                setByte(index.toLong(), i.toByte())
+            }
+            setByte(response.size.toLong(), (statusWord shr 8).toByte())
+            setByte(response.size + 1L, (statusWord and 0x00FF).toByte())
+        }
+
+        val unwrappedResponse = Memory(300)
+
+        val enc = keyENC.asPointer()
+        val rmac = keyRMAC.asPointer()
+        val chaining = chainingValue.asPointer()
+        val encryption = encryptionCounter.asPointer()
+
+//        val chaining = UnsafeMutablePointer<UInt8>.allocate(capacity: chainingValue.count)
+//        val counter = UnsafeMutablePointer<UInt8>.allocate(capacity: encryptionCounter.count)
+        val unwrappedLength = Memory(1)
+
+//        defer {
+//            responseData.deallocate()
+//            unwrappedResponse.deallocate()
+//            ENC.deallocate()
+//            RMAC.deallocate()
+//            chaining.deallocate()
+//            counter.deallocate()
+//            unwrappedLength.deallocate()
+//        }
+
+//        for i in 0..<response.count {
+//            responseData.advanced(by: i).pointee = response[i]
+//        }
+//        responseData.
+
+        val response = NativeLib.INSTANCE.LibAuthUnwrap(
+            responseData,
+            response.size + 2,
+            unwrappedResponse,
+            unwrappedLength,
+            enc,
+            rmac,
+            chaining,
+            encryption
+        )
+
+//        if (response != SUCCESS) {
+//            if (response == ERROR_KEYGENERATION) {
+//                throw SentrySDKError.keyGenerationError
+//            }
+//            if (response == ERROR_SHAREDSECRETEXTRACTION) {
+//                throw SentrySDKError.sharedSecretExtractionError
+//            }
+//
+//            // TODO: Fix once we've converted security to pure Swift
+//            error( "Unknown return value $response")
+//        }
+//
+//        var result: ByteArray = []
+//        for i in 0..<unwrappedLength.pointee {
+//            result.append(unwrappedResponse.advanced(by: Int(i)).pointee)
+//        }
+
+        return byteArrayOf() // result
+    }
 
     /**
     Initializes the BioVerify applet by selecting the applet on the SentryCard. Call this method before calling other methods in this unit that communicate with the BioVerify applet.
@@ -397,7 +617,7 @@ internal class BiometricsApi(
         name: String? = null,
         tag: NfcIso7816Tag
     ): APDUReturnResult {
-        val returnData = send(apduCommand = apduCommand, name = name, toTag = tag)
+        val returnData = send(apduCommand = apduCommand, name = name, tag = tag)
 
         if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             throw SentrySDKError.ApduCommandError(returnData.statusWord)
@@ -411,7 +631,7 @@ internal class BiometricsApi(
     private fun send(
         apduCommand: ByteArray,
         name: String? = null,
-        toTag: NfcIso7816Tag
+        tag: NfcIso7816Tag
     ): APDUReturnResult {
         var debugOutput = "\n---------- Sending ($name ??  -----------\n"
 
@@ -425,7 +645,7 @@ internal class BiometricsApi(
 //    guard let command = NFCISO7816APDU(data: data) else {
 //        throw SentrySDKError.invalidAPDUCommand
 //    }
-        val result = toTag.transceive(apduCommand)
+        val result = tag.transceive(apduCommand)
 
         if (result.isSuccess) {
             return APDUReturnResult(result.getOrNull()!!, result.getOrNull()!![1].toInt())

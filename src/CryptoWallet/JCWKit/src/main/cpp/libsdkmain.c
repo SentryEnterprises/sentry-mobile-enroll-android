@@ -83,6 +83,10 @@ _Export_ int LibSdkGetOSVersion(uint8_t* version)
 _Export_ int LibSdkGetStatus(uint8_t* GWLCS, uint8_t* WPSM, uint8_t* WSSM)
 {
 	return lib_wallet_get_status(GWLCS, WPSM, WSSM);
+}//----------------------------------------------------------------------------------------------------------------------
+_Export_ int LibAuthUnwrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_len,uint8_t* key_enc, uint8_t* key_rmac)
+{
+	return unwrap(apdu_in, in_len, apdu_out, out_len, key_enc, key_rmac);
 }
 //----------------------------------------------------------------------------------------------------------------------
 _Export_ int LibSdkGetAccounts(uint8_t* NumberAccounts, uint8_t* AccountInfo)

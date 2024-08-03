@@ -1,8 +1,8 @@
 package com.secure.jnet.wallet.presentation
 
 import android.nfc.TagLostException
-import com.secure.jnet.jcwkit.APDUResponseCode
 import com.secure.jnet.jcwkit.JCWIOException
+import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 
 class ErrorMessageHelper(
     val exception: Exception?

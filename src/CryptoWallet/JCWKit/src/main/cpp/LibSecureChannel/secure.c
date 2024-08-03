@@ -133,7 +133,6 @@ int lib_auth_wrapper_init(uint8_t* chaining)
 int lib_auth_wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_len)
 {
 	if (in_len < 5) return _SDK_ERROR_WRAP_;
-    syslog(LOG_CRIT, "lib_auth_wrap - KeyENC (%s)", KeyENC);
 	wrap(apdu_in, in_len, apdu_out, out_len, KeyENC, KeyCMAC);
 	return _SDK_SUCCESS_;
 }

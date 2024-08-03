@@ -99,6 +99,7 @@ void lib_wallet_deinit(void)
 int lib_check_sw_err(uint8_t* pout, int len)
 {
 	uint16_t sw;
+	if (len < 2) syslog(LOG_CRIT, "-- lib_check_sw_err invalid length --");
 	if (len < 2) return _SDK_ERROR_EXCHANGE_;
 	sw = (pout[len - 2] << 8) + (pout[len - 1] << 0);
 	if (sw == 0x9000) return 0;
