@@ -16,12 +16,9 @@ import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.auth.biometric.BiometricViewModel
-//import com.secure.jnet.wallet.presentation.base.BaseFragment
-import com.secure.jnet.wallet.util.ext.observe
-import dagger.hilt.android.AndroidEntryPoint
+import com.secure.jnet.wallet.util.observe
 
-@AndroidEntryPoint
-class BiometricFingerEnrollFragment : Fragment( //) BaseFragment<FragmentBiometricFingerEnrollBinding>(
+class BiometricFingerEnrollFragment : Fragment(
     R.layout.fragment_biometric_finger_enroll
 ) {
 

@@ -2,18 +2,8 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/splashFragment">
+    app:startDestination="@id/attachCardFragment">
 
-    <fragment
-        android:id="@+id/splashFragment"
-        android:name="com.secure.jnet.wallet.presentation.splash.SplashFragment"
-        android:label="SplashFragment" >
-        <action
-            android:id="@+id/action_splashFragment_to_attachCardFragment"
-            app:destination="@id/attachCardFragment"
-            app:popUpTo="@id/nav_graph"
-            app:popUpToInclusive="true" />
-    </fragment>
     <fragment
         android:id="@+id/attachCardFragment"
         android:name="com.secure.jnet.wallet.presentation.cardState.GetCardStateFragment"

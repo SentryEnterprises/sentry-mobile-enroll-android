@@ -1,7 +1,6 @@
 package com.secure.jnet.wallet.presentation
 
 import com.secure.jnet.jcwkit.utils.formatted
-import com.secure.jnet.wallet.presentation.APDUCommand
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

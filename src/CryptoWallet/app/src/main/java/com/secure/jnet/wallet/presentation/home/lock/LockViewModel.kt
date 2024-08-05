@@ -2,17 +2,10 @@ package com.secure.jnet.wallet.presentation.home.lock
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-//import androidx.lifecycle.MutableLiveData
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
-//import com.secure.jnet.wallet.presentation.base.BaseViewModel
 import com.secure.jnet.wallet.util.SingleLiveEvent
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 
-@HiltViewModel
-class LockViewModel @Inject constructor(
-
-) : ViewModel() {
+class LockViewModel() : ViewModel() {
 
     private val _showNfcError = SingleLiveEvent<String>()
     val showNfcError: LiveData<String> = _showNfcError

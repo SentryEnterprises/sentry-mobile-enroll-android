@@ -7,13 +7,10 @@ import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.domain.CardWallet
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import javax.inject.Inject
-import javax.inject.Singleton
 
 const val useNonNative = false
 
-@Singleton
-class JCWCardWallet @Inject constructor(
+class JCWCardWallet (
     private val callback: SmartCardApduCallback,
     private val nonNativeCallback: NonNativeSmartCardApduCallback,
     private val jcwKit: JCWKit,

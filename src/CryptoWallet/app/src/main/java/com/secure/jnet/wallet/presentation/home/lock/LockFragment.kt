@@ -10,11 +10,9 @@ import androidx.fragment.app.viewModels
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.util.ext.observe
-import dagger.hilt.android.AndroidEntryPoint
+import com.secure.jnet.wallet.util.observe
 
 
-@AndroidEntryPoint
 class LockFragment : Fragment(
     R.layout.fragment_lock
 ) {

@@ -10,9 +10,7 @@ import androidx.navigation.fragment.findNavController
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.databinding.FragmentSettingsBinding
 import androidx.fragment.app.Fragment
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     private lateinit var binding: FragmentSettingsBinding

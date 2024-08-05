@@ -14,14 +14,11 @@ import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
-import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
-import javax.inject.Inject
 import kotlin.Result
 import kotlin.concurrent.thread
 
-@HiltViewModel
-class NfcViewModel @Inject constructor() : ViewModel() {
+class NfcViewModel : ViewModel() {
 
     private val _nfcShowProgress = SingleLiveEvent<Boolean>()
     val nfcShowProgress: LiveData<Boolean> = _nfcShowProgress
@@ -99,7 +96,7 @@ class NfcViewModel @Inject constructor() : ViewModel() {
         nfcAction?.let {
             Timber.d("----> Starting Action $nfcAction")
             startCardExchange(it)
-        }
+        } ?: Timber.d("----> Tag discovered but action was null")
     }
 
     fun startNfcAction(nfcAction: NfcAction) {
@@ -110,6 +107,7 @@ class NfcViewModel @Inject constructor() : ViewModel() {
         startCardExchange(nfcAction)
     }
 
+    @Synchronized
     private fun startCardExchange(nfcAction: NfcAction) {
         if (tag == null) {
             Timber.d("----> startCardExchange() tag was null, exiting")
@@ -194,6 +192,10 @@ class NfcViewModel @Inject constructor() : ViewModel() {
             mIsoDep!!.timeout = 30000
             mIsoDep!!.connect()
             true
+        } catch (e: SecurityException) {
+            Timber.e("Ignore SecurityException Tag out of date")
+            Timber.e(e)
+            false
         } catch (e: Exception) {
             Timber.e(e)
             false
@@ -203,6 +205,9 @@ class NfcViewModel @Inject constructor() : ViewModel() {
     private fun closeConnection() {
         try {
             mIsoDep?.close()
+        } catch (e: SecurityException) {
+            Timber.e("Ignoring security exception for tag out of date")
+            Timber.e(e)
         } catch (e: Exception) {
             Timber.e(e)
         } finally {

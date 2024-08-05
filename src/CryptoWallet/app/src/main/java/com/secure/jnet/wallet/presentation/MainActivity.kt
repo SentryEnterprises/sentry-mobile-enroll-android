@@ -1,24 +1,14 @@
 package com.secure.jnet.wallet.presentation
 
 import android.nfc.NfcAdapter
-import android.nfc.Tag
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.app.AppCompatActivity
 import com.secure.jnet.wallet.R
-import com.secure.jnet.wallet.domain.interactor.PreferencesInteractor
-import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import javax.inject.Inject
 
-@AndroidEntryPoint
-class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
-
-    @Inject
-    lateinit var preferencesInteractor: PreferencesInteractor
+class MainActivity : AppCompatActivity() {
 
     private val nfcViewModel: NfcViewModel by viewModels()
 
@@ -27,11 +17,7 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (preferencesInteractor.darkModeEnabled) {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-        }
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
         setContentView(R.layout.activity_main)
     }
@@ -39,10 +25,11 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     override fun onResume() {
         super.onResume()
         Timber.d("Getting NFC Adapter")
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this).also {
+            enableReaderMode(it)
+        }
         Timber.d("NFC Adapter: $nfcAdapter")
 
-        enableReaderMode()
     }
 
     override fun onPause() {
@@ -50,25 +37,22 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         super.onPause()
     }
 
-    private fun enableReaderMode() {
-
-        if (nfcAdapter != null) {
-            val options = Bundle().apply {
-                // Work around for some broken Nfc firmware implementations that poll the card too fast
-                putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250) // default is 125
-            }
-
-            // Enable ReaderMode for all types of card and disable platform sounds
-            nfcAdapter!!.enableReaderMode(
-                this,
-                this,
-                NfcAdapter.FLAG_READER_NFC_A or
-                        NfcAdapter.FLAG_READER_NFC_B or
-                        NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
-                        NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
-                options
-            )
+    private fun enableReaderMode(nfcAdapter: NfcAdapter) {
+        val options = Bundle().apply {
+            // Work around for some broken Nfc firmware implementations that poll the card too fast
+            putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250) // default is 125
         }
+
+        // Enable ReaderMode for all types of card and disable platform sounds
+        nfcAdapter.enableReaderMode(
+            this,
+            { tag -> nfcViewModel.onTagDiscovered(tag) },
+            NfcAdapter.FLAG_READER_NFC_A or
+                    NfcAdapter.FLAG_READER_NFC_B or
+                    NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
+                    NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
+            options
+        )
     }
 
     private fun disableReaderMode() {
@@ -76,7 +60,4 @@ class MainActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         nfcAdapter = null
     }
 
-    override fun onTagDiscovered(tag: Tag?) {
-        nfcViewModel.onTagDiscovered(tag)
-    }
 }

@@ -3,20 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.NFC" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <uses-feature
         android:name="android.hardware.nfc"
-        android:required="true" />
+        android:required="true"
+        tools:ignore="UnnecessaryRequiredFeature" />
 
     <application
         android:name=".WalletApp"
         android:allowBackup="false"
         android:fullBackupContent="false"
-        android:icon="${appIcon}"
+        android:icon="@mipmap/ic_sentinel_launcher"
         android:label="@string/app_name"
-        android:roundIcon="${appIconRound}"
+        android:roundIcon="@mipmap/ic_sentinel_launcher_round"
         android:supportsRtl="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.CryptoWallet">

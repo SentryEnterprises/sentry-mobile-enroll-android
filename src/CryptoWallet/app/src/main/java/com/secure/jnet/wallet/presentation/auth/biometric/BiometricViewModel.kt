@@ -3,7 +3,6 @@ package com.secure.jnet.wallet.presentation.auth.biometric
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
-//import com.secure.jnet.wallet.presentation.base.BaseViewModel
 import com.secure.jnet.wallet.util.SingleLiveEvent
 
 
