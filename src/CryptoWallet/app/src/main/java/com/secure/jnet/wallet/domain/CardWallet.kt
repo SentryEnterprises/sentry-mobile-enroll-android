@@ -10,5 +10,7 @@ interface CardWallet {
 
     fun verifyBiometric(): NfcActionResult.VerifyBiometricResult
 
+    fun versionInformation(): NfcActionResult.VersionInformationResult
+
     fun getEnrollmentStatus(pinCode: String): NfcActionResult.EnrollmentStatusResult
 }

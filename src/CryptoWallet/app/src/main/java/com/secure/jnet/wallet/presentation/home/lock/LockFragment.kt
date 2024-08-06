@@ -25,17 +25,17 @@ class LockFragment : Fragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        observe(nfcViewModel.nfcActionResult) {
-            viewModel.processNfcActionResult(it)
-        }
-
-        observe(viewModel.showNfcError) {
-            showError(it)
-        }
-
-        observe(viewModel.isVerified) {
-            showVerified()
-        }
+//        observe(nfcViewModel.nfcActionResult) {
+//            viewModel.processNfcActionResult(it)
+//        }
+//
+//        observe(viewModel.showNfcError) {
+//            showError(it)
+//        }
+//
+//        observe(viewModel.isVerified) {
+//            showVerified()
+//        }
     }
 
     private fun showError(message: String) {

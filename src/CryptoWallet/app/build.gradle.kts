@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("androidx.navigation.safeargs.kotlin")
+    alias(libs.plugins.compose.compiler)
 }
 
 kotlin {
@@ -23,10 +24,6 @@ android {
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-
-//        ndk {
-//            abiFilters("armeabi-v7a", "arm64-v8a")
-//        }
     }
 
 
@@ -42,6 +39,7 @@ android {
     }
 
     buildFeatures {
+        compose = true
         dataBinding = true
     }
 
@@ -76,6 +74,10 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
 
+    implementation (platform(libs.compose.bom))
+    implementation(libs.bundles.compose)
+
+    implementation(libs.lottie.compose)
 
     // Lottie
     implementation ("com.airbnb.android:lottie:5.2.0")

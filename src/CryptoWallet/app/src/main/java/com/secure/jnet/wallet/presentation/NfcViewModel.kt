@@ -8,29 +8,46 @@ import com.secure.jnet.jcwkit.JCWIOException
 import com.secure.jnet.jcwkit.JCWKit
 import com.secure.jnet.jcwkit.NonNativeSmartCardApduCallback
 import com.secure.jnet.jcwkit.SmartCardApduCallback
+import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.jcwkit.utils.formatted
 import com.secure.jnet.wallet.data.JCWCardWallet
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import kotlin.Result
 import kotlin.concurrent.thread
 
 class NfcViewModel : ViewModel() {
 
-    private val _nfcShowProgress = SingleLiveEvent<Boolean>()
-    val nfcShowProgress: LiveData<Boolean> = _nfcShowProgress
-
     private val _nfcBiometricProgress = SingleLiveEvent<Int>()
     val nfcBiometricProgress: LiveData<Int> = _nfcBiometricProgress
 
-    private val _nfcProgress = SingleLiveEvent<Int>()
-    val nfcProgress: LiveData<Int> = _nfcProgress
+    private val _nfcProgress = MutableStateFlow<Int?>(null)
+    val nfcProgress = _nfcProgress.asStateFlow()
 
-    private val _nfcActionResult = SingleLiveEvent<NfcActionResult>()
-    val nfcActionResult: SingleLiveEvent<NfcActionResult> = _nfcActionResult
+    private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
+    val nfcActionResult = _nfcActionResult.asStateFlow()
+
+    val showEnrollmentStatus = _nfcActionResult.map {
+        if (it != null
+            && it is NfcActionResult.EnrollmentStatusResult
+        ) {
+            val (title, message) = if (it.biometricMode == BiometricMode.VERIFY_MODE) {
+                "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+            } else {
+                "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+            }
+
+            title to message
+        } else {
+            null
+        }
+    }
 
     private var tag: Tag? = null
     private var mIsoDep: IsoDep? = null
@@ -125,7 +142,7 @@ class NfcViewModel : ViewModel() {
 
         inProcess = true
 
-        _nfcShowProgress.postValue(true)
+        _nfcProgress.value = 1
 
         thread {
             try {
@@ -150,8 +167,14 @@ class NfcViewModel : ViewModel() {
                             Timber.d("-----> verifyBiometric = $it")
                         }
                     }
+
+                    is NfcAction.GetVersionInformation -> {
+                        jcwCardWallet.versionInformation().also {
+                            Timber.d("-----> version info = $it")
+                        }
+                    }
                 }.let { nfcActionResult ->
-                    _nfcActionResult.postValue(nfcActionResult)
+                    _nfcActionResult.value = nfcActionResult
                 }
 
             } catch (e: JCWIOException) {
@@ -165,20 +188,20 @@ class NfcViewModel : ViewModel() {
                 val nfcActionResult = NfcActionResult.ErrorResult(
                     errorMessage
                 )
-                _nfcActionResult.postValue(nfcActionResult)
+                _nfcActionResult.value = nfcActionResult
             } catch (e: Exception) {
                 Timber.e(e)
 
                 val nfcActionResult = NfcActionResult.ErrorResult(
                     "${e.message}"
                 )
-                _nfcActionResult.postValue(nfcActionResult)
+                _nfcActionResult.value = nfcActionResult
             } finally {
                 closeConnection()
 
                 this@NfcViewModel.nfcAction = null
 
-                _nfcShowProgress.postValue(false)
+                _nfcProgress.value = null
 
                 inProcess = false
             }

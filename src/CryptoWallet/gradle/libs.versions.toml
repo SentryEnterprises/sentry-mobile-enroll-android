@@ -1,10 +1,42 @@
 [versions]
 agp = "8.7.0-alpha03"
 
-kotlin = "1.9.21" # https://kotlinlang.org/docs/releases.html#release-details
+kotlin = "2.0.0" # https://kotlinlang.org/docs/releases.html#release-details
+
+
+[libraries]
+# Compatability with Kotlin: https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+# Library matrix map: https://developer.android.com/jetpack/compose/bom/bom-mapping
+compose-bom = { module = "androidx.compose:compose-bom", version = "2024.06.00" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-runtime = { module = "androidx.compose.runtime:runtime" }
+compose-navigation = { module = "androidx.navigation:navigation-compose", version = "2.7.7" }
+compose-layout = { module = "androidx.compose.foundation:foundation-layout" }
+compose-tooling = { module = "androidx.compose.ui:ui-tooling" }
+compose-icons = { module = "androidx.compose.material:material-icons-extended" }
+compose-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+compose-animation = { module = "androidx.compose.animation:animation" }
+
+
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version = "6.5.0" }
 
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidLibrary = { id = "com.android.library", version = "8.5.1" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+
+[bundles]
+compose = [
+    "compose-runtime",
+    "compose-material3",
+    "compose-navigation",
+    "compose-icons",
+    "compose-foundation",
+    "compose-layout",
+    "compose-tooling",
+    "compose-tooling-preview",
+    "compose-animation",
+]

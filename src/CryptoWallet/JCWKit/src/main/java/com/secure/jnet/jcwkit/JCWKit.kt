@@ -9,6 +9,7 @@ import com.secure.jnet.jcwkit.models.VerifyCVMDTO
 import com.secure.jnet.jcwkit.models.WalletStatusDTO
 import com.secure.jnet.jcwkit.models.WalletVersionDTO
 import com.secure.jnet.jcwkit.models.mapToBiometricMode
+import com.secure.jnet.jcwkit.utils.formatted
 import com.secure.jnet.jcwkit.utils.hexStringToByteArray
 import com.secure.jnet.jcwkit.utils.toHexString
 import com.secure.jnet.wallet.presentation.APDUCommand
@@ -51,6 +52,33 @@ class JCWKit {
         return WalletHelper.parseWalletVersionResult(pointer)
     }
 
+    fun getOSVersion(): CapabilitiesDTO {
+        val version: Pointer = Memory(4)
+        println("getOSVersion ${version.getByteArray(0,4).formatted()}")
+        val result = NativeLib.INSTANCE.LibSdkGetOSVersion(version)
+
+        var n = 0
+        var p: Int = 8 + n
+
+        println("getOSVersion ${version.getByteArray(0,4).formatted()}")
+        println("getOSVersion $result")
+//
+//        if dataBuffer[p] != 0x9F { throw SentrySDKError.cardOSVersionError }
+//        p += 1
+//        if dataBuffer[p] != 0x02 {throw SentrySDKError.cardOSVersionError }
+//        p += 1
+//        if dataBuffer[p] != 5 { throw SentrySDKError.cardOSVersionError }
+//        p += 1
+//
+//        let major = dataBuffer[p] - 0x30
+//        p += 2
+//        let minor = dataBuffer[p] - 0x30
+//        p += 2
+//        let hotfix = dataBuffer[p] - 0x30
+//
+//        let retVal = VersionInfo(isInstalled: true, majorVersion: Int(major), minorVersion: Int(minor), hotfixVersion: Int(hotfix), text: nil)
+        return VersionInformantion(false, false, false, false, false)
+    }
     fun getCapabilities(): CapabilitiesDTO {
         val capability: Pointer = Memory(1)
         val result = NativeLib.INSTANCE.LibSdkGetCapability(capability)

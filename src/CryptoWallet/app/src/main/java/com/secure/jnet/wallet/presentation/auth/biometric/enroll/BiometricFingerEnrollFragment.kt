@@ -49,17 +49,17 @@ class BiometricFingerEnrollFragment : Fragment(
             }
         }
 
-        observe(nfcViewModel.nfcShowProgress) {
-            binding.progressContainer.isVisible = it
-        }
+//        observe(nfcViewModel.nfcShowProgress) {
+//            binding.progressContainer.isVisible = it
+//        }
 
         observe(nfcViewModel.nfcBiometricProgress) {
             updateBiometricProgress(it)
         }
 
-        observe(nfcViewModel.nfcActionResult) {
-            viewModel.processNfcActionResult(it)
-        }
+//        observe(nfcViewModel.nfcActionResult) {
+//            viewModel.processNfcActionResult(it)
+//        }
 
         observe(viewModel.showNfcError) {
             showError(it)

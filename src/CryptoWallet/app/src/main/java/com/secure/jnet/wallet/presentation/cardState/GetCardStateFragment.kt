@@ -24,13 +24,6 @@ class GetCardStateFragment : Fragment(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        observe(nfcViewModel.nfcActionResult) {
-            viewModel.processNfcActionResult(it)
-        }
-
-        observe(viewModel.showNfcError) {
-            showError(it)
-        }
 
         observe(viewModel.showEnrollmentStatus) {
             showEnrollmentStatus(it)
