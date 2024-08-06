@@ -7,19 +7,25 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 
 import com.secure.jnet.wallet.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.airbnb.lottie.compose.LottieAnimation
@@ -27,6 +33,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -34,10 +41,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.data.nfc.NfcAction
+import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.fontFamily
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,12 +55,19 @@ fun VersionInfoScreen(
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
 ) {
+    val nfcAction = nfcViewModel.nfcAction.collectAsState().value
+    val nfcActionResult = nfcViewModel.nfcActionResult.collectAsState().value
+    val progress = nfcViewModel.nfcProgress.collectAsState().value
+    val sheetState = rememberModalBottomSheetState()
 
-    val versionInfo = nfcViewModel.versionInformation.collectAsState().value
-
-    LaunchedEffect(Unit) {
-        nfcViewModel.startNfcAction(NfcAction.GetVersionInformation)
+    LaunchedEffect(nfcAction) {
+        if (nfcAction is NfcAction.GetVersionInformation || nfcActionResult != null) {
+            sheetState.expand()
+        } else {
+            sheetState.hide()
+        }
     }
+    val versionInfo = nfcViewModel.versionInformation.collectAsState().value
 
     Scaffold(
         contentColor = Color.Black,
@@ -105,12 +121,16 @@ fun VersionInfoScreen(
                     "Verify Version" to ""
                 )
 
-            LazyColumn {
+            LazyColumn(Modifier.weight(1f)) {
                 info.forEach {
                     item {
                         Column() {
                             Text(
-                                modifier = Modifier.padding(start = 14.dp, top = 5.dp, bottom = 5.dp),
+                                modifier = Modifier.padding(
+                                    start = 14.dp,
+                                    top = 5.dp,
+                                    bottom = 5.dp
+                                ),
                                 text = it.key,
                                 fontFamily = fontFamily,
                                 color = Color.Gray
@@ -126,6 +146,95 @@ fun VersionInfoScreen(
                         }
                     }
                 }
+            }
+
+            Button(
+                modifier = Modifier
+                    .padding(start = 17.dp, end = 17.dp, bottom = 30.dp, top = 15.dp)
+                    .fillMaxWidth(),
+                onClick = {
+                    nfcViewModel.startNfcAction(NfcAction.GetVersionInformation)
+                }
+            ) {
+                Text("Scan for card")
+            }
+        }
+
+
+    }
+    ScanningStatusBottomSheet(
+        sheetState = sheetState,
+        nfcActionResult = nfcActionResult,
+        nfcAction = nfcAction,
+        progress = progress
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ScanningStatusBottomSheet(
+    sheetState: SheetState,
+    nfcActionResult: NfcActionResult?,
+    progress: Int?,
+    nfcAction: NfcAction?
+) {
+
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                scope.launch {
+                    sheetState.hide()
+                }
+            },
+            sheetState = sheetState,
+        ) {
+            if (progress != null || nfcAction != null) {
+                CircularProgressIndicator(color = Color.White)
+            } else {
+
+            }
+            if (nfcActionResult != null && nfcActionResult is NfcActionResult.VersionInformationResult) {
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                    text = "Reset Result",
+                    color = Color.White,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
+                )
+
+                val resultText = if (nfcActionResult != null) {
+                    "The reset was successful"
+                } else {
+                    "An error occurred. Please try again."
+                }
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
+                    text = resultText,
+                    color = Color.White,
+                    fontFamily = fontFamily
+                )
+
+            } else {
+
+                val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.GetVersionInformation) {
+                    "Scanning" to true
+                } else if (progress != null) {
+                    "Card found" to true
+                } else {
+                    "An error occurred. Please try again." to false
+                }
+
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                    text = statusText,
+                    color = Color.White,
+                    fontFamily = fontFamily,
+                    fontWeight = FontWeight.Bold,
+                )
             }
         }
     }

@@ -58,6 +58,7 @@ interface NativeLib : Library {
         nicknameLength: Int
     ): Int
 
+    fun LibSdkResetBiometrics(): Int
     fun LibSdkResetWallet(): Int
     fun LibSdkSelectWallet(): Int
     fun LibSdkGetAccounts(accountsNumber: Pointer, accountsInfo: Pointer): Int

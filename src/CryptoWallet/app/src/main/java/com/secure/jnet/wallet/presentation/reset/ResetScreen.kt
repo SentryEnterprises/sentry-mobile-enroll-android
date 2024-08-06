@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 
@@ -32,6 +33,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +44,11 @@ import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.util.fontFamily
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import com.secure.jnet.wallet.data.nfc.NfcActionResult
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +58,17 @@ fun ResetScreen(
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
 ) {
+
+    val nfcAction = nfcViewModel.nfcAction.collectAsState().value
+    val nfcActionResult = nfcViewModel.nfcActionResult.collectAsState().value
+    val progress = nfcViewModel.nfcProgress.collectAsState().value
+    val sheetState = rememberModalBottomSheetState()
+
+    LaunchedEffect(nfcAction) {
+        if (nfcAction is NfcAction.ResetBiometricData || nfcActionResult != null) {
+            sheetState.expand()
+        }
+    }
 
     Scaffold(
         contentColor = Color.Black,
@@ -108,10 +126,67 @@ fun ResetScreen(
                     .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
                     .fillMaxWidth(),
                 onClick = {
-
+                    nfcViewModel.startNfcAction(NfcAction.ResetBiometricData)
                 }
             ) {
                 Text("Reset Biometric Data")
+            }
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                scope.launch {
+                    sheetState.hide()
+                }
+            },
+            sheetState = sheetState,
+        ) {
+            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometricsResult) {
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                    text = "Reset Result",
+                    color = Color.White,
+                    fontFamily = fontFamily,
+                    fontWeight = Bold,
+                )
+
+                val resultText = if (nfcActionResult.isSuccess) {
+                    "The reset was successful, this card is no longer enrolled."
+                } else {
+                    "An error occurred. Please try again."
+                }
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
+                    text = resultText,
+                    color = Color.White,
+                    fontFamily = fontFamily
+                )
+
+            } else {
+
+                val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.ResetBiometricData) {
+                    "Scanning" to true
+                } else if (progress != null){
+                    "Card found" to true
+                } else {
+                    "Error" to false
+                }
+                if (isProgressing) {
+                    CircularProgressIndicator(color = Color.White)
+                }
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                    text = statusText,
+                    color = Color.White,
+                    fontFamily = fontFamily,
+                    fontWeight = Bold,
+                )
             }
         }
     }

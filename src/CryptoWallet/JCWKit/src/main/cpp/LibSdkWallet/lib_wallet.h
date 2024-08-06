@@ -42,6 +42,7 @@ int lib_wallet_set_address_index(uint16_t AddressIndex);
 int lib_wallet_set_chain_index(uint8_t ChainIndex);
 int lib_wallet_sign_hash( uint8_t* Hash, int len_hash, uint8_t* R, uint8_t* S, uint8_t* V);
 
+int lib_reset_biometrics(void);
 int lib_wallet_reset(void);
 int lib_wallet_select_wallet(void);
 

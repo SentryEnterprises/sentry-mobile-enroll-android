@@ -33,6 +33,12 @@ class JCWCardWallet (
         )
     }
 
+    override fun resetBiometricData(): NfcActionResult.ResetBiometricsResult {
+        jcwKit.initWalletSdk(callback)
+
+        return NfcActionResult.ResetBiometricsResult(jcwKit.resetBiometricData())
+
+    }
     override fun versionInformation(): NfcActionResult.VersionInformationResult {
         jcwKit.initWalletSdk(callback)
 

@@ -159,6 +159,11 @@ _Export_ int LibSdkResetWallet(void)
 	return lib_wallet_reset();
 }
 //----------------------------------------------------------------------------------------------------------------------
+_Export_ int LibSdkResetBiometrics(void)
+{
+	return lib_reset_biometrics();
+}
+//----------------------------------------------------------------------------------------------------------------------
 _Export_ int LibSdkSelectWallet(void)
 {	
 	if (ApduIsSecureChannel > 0)

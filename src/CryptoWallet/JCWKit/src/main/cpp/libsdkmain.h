@@ -41,6 +41,7 @@ _Export_ int LibSdkAccountGetChainIndex(uint8_t* ChainIndex);
 _Export_ int LibSdkAccountSetAddressIndex(uint16_t AddressIndex);
 _Export_ int LibSdkAccountSetChainIndex(uint8_t ChainIndex);
 _Export_ int LibSdkAccountSignHash(uint8_t* Hash, int len_hash, uint8_t* R, uint8_t* S, uint8_t* V);
+_Export_ int LibSdkResetBiometrics(void);
 _Export_ int LibSdkResetWallet(void);
 _Export_ int LibSdkSelectWallet(void);
 _Export_ int LibSdkWalletGetCVMStatus(uint8_t* CVM, uint8_t* WSSM);

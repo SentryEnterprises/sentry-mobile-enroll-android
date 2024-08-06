@@ -36,6 +36,10 @@ class NfcViewModel : ViewModel() {
     private val _versionInfo = MutableStateFlow<String>("")
     val versionInformation = _versionInfo.asStateFlow()
 
+    private val _nfcAction = MutableStateFlow<NfcAction?>(null)
+    val nfcAction = _nfcAction.asStateFlow()
+
+
     val showEnrollmentStatus = _nfcActionResult.map {
         if (it != null
             && it is NfcActionResult.EnrollmentStatusResult
@@ -75,7 +79,7 @@ class NfcViewModel : ViewModel() {
 
             0
         } catch (e: Exception) {
-            Timber.e(e)
+            Timber.e(e, "callback error")
             internalException = e
 
             1000
@@ -103,7 +107,6 @@ class NfcViewModel : ViewModel() {
         )
     }
 
-    private var nfcAction: NfcAction? = null
 
     @Volatile
     private var inProcess = false
@@ -113,7 +116,7 @@ class NfcViewModel : ViewModel() {
 
         this@NfcViewModel.tag = tag
 
-        nfcAction?.let {
+        nfcAction.value?.let {
             Timber.d("----> Starting Action $nfcAction")
             startCardExchange(it)
         } ?: Timber.d("----> Tag discovered but action was null")
@@ -122,7 +125,7 @@ class NfcViewModel : ViewModel() {
     fun startNfcAction(nfcAction: NfcAction) {
         Timber.d("----> startNfcAction() $nfcAction")
 
-        this@NfcViewModel.nfcAction = nfcAction
+        _nfcAction.value = nfcAction
 
         startCardExchange(nfcAction)
     }
@@ -152,32 +155,29 @@ class NfcViewModel : ViewModel() {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
 //                        sentrySdk.getEnrollmentStatus()
-                        jcwCardWallet.getEnrollmentStatus(nfcAction.pinCode).also {
-                            Timber.d("-----> getEnrollmentStatus = $it")
-                        }
+                        jcwCardWallet.getEnrollmentStatus(nfcAction.pinCode)
                     }
 
                     is NfcAction.BiometricEnrollment -> {
                         jcwCardWallet.enrollFinger { progress ->
                             _nfcBiometricProgress.postValue(progress)
-                        }.also {
-                            Timber.d("-----> enrollFinger = $it")
                         }
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        jcwCardWallet.verifyBiometric().also {
-                            Timber.d("-----> verifyBiometric = $it")
-                        }
+                        jcwCardWallet.verifyBiometric()
                     }
 
+                    is NfcAction.ResetBiometricData -> {
+                        jcwCardWallet.resetBiometricData()
+                    }
                     is NfcAction.GetVersionInformation -> {
                         jcwCardWallet.versionInformation().also {
-                            Timber.d("-----> version info = $it")
                             _versionInfo.value = it.version
                         }
                     }
                 }.let { nfcActionResult ->
+                    Timber.d("-----> $nfcAction = $nfcActionResult")
                     _nfcActionResult.value = nfcActionResult
                 }
 
@@ -203,8 +203,7 @@ class NfcViewModel : ViewModel() {
             } finally {
                 closeConnection()
 
-                this@NfcViewModel.nfcAction = null
-
+                _nfcAction.value = null
                 _nfcProgress.value = null
 
                 inProcess = false

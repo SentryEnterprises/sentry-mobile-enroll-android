@@ -901,6 +901,17 @@ int lib_wallet_sign_hash( uint8_t* Hash, int len_hash, uint8_t* R, uint8_t* S, u
 	return Ret;
 }
 //----------------------------------------------------------------------------------------------------------------------
+int lib_reset_biometrics(void)
+{
+    uint8_t apdu_reset_data[] = { 0xED, 0x57, 0xC1, 0x00, 0x01, 0x00};
+    int Ret;
+
+    apdu_out_len = 0;
+    Ret = apdu_secure_channel("", apdu_reset_data, sizeof(apdu_reset_data), apdu_out, &apdu_out_len);
+    if (Ret != 0) return _SDK_ERROR_EXCHANGE_;
+
+    return Ret;
+}
 int lib_wallet_reset(void)
 {
 	uint8_t apdu_reset_data[] = { 0x80, 0xB2, 0x00, 0x00, 0x00};

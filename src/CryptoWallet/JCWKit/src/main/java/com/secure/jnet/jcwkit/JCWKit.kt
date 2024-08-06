@@ -624,4 +624,7 @@ class JCWKit {
     }
 
 
+    fun resetBiometricData(): Boolean {
+        return NativeLib.INSTANCE.LibSdkResetWallet() == 0
+    }
 }

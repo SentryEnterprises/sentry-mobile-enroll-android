@@ -11,6 +11,8 @@ sealed class NfcAction {
 
     data object GetVersionInformation : NfcAction()
 
+    data object ResetBiometricData : NfcAction()
+
     data class GetEnrollmentStatus(val pinCode: String) : NfcAction()
 }
 
@@ -25,6 +27,10 @@ sealed class NfcActionResult {
 //    ) : NfcActionResult()
 
     data class BiometricEnrollmentResult(
+        val isSuccess: Boolean,
+    ) : NfcActionResult()
+
+    data class ResetBiometricsResult(
         val isSuccess: Boolean,
     ) : NfcActionResult()
 
