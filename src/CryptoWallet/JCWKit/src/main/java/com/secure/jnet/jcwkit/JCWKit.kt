@@ -52,13 +52,10 @@ class JCWKit {
         return WalletHelper.parseWalletVersionResult(pointer)
     }
 
-    fun getOSVersion(): CapabilitiesDTO {
-        val version: Pointer = Memory(4)
-        println("getOSVersion ${version.getByteArray(0,4).formatted()}")
+    fun getOSVersion(): String {
+        val version: Pointer = Memory(7)
+//        println("getOSVersion ${version.getByteArray(0,4).formatted()}")
         val result = NativeLib.INSTANCE.LibSdkGetOSVersion(version)
-
-        var n = 0
-        var p: Int = 8 + n
 
         println("getOSVersion ${version.getByteArray(0,4).formatted()}")
         println("getOSVersion $result")
@@ -77,7 +74,10 @@ class JCWKit {
 //        let hotfix = dataBuffer[p] - 0x30
 //
 //        let retVal = VersionInfo(isInstalled: true, majorVersion: Int(major), minorVersion: Int(minor), hotfixVersion: Int(hotfix), text: nil)
-        return VersionInformantion(false, false, false, false, false)
+
+        return "${version.getByteArray(1, 1)[0].toInt()}" +
+                ".${version.getByteArray(2, 1)[0].toInt()}" +
+                ".${version.getByteArray(3, 1)[0].toInt()}"
     }
     fun getCapabilities(): CapabilitiesDTO {
         val capability: Pointer = Memory(1)

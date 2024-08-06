@@ -33,6 +33,9 @@ class NfcViewModel : ViewModel() {
     private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
     val nfcActionResult = _nfcActionResult.asStateFlow()
 
+    private val _versionInfo = MutableStateFlow<String>("")
+    val versionInformation = _versionInfo.asStateFlow()
+
     val showEnrollmentStatus = _nfcActionResult.map {
         if (it != null
             && it is NfcActionResult.EnrollmentStatusResult
@@ -171,6 +174,7 @@ class NfcViewModel : ViewModel() {
                     is NfcAction.GetVersionInformation -> {
                         jcwCardWallet.versionInformation().also {
                             Timber.d("-----> version info = $it")
+                            _versionInfo.value = it.version
                         }
                     }
                 }.let { nfcActionResult ->

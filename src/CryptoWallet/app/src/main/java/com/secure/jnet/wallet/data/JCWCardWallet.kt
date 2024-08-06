@@ -34,11 +34,9 @@ class JCWCardWallet (
     }
 
     override fun versionInformation(): NfcActionResult.VersionInformationResult {
+        jcwKit.initWalletSdk(callback)
 
-
-        jcwKit.getOSVersion()
-
-        return NfcActionResult.VersionInformationResult(true)
+        return NfcActionResult.VersionInformationResult(jcwKit.getOSVersion())
     }
     override fun verifyBiometric(): NfcActionResult.VerifyBiometricResult {
         jcwKit.initWalletSdk(callback)

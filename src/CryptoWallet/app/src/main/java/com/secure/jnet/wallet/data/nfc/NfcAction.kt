@@ -33,7 +33,7 @@ sealed class NfcActionResult {
     ) : NfcActionResult()
 
     data class VersionInformationResult(
-        val isBiometricCorrect: Boolean,
+        val version: String,
     ) : NfcActionResult()
 
     data class EnrollmentStatusResult(
