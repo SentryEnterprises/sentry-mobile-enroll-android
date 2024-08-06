@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -24,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
+import com.secure.jnet.wallet.presentation.NAV_RESET
 import com.secure.jnet.wallet.presentation.NAV_VERSION_INFO
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.fontFamily
@@ -73,12 +75,18 @@ fun SettingsScreen(
                 color = Color.Gray
             )
             HorizontalDivider()
-            Text(
-                modifier = Modifier.padding(17.dp),
-                text = "Reset Biometric Data",
-                fontFamily = fontFamily,
-                color = Color.White
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable {
+                    onNavigate(NAV_RESET)
+                }
+            ) {
+                Text(
+                    modifier = Modifier.padding(17.dp),
+                    text = "Reset Biometric Data",
+                    fontFamily = fontFamily,
+                    color = Color.White
+                )
+            }
             HorizontalDivider()
 
             Spacer(modifier = Modifier.height(25.dp))
@@ -91,7 +99,7 @@ fun SettingsScreen(
             )
             HorizontalDivider()
             Row(
-                modifier = Modifier.clickable {
+                modifier = Modifier.fillMaxWidth().clickable {
                     onNavigate(NAV_VERSION_INFO)
                 }
             ) {
