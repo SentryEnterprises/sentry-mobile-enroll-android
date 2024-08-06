@@ -32,6 +32,7 @@ sealed class NfcActionResult {
 
     data class ResetBiometricsResult(
         val isSuccess: Boolean,
+        val code: Int,
     ) : NfcActionResult()
 
     data class VerifyBiometricResult(

@@ -34,13 +34,14 @@ class JCWCardWallet (
     }
 
     override fun resetBiometricData(): NfcActionResult.ResetBiometricsResult {
-        jcwKit.initWalletSdk(callback)
+        jcwKit.initEnrollSdk(PIN_BIOMETRIC,callback)
 
-        return NfcActionResult.ResetBiometricsResult(jcwKit.resetBiometricData())
+        val status = jcwKit.resetBiometricData()
+        return NfcActionResult.ResetBiometricsResult(status == 0, status)
 
     }
     override fun versionInformation(): NfcActionResult.VersionInformationResult {
-        jcwKit.initWalletSdk(callback)
+        jcwKit.initEnrollSdk(PIN_BIOMETRIC,callback)
 
         return NfcActionResult.VersionInformationResult(jcwKit.getOSVersion())
     }
