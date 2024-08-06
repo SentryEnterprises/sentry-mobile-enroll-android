@@ -157,7 +157,7 @@ fun ResetScreen(
                 val resultText = if (nfcActionResult.isSuccess) {
                     "The reset was successful, this card is no longer enrolled."
                 } else {
-                    "An error occurred. Please try again."
+                    "An error occurred. Please try again. (${nfcActionResult.code})"
                 }
 
                 Text(
