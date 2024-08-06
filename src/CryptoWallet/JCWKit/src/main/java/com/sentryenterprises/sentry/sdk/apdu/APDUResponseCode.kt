@@ -26,6 +26,7 @@ enum class APDUResponseCode(val value: Int) {
 
     /// Checking errors - wrong parameters
     NOT_ENOUGH_MEMORY(0x6A84),
+    APP_NOT_INSTALLED(0x6A82),
 
     /// Checking errors - wrong parameters
     WRONG_PARAMETERS(0x6B00),
