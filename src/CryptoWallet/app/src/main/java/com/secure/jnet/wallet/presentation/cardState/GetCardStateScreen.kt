@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,8 +37,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,7 +50,6 @@ import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.fontFamily
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,12 +60,7 @@ fun GetCardStateScreen(
     onNavigate: (String) -> Unit,
 ) {
 
-    val nfcProgress = nfcViewModel.nfcProgress.collectAsState().value
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val actionResult = nfcViewModel.nfcActionResult.collectAsState().value
-    val enrollmentStatus = nfcViewModel.showEnrollmentStatus.collectAsState(null).value
-    val action = nfcViewModel.nfcAction.collectAsState().value
-    val progress = nfcViewModel.nfcProgress.collectAsState().value
     val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
 
     LaunchedEffect(showStatus) {
@@ -136,76 +131,88 @@ fun GetCardStateScreen(
             }
         }
 
-        if (sheetState.isVisible) {
-            ModalBottomSheet(
-                onDismissRequest = {
-                    nfcViewModel.startNfcAction(null)
-                },
-                sheetState = sheetState,
-            ) {
-                if (nfcProgress != null) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(start = 17.dp),
-                        color = Color.White
-                    )
-                }
-                val (statusTitle, statusText) = when (showStatus) {
-                    ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
-                    is ShowStatus.Error -> "Scan Error" to showStatus.message
-                    is ShowStatus.Result -> {
-                        if (showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                            val (title, message) = if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
-                                "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
-                            } else {
-                                "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
-                            }
+        BottomSheetState(
+            sheetState = sheetState,
+            showStatus = showStatus,
+            onCancel = {
+                nfcViewModel.startNfcAction(null)
+            }
+        )
 
-                            title to message
-                        } else error("Unexpected state $showStatus")
-                    }
+    }
+}
 
-                    ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
-                    ShowStatus.Hidden -> "" to "" // Nothing
-                }
-
-                val okButtonText = when (showStatus) {
-                    ShowStatus.Hidden -> ""
-
-                    is ShowStatus.Result,
-                    is ShowStatus.Error -> "Ok"
-
-                    ShowStatus.CardFound,
-                    ShowStatus.Scanning -> "Cancel"
-                }
-
-
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
-                    text = statusTitle,
-                    fontSize = 23.sp,
-                    color = Color.LightGray,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Bold,
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BottomSheetState(
+    sheetState: SheetState,
+    showStatus: ShowStatus,
+    onCancel: () -> Unit,
+) {
+    if (sheetState.isVisible) {
+        ModalBottomSheet(
+            onDismissRequest = onCancel,
+            sheetState = sheetState,
+        ) {
+            if (showStatus is ShowStatus.Scanning) {
+                CircularProgressIndicator(
+                    modifier = Modifier.padding(start = 17.dp),
+                    color = Color.White
                 )
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
-                    text = statusText,
-                    color = Color.White,
-                    fontFamily = fontFamily,
-                    fontWeight = FontWeight.Normal,
-                )
-                Button(
-                    modifier = Modifier
-                        .padding(start = 17.dp, bottom = 25.dp, end = 17.dp)
-                        .fillMaxWidth(),
-                    onClick = {
-                        nfcViewModel.startNfcAction(null)
-                    }
-                ) {
-                    Text(okButtonText)
+            }
+            val (statusTitle, statusText) = when (showStatus) {
+                ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
+                is ShowStatus.Error -> "Scan Error" to showStatus.message
+                is ShowStatus.Result -> {
+                    if (showStatus.result is NfcActionResult.EnrollmentStatusResult) {
+                        val (title, message) = if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
+                            "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+                        } else {
+                            "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+                        }
+
+                        title to message
+                    } else error("Unexpected state $showStatus")
                 }
+
+                ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
+                ShowStatus.Hidden -> "" to "" // Nothing
             }
 
+            val okButtonText = when (showStatus) {
+                ShowStatus.Hidden -> "" // Nothing
+
+                is ShowStatus.Result,
+                is ShowStatus.Error -> "Ok"
+
+                ShowStatus.CardFound,
+                ShowStatus.Scanning -> "Cancel"
+            }
+
+
+            Text(
+                modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
+                text = statusTitle,
+                fontSize = 23.sp,
+                color = Color.LightGray,
+                fontFamily = fontFamily,
+                fontWeight = Bold,
+            )
+            Text(
+                modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
+                text = statusText,
+                color = Color.White,
+                fontFamily = fontFamily,
+                fontWeight = Normal,
+            )
+            Button(
+                modifier = Modifier
+                    .padding(start = 17.dp, bottom = 25.dp, end = 17.dp)
+                    .fillMaxWidth(),
+                onClick = onCancel
+            ) {
+                Text(okButtonText)
+            }
             Spacer(modifier = Modifier.height(50.dp))
         }
     }
