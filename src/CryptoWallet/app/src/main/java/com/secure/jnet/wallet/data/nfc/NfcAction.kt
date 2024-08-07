@@ -1,6 +1,7 @@
 package com.secure.jnet.wallet.data.nfc
 
 import com.secure.jnet.jcwkit.models.BiometricMode
+import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 
 sealed class NfcAction {
 //    data class VerifyPin(val pinCode: String) : NfcAction()
@@ -13,7 +14,9 @@ sealed class NfcAction {
 
     data object ResetBiometricData : NfcAction()
 
-    data class GetEnrollmentStatus(val pinCode: String) : NfcAction()
+    data class GetEnrollmentStatus(
+        val pinCode: String
+    ) : NfcAction()
 }
 
 sealed class NfcActionResult {

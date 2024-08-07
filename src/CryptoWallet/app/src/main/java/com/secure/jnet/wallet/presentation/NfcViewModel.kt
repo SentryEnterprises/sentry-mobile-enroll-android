@@ -17,10 +17,19 @@ import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import kotlin.Result
 import kotlin.concurrent.thread
+
+sealed class ShowStatus {
+    data object Hidden : ShowStatus()
+    data object Scanning : ShowStatus()
+    data object CardFound : ShowStatus()
+    data class Error(val message: String) : ShowStatus()
+    data class Result(val result: NfcActionResult) : ShowStatus()
+}
 
 class NfcViewModel : ViewModel() {
 
@@ -39,15 +48,33 @@ class NfcViewModel : ViewModel() {
     private val _nfcAction = MutableStateFlow<NfcAction?>(null)
     val nfcAction = _nfcAction.asStateFlow()
 
+    val showStatus = nfcAction.combine(nfcActionResult) { action, result ->
+        action to result
+    }.combine(nfcProgress) { (action, result), progress ->
+        if (action == null && result == null && progress == null) {
+            ShowStatus.Hidden
+        } else if (action != null && progress == null) {
+            ShowStatus.Scanning
+        } else if (action != null && progress != null) {
+            ShowStatus.CardFound
+        } else if (result != null && result is NfcActionResult.ErrorResult) {
+            ShowStatus.Error(result.error)
+        } else if (result != null) {
+            ShowStatus.Result(result)
+        } else {
+            error("action $action result $result progress $progress")
+        }
+    }
+
 
     val showEnrollmentStatus = _nfcActionResult.map {
         if (it != null
             && it is NfcActionResult.EnrollmentStatusResult
         ) {
             val (title, message) = if (it.biometricMode == BiometricMode.VERIFY_MODE) {
-                "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+                "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
             } else {
-                "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+                "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
             }
 
             title to message
@@ -122,9 +149,9 @@ class NfcViewModel : ViewModel() {
         } ?: Timber.d("----> Tag discovered but action was null")
     }
 
-    fun startNfcAction(nfcAction: NfcAction) {
+    fun startNfcAction(nfcAction: NfcAction?) {
         Timber.d("----> startNfcAction() $nfcAction")
-
+        _nfcActionResult.value = null
         _nfcAction.value = nfcAction
 
 //        startCardExchange(nfcAction)

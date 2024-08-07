@@ -13,7 +13,7 @@ class ErrorMessageHelper(
         }
 
         if (exception is TagLostException) {
-            return "Communication with the card was abruptly halted. Move the card away from the phone and try again.\n\n${exception.message}"
+            return "Communication with the card was interrupted or timed out. Move the card away from the phone and try again.\n\n${exception.message}"
         }
 
         if (exception is JCWIOException) {

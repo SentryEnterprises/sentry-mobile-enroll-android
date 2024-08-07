@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
 
         }
 
-        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+//        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
     }
 
     override fun onResume() {
