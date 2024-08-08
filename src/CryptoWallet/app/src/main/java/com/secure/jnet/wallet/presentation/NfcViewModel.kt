@@ -51,6 +51,7 @@ class NfcViewModel : ViewModel() {
     val showStatus = nfcAction.combine(nfcActionResult) { action, result ->
         action to result
     }.combine(nfcProgress) { (action, result), progress ->
+        val internalException = this.internalException
         if (action == null && result == null && progress == null) {
             ShowStatus.Hidden
         } else if (action != null && progress == null) {
@@ -58,11 +59,13 @@ class NfcViewModel : ViewModel() {
         } else if (action != null && progress != null) {
             ShowStatus.CardFound
         } else if (result != null && result is NfcActionResult.ErrorResult) {
-            ShowStatus.Error(result.error)
+            ShowStatus.Error(internalException?.message ?:result.error)
         } else if (result != null) {
             ShowStatus.Result(result)
+        } else if (internalException != null) {
+            ShowStatus.Error(internalException.message ?: "Unknown error")
         } else {
-            error("action $action result $result progress $progress")
+            ShowStatus.Error("Unknown error, likely due to incorrect placement.")
         }
     }
 
@@ -108,6 +111,7 @@ class NfcViewModel : ViewModel() {
         } catch (e: Exception) {
             Timber.e(e, "callback error")
             internalException = e
+            throw e
 
             1000
         }
@@ -151,6 +155,7 @@ class NfcViewModel : ViewModel() {
 
     fun startNfcAction(nfcAction: NfcAction?) {
         Timber.d("----> startNfcAction() $nfcAction")
+        _nfcProgress.value = null
         _nfcActionResult.value = null
         _nfcAction.value = nfcAction
 

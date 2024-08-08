@@ -1,5 +1,6 @@
 package com.secure.jnet.wallet.presentation.cardState
 
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -11,14 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import com.secure.jnet.wallet.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -30,6 +35,10 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,18 +46,19 @@ import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.NAV_ENROLL
+import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_LOCK
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
-import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
+import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GetCardStateScreen(
+fun EnrollScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
@@ -76,29 +86,37 @@ fun GetCardStateScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Get Enrollment Status", fontFamily = fontFamily)
+                    Text("Fingerprint scan", fontFamily = fontFamily)
                 },
-                actions = {
-                    IconButton(onClick = { onNavigate(NAV_SETTINGS) }) {
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            onNavigate(NAV_GET_CARD_STATE)
+                        },
+                    ) {
                         Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = "Settings"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
             )
         }
     ) { paddingInsets ->
         Column(
             modifier = Modifier
                 .padding(paddingInsets)
-                .padding(top = 150.dp)
+                .padding(top = 50.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
             LottieAnimation(composition)
 
+            Image(
+                contentDescription = "step 1",
+                imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
+            )
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
                 color = Color.White,
@@ -118,14 +136,14 @@ fun GetCardStateScreen(
                     .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+                    nfcViewModel.startNfcAction(NfcAction.BiometricEnrollment)
                 }
             ) {
-                Text("Scan Card")
+                Text("Scan Fingerprint")
             }
         }
 
-        ScanStatusBottomSheet(
+        ScanStatusBottomSheet (
             sheetState = sheetState,
             showStatus = showStatus,
             onButtonClicked = {

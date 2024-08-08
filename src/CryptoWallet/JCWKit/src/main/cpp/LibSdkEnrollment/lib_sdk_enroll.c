@@ -95,6 +95,38 @@ int lib_enroll_select(void)
 	return Ret;
 }
 //----------------------------------------------------------------------------------------------------------------------
+int lib_verify_select(void)
+{
+	int Ret = _SDK_SUCCESS_;
+	//uint8_t apdu_sel[] = { 0x00, 0xA4, 0x04, 0x00, 0x00};
+	uint8_t apdu_select[] = { 0x00, 0xA4, 0x04, 0x00, 0x0A, 0x4A, 0x4E, 0x45, 0x54, 0x5F, 0x01, 0x02, 0x03, 0x04, 0x05, 0x00 };
+	apdu_enroll_out_len = 0;
+	//int Ret = apdu_secure_channel(apdu_sel, sizeof(apdu_sel), apdu_enroll_out, &apdu_enroll_out_len);
+	//if (Ret != 0) return Ret;
+
+	Ret = apdu_secure_channel("== Verify Select", apdu_select, sizeof(apdu_select), apdu_enroll_out, &apdu_enroll_out_len);
+	//Ret = lib_check_sw_err(apdu_enroll_out, apdu_enroll_out_len);
+
+   // uint16_t SW = lib_get_sw(apdu_enroll_out, apdu_enroll_out_len);
+
+	//if (SW != 0x9000)
+    if (Ret != _SDK_SUCCESS_)
+	{
+		Ret = apdu_secure_channel("== Verify Select", apdu_select, sizeof(apdu_select), apdu_enroll_out, &apdu_enroll_out_len);
+	}
+//	if (Ret != 0) return Ret;// _SDK_ERROR_EXCHANGE_;
+//
+//    //Ret = lib_check_sw_err(apdu_enroll_out, apdu_enroll_out_len);
+//	//if (Ret != 0) return Ret;
+//    SW = lib_get_sw(apdu_enroll_out, apdu_enroll_out_len);
+//    if (SW != 0x9000)
+//    {
+//        return SW;
+//    }
+
+	return Ret;
+}
+//----------------------------------------------------------------------------------------------------------------------
 int lib_enroll_verify_pin(uint8_t* pin, int len)
 {
 	int p = 5, Ret;
@@ -141,6 +173,39 @@ int lib_enroll_verify_pin(uint8_t* pin, int len)
 int lib_enroll_init(int SecureChannel, uint8_t* pin, int len)
 {
 	int ret = lib_enroll_select();
+	if (ret != 0) return ret;
+
+	if (SecureChannel > 0)
+	{
+		ret = lib_secure_channel_init();
+		//if (ret != 0) return ret;
+
+		if (ret == _SDK_SUCCESS_)
+		{
+			ApduIsSecureChannel = SecureChannel;
+		}
+        else
+        {
+            return ret;
+        }
+	}
+
+	ret = lib_enroll_verify_pin(pin, len);
+//	if (ret == -50)
+//	{
+//		return _SDK_ERROR_CRITICAL_;
+//	}
+	Max_num_fingers = 0;
+	Enrolled_touches = 0;
+	Remaining_touches = 0;
+	Biometric_mode = 0xff;
+
+	return ret;
+}
+//----------------------------------------------------------------------------------------------------------------------
+int lib_verify_init(int SecureChannel, uint8_t* pin, int len)
+{
+	int ret = lib_verify_select();
 	if (ret != 0) return ret;
 
 	if (SecureChannel > 0)
@@ -270,6 +335,26 @@ int lib_enroll_verify(void)
 		uint8_t apdu_verify[] = { 0x80, 0x59, 0x00, 0x00, 0x01, 0x00 };
 		apdu_enroll_out_len = 0;
 		Ret = apdu_secure_channel("== Enroll Verify", apdu_verify, sizeof(apdu_verify), apdu_enroll_out, &apdu_enroll_out_len);
+		if (Ret != 0) return Ret;
+		Ret = lib_enroll_check_sw(apdu_enroll_out, apdu_enroll_out_len);
+		if (Ret == 0) break;
+		if (Ret == 1) continue;
+		return -Ret;
+	} while (1);
+
+	return Ret;
+}
+//----------------------------------------------------------------------------------------------------------------------
+int lib_verify_fingerprint(void)
+{
+	int Ret=0;
+	do
+	{
+		uint8_t apdu_verify[] = { 0x80, 0xB6, 0x01, 0x00, 0x00 };
+		apdu_enroll_out_len = 0;
+		Ret = apdu_secure_channel("== Verify Fingerprint", apdu_verify, sizeof(apdu_verify), apdu_enroll_out, &apdu_enroll_out_len);
+
+        syslog(LOG_CRIT, "lib_verify_fingerprint (%s)", apdu_enroll_out);
 		if (Ret != 0) return Ret;
 		Ret = lib_enroll_check_sw(apdu_enroll_out, apdu_enroll_out_len);
 		if (Ret == 0) break;

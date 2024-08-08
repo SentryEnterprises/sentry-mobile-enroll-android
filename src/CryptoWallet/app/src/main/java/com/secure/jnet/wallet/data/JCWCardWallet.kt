@@ -46,13 +46,13 @@ class JCWCardWallet (
         return NfcActionResult.VersionInformationResult(jcwKit.getOSVersion())
     }
     override fun verifyBiometric(): NfcActionResult.VerifyBiometricResult {
-        jcwKit.initWalletSdk(callback)
+        jcwKit.initVerifySdk(PIN_BIOMETRIC,callback)
 
-        val walletVerifyCVM = jcwKit.walletVerifyCVM()
+        val fingerprintVerification = jcwKit.verifyFingerprint()
 
-        jcwKit.deinitWalletSdk()
+//        jcwKit.deinitWalletSdk()
 
-        return NfcActionResult.VerifyBiometricResult(walletVerifyCVM.fingerVerified)
+        return NfcActionResult.VerifyBiometricResult(false)
     }
 
     override fun enrollFinger(

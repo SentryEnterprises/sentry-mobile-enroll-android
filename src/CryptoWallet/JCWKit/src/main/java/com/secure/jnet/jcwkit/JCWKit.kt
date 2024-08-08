@@ -328,6 +328,23 @@ class JCWKit {
     /**
      * Biometric
      */
+    fun initVerifySdk(pinCode: String, callBack: SmartCardApduCallback) {
+        val pinArray: IntArray = pinCode
+            .map { it.digitToInt() }
+            .toIntArray()
+
+        val pinPointer: Pointer = Memory(pinArray.size.toLong()).apply {
+            pinArray.forEachIndexed { index, i ->
+                setByte(index.toLong(), i.toByte())
+            }
+        }
+        val result = NativeLib.INSTANCE.LibSdkEnrollInit(
+            1,
+            pinPointer,
+            pinArray.size,
+            callBack
+        )
+    }
     fun initEnrollSdk(pinCode: String, callBack: SmartCardApduCallback) {
         val pinArray: IntArray = pinCode
             .map { it.digitToInt() }
@@ -457,6 +474,10 @@ class JCWKit {
             remainingTouches.getByte(0).toInt(),
             biometricMode.getByte(0).toInt().mapToBiometricMode(),
         )
+    }
+
+    fun verifyFingerprint() {
+        NativeLib.INSTANCE.LibVerifyFingerprint()
     }
 
     fun verifyEnroll() {

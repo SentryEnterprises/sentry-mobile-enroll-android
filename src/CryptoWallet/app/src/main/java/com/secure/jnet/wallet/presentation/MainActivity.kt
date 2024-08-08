@@ -21,6 +21,8 @@ import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.secure.jnet.wallet.presentation.cardState.EnrollScreen
+import com.secure.jnet.wallet.presentation.cardState.LockScreen
 import com.secure.jnet.wallet.presentation.reset.ResetScreen
 import com.secure.jnet.wallet.presentation.settings.SettingsScreen
 import com.secure.jnet.wallet.presentation.settings.VersionInfoScreen
@@ -29,6 +31,8 @@ const val NAV_GET_CARD_STATE = "Main"
 const val NAV_SETTINGS = "Settings"
 const val NAV_VERSION_INFO = "VersionInfo"
 const val NAV_RESET = "Reset"
+const val NAV_ENROLL = "Enroll"
+const val NAV_LOCK = "Lock"
 
 class MainActivity : ComponentActivity() {
 
@@ -71,6 +75,16 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(NAV_VERSION_INFO) {
                         VersionInfoScreen(
+                            nfcViewModel = nfcViewModel,
+                            onNavigate = { navController.navigate(it) })
+                    }
+                    composable(NAV_LOCK) {
+                        LockScreen(
+                            nfcViewModel = nfcViewModel,
+                            onNavigate = { navController.navigate(it) })
+                    }
+                    composable(NAV_ENROLL) {
+                        EnrollScreen(
                             nfcViewModel = nfcViewModel,
                             onNavigate = { navController.navigate(it) })
                     }

@@ -80,6 +80,12 @@ interface NativeLib : Library {
         addressLength: IntByReference,
     ): Int
 
+    fun LibSdkVerifyInit(
+        secureChannel: Int,
+        pin: Pointer,
+        pinLength: Int,
+        callback: SmartCardApduCallback
+    ): Int
     /**
      * Biometric
      */
@@ -112,6 +118,8 @@ interface NativeLib : Library {
         remainingTouches: Pointer,
         biometricMode: Pointer
     ): Int
+
+    fun LibVerifyFingerprint(): Int
 
     fun LibSdkEnrollVerify(): Int
 

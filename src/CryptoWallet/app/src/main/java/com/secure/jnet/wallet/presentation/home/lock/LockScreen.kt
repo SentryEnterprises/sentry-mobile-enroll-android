@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,18 +38,19 @@ import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.NAV_ENROLL
+import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_LOCK
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
-import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
+import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GetCardStateScreen(
+fun LockScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
@@ -75,17 +77,21 @@ fun GetCardStateScreen(
         modifier = Modifier.background(Color.Black),
         topBar = {
             TopAppBar(
-                title = {
-                    Text("Get Enrollment Status", fontFamily = fontFamily)
-                },
-                actions = {
-                    IconButton(onClick = { onNavigate(NAV_SETTINGS) }) {
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            onNavigate(NAV_GET_CARD_STATE)
+                        },
+                    ) {
                         Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = "Settings"
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
                         )
                     }
-                }
+                },
+                title = {
+                    Text("Verify Fingerprint", fontFamily = fontFamily)
+                },
             )
         }
     ) { paddingInsets ->
@@ -118,10 +124,10 @@ fun GetCardStateScreen(
                     .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
                     .fillMaxWidth(),
                 onClick = {
-                    nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+                    nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
                 }
             ) {
-                Text("Scan Card")
+                Text("Verify Fingerprint")
             }
         }
 
@@ -129,15 +135,6 @@ fun GetCardStateScreen(
             sheetState = sheetState,
             showStatus = showStatus,
             onButtonClicked = {
-
-                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                    if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
-                        onNavigate(NAV_LOCK)
-                    } else {
-                        onNavigate(NAV_ENROLL)
-                    }
-
-                }
                 nfcViewModel.startNfcAction(null)
             },
             onDismiss = {

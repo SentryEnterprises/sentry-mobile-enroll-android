@@ -203,6 +203,17 @@ _Export_ int LibSdkEnrollInit(int SecureChannel, uint8_t* pin, int len, SmartCar
 	return Ret;
 }
 //----------------------------------------------------------------------------------------------------------------------
+_Export_ int LibSdkVerifyInit(int SecureChannel, uint8_t* pin, int len, SmartCardApduCallBack callback)
+{
+	int Ret;
+	ApduIsSecureChannel = 0;
+	pSmartCardApduCallBack = callback;
+	if (callback == NULL) return -1;
+	lib_wallet_deinit();
+	Ret = lib_verify_init(SecureChannel, pin, len);
+	return Ret;
+}
+//----------------------------------------------------------------------------------------------------------------------
 _Export_ int LibSdkEnrollDeinit(void)
 {
 	ApduIsSecureChannel = 0;
@@ -235,6 +246,13 @@ _Export_ int LibSdkEnrollVerify(void)
 {
 	int Ret;
 	Ret = lib_enroll_verify();
+	return Ret;
+}
+//----------------------------------------------------------------------------------------------------------------------
+_Export_ int LibVerifyFingerprint(void)
+{
+	int Ret;
+	Ret = lib_verify_fingerprint();
 	return Ret;
 }
 //----------------------------------------------------------------------------------------------------------------------

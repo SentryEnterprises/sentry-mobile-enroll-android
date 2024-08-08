@@ -56,6 +56,8 @@ _Export_ int LibSdkEnrollProcess(int num_finger, uint8_t* enrolled_touches, uint
 _Export_ int LibSdkEnrollReprocess(int num_finger, uint8_t* enrolled_touches, uint8_t* remaining_touches, uint8_t* biometric_mode);
 _Export_ int LibSdkEnrollVerify(void);
 
+_Export_ int LibVerifyFingerprint(void);
+
 //------------------------------------------------------------------------------------
 // HASH
 _Export_ int LibSdkPublicKeyDecompress(uint8_t* compress_pub, uint8_t* decompress_pub);
