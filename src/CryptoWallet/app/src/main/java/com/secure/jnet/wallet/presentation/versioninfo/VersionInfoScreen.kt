@@ -78,6 +78,7 @@ fun VersionInfoScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
+                            nfcViewModel.startNfcAction(null)
                             onNavigate(NAV_SETTINGS)
                         },
                     ) {
