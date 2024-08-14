@@ -30,7 +30,7 @@ sealed class NfcActionResult {
 //    ) : NfcActionResult()
 
     data class BiometricEnrollmentResult(
-        val isSuccess: Boolean,
+        val isStatusEnrollment: Boolean,
     ) : NfcActionResult()
 
     data class ResetBiometricsResult(

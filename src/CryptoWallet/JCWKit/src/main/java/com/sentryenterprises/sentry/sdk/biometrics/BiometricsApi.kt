@@ -3,10 +3,10 @@ package com.sentryenterprises.sentry.sdk.biometrics
 
 import com.secure.jnet.jcwkit.NativeLib
 import com.secure.jnet.jcwkit.utils.formatted
-import com.secure.jnet.jcwkit.utils.intToByteArray
 import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
+import com.sentryenterprises.sentry.sdk.biometrics.SUCCESS
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
@@ -15,6 +15,8 @@ import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import com.sentryenterprises.sentry.sdk.utils.asPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
+import java.nio.ByteBuffer
+import kotlin.Int
 import kotlin.collections.indices
 
 
@@ -37,10 +39,10 @@ internal class BiometricsApi(
 ) {
 
     // Note - This is reset when selecting a new applet (i.e. after initing the secure channel)
-    private var encryptionCounter: ByteArray = byteArrayOf()
+    private var encryptionCounter: ByteArray = ByteArray(16) { 0 }
 
     // Note - this changes with every wrap, and resets when initing secure channel
-    private var chainingValue: ByteArray = byteArrayOf()
+    private var chainingValue: ByteArray = ByteArray(16) { 0 }
 
 
     private var privateKey: ByteArray = byteArrayOf()
@@ -65,6 +67,9 @@ internal class BiometricsApi(
         chainingValue: ByteArray,
         encryptionCounter: ByteArray
     ): WrapAPDUCommandResponse {
+
+        println("calcSecretKeys encryptionCounter ${encryptionCounter.formatted()} ")
+
         val command = apduCommand.asPointer()
         val wrappedCommand = Memory(300)
         val enc = keyEnc.asPointer()
@@ -84,6 +89,7 @@ internal class BiometricsApi(
             counter
         )
 
+
         if (response != SUCCESS) {
             if (response == ERROR_KEYGENERATION) {
                 throw SentrySDKError.KeyGenerationError
@@ -96,10 +102,13 @@ internal class BiometricsApi(
             error("Unknown return value $response")
         }
 
+        counter.getByteArray(0, 16).copyInto(encryptionCounter)
+        chaining.getByteArray(0, 16).copyInto(chainingValue)
+
         return WrapAPDUCommandResponse(
             encryptionCounter = counter.getByteArray(0, encryptionCounter.size),
             chainingValue = chaining.getByteArray(0, chainingValue.size),
-            wrapped = wrappedCommand.getByteArray(0, wrappedLength.getInt(0))
+            wrapped = wrappedCommand.getByteArray(0, wrappedLength.getByte(0).toInt())
         )
     }
 
@@ -117,14 +126,14 @@ internal class BiometricsApi(
 
      */
     fun getEnrollmentStatus(tag: NfcIso7816Tag): BiometricEnrollmentStatus {
-        var debugOutput = "----- BiometricsAPI Get Enrollment Status\n"
+        println("----- BiometricsAPI Get Enrollment Status")
         var dataArray: ByteArray = byteArrayOf()
 
 //        defer {
 //            if isDebugOutputVerbose { print(debugOutput) }
 //        }
 
-        debugOutput += "     Getting enrollment status\n"
+        println("     Getting enrollment status")
 
         if (useSecureChannel) {
             val enrollStatusCommand = wrapAPDUCommand(
@@ -135,7 +144,11 @@ internal class BiometricsApi(
                 encryptionCounter = encryptionCounter
             )
             val returnData =
-                send(apduCommand = enrollStatusCommand.wrapped, name = "Get Enroll Status", tag = tag)
+                send(
+                    apduCommand = enrollStatusCommand.wrapped,
+                    name = "Get Enroll Status",
+                    tag = tag
+                )
 
             if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
                 throw SentrySDKError.ApduCommandError(returnData.statusWord)
@@ -167,10 +180,12 @@ internal class BiometricsApi(
         val remainingTouches = dataArray[33]
         val mode = dataArray[39]
 
-        debugOutput += "     # Fingers: $maxNumberOfFingers\n" +
-                "     Enrolled Touches: $enrolledTouches\n" +
-                "     Remaining Touches: $remainingTouches\n" +
-                "     Mode: $mode\n"
+        println(
+            "     # Fingers: $maxNumberOfFingers\n" +
+            "     Enrolled Touches: $enrolledTouches\n" +
+            "     Remaining Touches: $remainingTouches\n" +
+            "     Mode: $mode\n"
+        )
         val biometricMode: BiometricMode = if (mode == 0.toByte()) {
             BiometricMode.Enrollment
         } else {
@@ -178,7 +193,7 @@ internal class BiometricsApi(
         }
 
 
-        debugOutput += "------------------------------\n"
+        println("-----------------------------")
 
         return BiometricEnrollmentStatus(
             maximumFingers = maxNumberOfFingers,
@@ -189,7 +204,9 @@ internal class BiometricsApi(
     }
 
 
-    /// Decodes an APDU command response.
+    /**
+     * Decodes an APDU command response.
+     */
     private fun unwrapAPDUResponse(
         response: ByteArray,
         statusWord: Int,
@@ -204,61 +221,36 @@ internal class BiometricsApi(
             setByte(response.size + 1L, (statusWord and 0x00FF).toByte())
         }
 
+        println("unwrapAPDUResponse response ${response.formatted()}")
+        println("unwrapAPDUResponse responseData ${responseData.getByteArray(0,response.size+2).formatted()}")
+
         val unwrappedResponse = Memory(300)
-
-        val enc = keyENC.asPointer()
-        val rmac = keyRMAC.asPointer()
-        val chaining = chainingValue.asPointer()
-        val encryption = encryptionCounter.asPointer()
-
-//        val chaining = UnsafeMutablePointer<UInt8>.allocate(capacity: chainingValue.count)
-//        val counter = UnsafeMutablePointer<UInt8>.allocate(capacity: encryptionCounter.count)
         val unwrappedLength = Memory(1)
 
-//        defer {
-//            responseData.deallocate()
-//            unwrappedResponse.deallocate()
-//            ENC.deallocate()
-//            RMAC.deallocate()
-//            chaining.deallocate()
-//            counter.deallocate()
-//            unwrappedLength.deallocate()
-//        }
-
-//        for i in 0..<response.count {
-//            responseData.advanced(by: i).pointee = response[i]
-//        }
-//        responseData.
-
         val response = NativeLib.INSTANCE.LibAuthUnwrap(
-            responseData,
-            response.size + 2,
-            unwrappedResponse,
-            unwrappedLength,
-            enc,
-            rmac,
-            chaining,
-            encryption
+            apdu_in = responseData,
+            in_len = response.size + 2,
+            apdu_out = unwrappedResponse,
+            out_len = unwrappedLength,
+            key_enc = keyENC.asPointer(),
+            key_rmac = keyRMAC.asPointer(),
+            chaining_value = chainingValue.asPointer(),
+            encryption_counter = encryptionCounter.asPointer()
         )
 
-//        if (response != SUCCESS) {
-//            if (response == ERROR_KEYGENERATION) {
-//                throw SentrySDKError.keyGenerationError
-//            }
-//            if (response == ERROR_SHAREDSECRETEXTRACTION) {
-//                throw SentrySDKError.sharedSecretExtractionError
-//            }
-//
-//            // TODO: Fix once we've converted security to pure Swift
-//            error( "Unknown return value $response")
-//        }
-//
-//        var result: ByteArray = []
-//        for i in 0..<unwrappedLength.pointee {
-//            result.append(unwrappedResponse.advanced(by: Int(i)).pointee)
-//        }
+        if (response != SUCCESS) {
+            if (response == ERROR_KEYGENERATION) {
+                throw SentrySDKError.KeyGenerationError
+            }
+            if (response == ERROR_SHAREDSECRETEXTRACTION) {
+                throw SentrySDKError.SharedSecretExtractionError
+            }
 
-        return byteArrayOf() // result
+            // TODO: Fix once we've converted security to pure Swift
+            error( "Unknown return value $response")
+        }
+
+        return unwrappedResponse.getByteArray(0,unwrappedLength.getByte(0).toInt())
     }
 
     /**
@@ -337,26 +329,15 @@ internal class BiometricsApi(
     // Note: We may need to call this and calcSecretKeys each time a new applet is selected!
 
     /// Initializes secure communication.
+    @OptIn(ExperimentalStdlibApi::class)
     private fun getAuthInitCommand(): AuthInitData {
-//        let apduCommand = UnsafeMutablePointer<Byte>.allocate(capacity: 100)
-//        let apduCommandLen = UnsafeMutablePointer<Int32>.allocate(capacity: 1)
-//        let privateKey = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
-//        let publicKey = UnsafeMutablePointer<UInt8>.allocate(capacity: 64)
-//        let secretShses = UnsafeMutablePointer<UInt8>.allocate(capacity: 32)
-//        defer {
-//            apduCommand.deallocate()
-//            apduCommandLen.deallocate()
-//            privateKey.deallocate()
-//            publicKey.deallocate()
-//            secretShses.deallocate()
-//        }
-
-//        val response = LibSecureChannelInit(apduCommand,apduCommandLen, privateKey, publicKey, secretShses)
         val apduCommand: Pointer = Memory(100)
-        val apduCommandLen: Int = 0
+        val apduCommandLen: Pointer = Memory(1)
         val privateKey: Pointer = Memory(32)
         val publicKey: Pointer = Memory(64)
         val secretShses: Pointer = Memory(32)
+
+        println("LibSecureChannelInit")
 
         val response = NativeLib.INSTANCE.LibSecureChannelInit(
             apduCommand,
@@ -365,144 +346,74 @@ internal class BiometricsApi(
             publicKey,
             secretShses
         )
-//        if response != SUCCESS {
-//            if response == ERROR_KEYGENERATION {
-//                throw SentrySDKError.keyGenerationError
-//            }
-//            if response == ERROR_SHAREDSECRETEXTRACTION {
-//                throw SentrySDKError.sharedSecretExtractionError
-//            }
-//
-//            // TODO: Fix once we've converted security to pure Swift
-//            throw NSError(domain: "Unknown return value", code: -1)
-//        }
+        if (response != SUCCESS) {
+            if (response == ERROR_KEYGENERATION) {
+                throw SentrySDKError.KeyGenerationError
+            }
+            if (response == ERROR_SHAREDSECRETEXTRACTION) {
+                throw SentrySDKError.SharedSecretExtractionError
+            }
 
-        var command: ByteArray = byteArrayOf()
-        var privKey: ByteArray = byteArrayOf()
-        var pubKey: ByteArray = byteArrayOf()
-        var sharedSecret: ByteArray = byteArrayOf()
-
-//        for i in 0..<apduCommandLen.pointee {
-//            command.append(apduCommand.advanced(by: Int(i)).pointee)
-//        }
-//
-//        for i in 0..<32 {
-//            privKey.append(privateKey.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<64 {
-//            pubKey.append(publicKey.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<32 {
-//            sharedSecret.append(secretShses.advanced(by: i).pointee)
-//        }
+            // TODO: Fix once we've converted security to pure Swift
+            error("Unknown return value $response")
+        }
 
         return AuthInitData(
-            apduCommand = command,
-            privateKey = privKey,
-            publicKey = pubKey,
-            sharedSecret = sharedSecret
+            apduCommand = apduCommand.getByteArray(0, apduCommandLen.getByte(0).toInt()),
+            privateKey = privateKey.getByteArray(0, 32),
+            publicKey = publicKey.getByteArray(0, 64),
+            sharedSecret = secretShses.getByteArray(0, 32),
         )
     }
 
     /// Calculates secret keys.
+    @OptIn(ExperimentalStdlibApi::class)
     private fun calcSecretKeys(
         receivedPubKey: ByteArray,
         sharedSecret: ByteArray,
         privateKey: ByteArray
     ): Keys {
-        val pubKey =
-            Memory(receivedPubKey.size.toLong())//UnsafeMutablePointer<UInt8>.allocate(capacity: receivedPubKey.count)
-        val shses =
-            Memory(sharedSecret.size.toLong())//UnsafeMutablePointer<UInt8>.allocate(capacity: sharedSecret.count)
-        val privatekey =
-            Memory(privateKey.size.toLong())//UnsafeMutablePointer<UInt8>.allocate(capacity: privateKey.count)
+
         val keyRespt = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         val keyENC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         val keyCMAC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         val keyRMAC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
         val chaining = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
 
-//        defer {
-//            pubKey.deallocate()
-//            shses.deallocate()
-//            privatekey.deallocate()
-//            keyRespt.deallocate()
-//            keyENC.deallocate()
-//            keyCMAC.deallocate()
-//            keyRMAC.deallocate()
-//            chaining.deallocate()
-//        }
-
-        for (i in receivedPubKey.indices) {
-            pubKey.setInt(i.toLong(), receivedPubKey[i].toInt())
-        }
-
-        for (i in sharedSecret.indices) {
-            shses.setInt(i.toLong(), sharedSecret[i].toInt())
-        }
-
-        for (i in privateKey.indices) {
-            privatekey.setInt(i.toLong(), privateKey[i].toInt())
-        }
-
 
         val response = NativeLib.INSTANCE.LibCalcSecretKeys(
-            pubKey,
-            shses,
-            privatekey,
-            keyRespt,
-            keyENC,
-            keyCMAC,
-            keyRMAC,
-            chaining
+            pubKey = receivedPubKey.asPointer(),
+            shses = sharedSecret.asPointer(),
+            privatekey = privateKey.asPointer(),
+            keyRespt = keyRespt,
+            keyENC = keyENC,
+            keyCMAC = keyCMAC,
+            keyRMAC = keyRMAC,
+            chaining = chaining
         )
 
-//        if response != SUCCESS {
-//            if response == ERROR_KEYGENERATION {
-//                throw SentrySDKError.keyGenerationError
-//            }
-//            if response == ERROR_SHAREDSECRETEXTRACTION {
-//                throw SentrySDKError.sharedSecretExtractionError
-//            }
-//
-//            // TODO: Fix once we've converted security to pure Swift
-//            throw NSError(domain: "Unknown return value", code: -1)
-//        }
+        if (response != SUCCESS) {
+            if (response == ERROR_KEYGENERATION) {
+                throw SentrySDKError.KeyGenerationError
+            }
+            if (response == ERROR_SHAREDSECRETEXTRACTION) {
+                throw SentrySDKError.SharedSecretExtractionError
+            }
 
-        var respt: ByteArray = byteArrayOf()
-        var enc: ByteArray = byteArrayOf()
-        var cmac: ByteArray = byteArrayOf()
-        var rmac: ByteArray = byteArrayOf()
-        var chainVal: ByteArray = byteArrayOf()
+            // TODO: Fix once we've converted security to pure Swift
+            error("Unknown return value ${response.toByte().toHexString()}")
+        }
 
-//        for i in 0..<16 {
-//            respt.append(keyRespt.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<16 {
-//            enc.append(keyENC.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<16 {
-//            cmac.append(keyCMAC.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<16 {
-//            rmac.append(keyRMAC.advanced(by: i).pointee)
-//        }
-//
-//        for i in 0..<16 {
-//            chainVal.append(chaining.advanced(by: i).pointee)
-//        }
+        println("calcSecretKeys ")
 
         return Keys(
-            keyRespt = respt,
-            keyENC = enc,
-            keyCMAC = cmac,
-            keyRMAC = rmac,
-            chainingValue = chainVal
+            keyRespt = keyRespt.getByteArray(0, 16),
+            keyENC = keyENC.getByteArray(0, 16).also {
+                println("keyEnc ${it.formatted()}")
+            },
+            keyCMAC = keyCMAC.getByteArray(0, 16),
+            keyRMAC = keyRMAC.getByteArray(0, 16),
+            chainingValue = chaining.getByteArray(0, 16)
         )
     }
 
@@ -544,11 +455,8 @@ internal class BiometricsApi(
         if (useSecureChannel) {
             debugOutput += "     Initializing Secure Channel\n"
 
-            encryptionCounter = byteArrayOf()
+            encryptionCounter = ByteArray(16) { 0 }
             chainingValue = byteArrayOf()
-            privateKey = byteArrayOf()
-            publicKey = byteArrayOf()
-            sharedSecret = byteArrayOf()
             keyRespt = byteArrayOf()
             keyENC = byteArrayOf()
             keyCMAC = byteArrayOf()
@@ -562,52 +470,35 @@ internal class BiometricsApi(
 
             val securityInitResponse =
                 sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
-            if (securityInitResponse.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-                val secretKeys = calcSecretKeys(
-                    receivedPubKey = securityInitResponse.data,
-                    sharedSecret = sharedSecret,
-                    privateKey = privateKey
-                )
-//                keyRespt = secretKeys.k
-            }
-//            do {
-//                val securityInitResponse = sendAndConfirm (apduCommand= authInfo.apduCommand, name= "Auth Init", tag = tag)
-//
-//                    if securityInitResponse.statusWord == APDUResponseCode.operationSuccessful.rawValue {
-//                        let secretKeys = try calcSecretKeys(receivedPubKey: securityInitResponse. data . toArrayOfBytes (), sharedSecret: sharedSecret, privateKey: privateKey)
-//
-//                        keyRespt.append(contentsOf: secretKeys. keyRespt)
-//                        keyENC.append(contentsOf: secretKeys. keyENC)
-//                        keyCMAC.append(contentsOf: secretKeys. keyCMAC)
-//                        keyRMAC.append(contentsOf: secretKeys. keyRMAC)
-//                        chainingValue.append(contentsOf: secretKeys. chainingValue)
-//                    } else {
-//                        throw SentrySDKError.secureChannelInitializationError
-//                    }
-//                } catch SentrySDKError.apduCommandError( let errorCode) {
-//                if () {
-//                    errorCode == 0x6D00 {
-//                        throw SentrySDKError.secureCommunicationNotSupported    // If we get an 'INS byte not supported', the enrollment applet doesn't support secure communication
-//                    }
-//                } else {
-//                    throw SentrySDKError.apduCommandError(errorCode)
-//                }
-//                }
-//
-//                debugOutput += "     Verifing Enroll Code\n"
-//                var enrollCodeCommand = try APDUCommand.verifyEnrollCode(code: enrollCode)
-//                    enrollCodeCommand = try wrapAPDUCommand(
-//                        apduCommand: enrollCodeCommand,
-//                        keyENC: keyENC,
-//                        keyCMAC: keyCMAC,
-//                        chainingValue: &chainingValue, encryptionCounter: &encryptionCounter)
-//                        try await sendAndConfirm (apduCommand: enrollCodeCommand, name: "Verify Enroll Code", to: tag)
-//                        } else {
-//            debugOutput += "     Verifing Enroll Code\n"
-//            try await sendAndConfirm (apduCommand: APDUCommand.verifyEnrollCode(code: enrollCode), name: "Verify Enroll Code", to: tag)
-//            }
-//
-//            debugOutput += "------------------------------\n"
+            val secretKeys =
+                if (securityInitResponse.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+                    calcSecretKeys(
+                        receivedPubKey = securityInitResponse.data,
+                        sharedSecret = sharedSecret,
+                        privateKey = privateKey
+                    )
+
+
+                } else {
+                    throw SentrySDKError.SecureChannelInitializationError
+                }
+            keyRespt = secretKeys.keyRespt
+            keyENC = secretKeys.keyENC
+            keyCMAC = secretKeys.keyCMAC
+            keyRMAC = secretKeys.keyRMAC
+            chainingValue = secretKeys.chainingValue
+
+            val enrollCodeCommand = wrapAPDUCommand(
+                apduCommand = APDUCommand.verifyEnrollCode(enrollCode),
+                keyEnc = secretKeys.keyENC,
+                keyCmac = secretKeys.keyCMAC,
+                chainingValue = secretKeys.chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+            sendAndConfirm(enrollCodeCommand.wrapped, "Verify Enroll Code", tag = tag)
+
+        } else {
+            TODO("are we using non secure channels?")
         }
     }
 
@@ -633,13 +524,9 @@ internal class BiometricsApi(
         name: String? = null,
         tag: NfcIso7816Tag
     ): APDUReturnResult {
-        var debugOutput = "\n---------- Sending ($name ??  -----------\n"
 
-        if (isDebugOutputVerbose) {
-            print(debugOutput)
-        }
 
-        debugOutput += "     >>> Sending => ${(apduCommand.formatted())}\n"
+        println("     >>> Sending $name => ${(apduCommand.formatted())}\n")
 
 //
 //    guard let command = NFCISO7816APDU(data: data) else {
@@ -648,9 +535,26 @@ internal class BiometricsApi(
         val result = tag.transceive(apduCommand)
 
         if (result.isSuccess) {
-            return APDUReturnResult(result.getOrNull()!!, result.getOrNull()!![1].toInt())
+            println("     >>> Received $name => ${(result.getOrNull()?.formatted())}\n")
+
+            val resultArray = result.getOrThrow()
+            val statusWord =
+                ByteBuffer.wrap(
+                    byteArrayOf(
+                        0x00,
+                        0x00,
+                        resultArray[resultArray.size - 2],
+                        resultArray.last()
+                    )
+                ).int
+
+            return APDUReturnResult(
+                data = result.getOrThrow().copyOf(resultArray.size - 2),
+                statusWord = statusWord
+            )
 
         }
+
 //    let result = try await
 //
 //        let resultData = result.0 + Data([result.1]) + Data([result.2])

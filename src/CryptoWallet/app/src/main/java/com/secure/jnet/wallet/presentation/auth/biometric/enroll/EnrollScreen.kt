@@ -148,7 +148,9 @@ fun EnrollScreen(
             showStatus = showStatus,
             onButtonClicked = {
 
-                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
+                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
+
+                } else if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
                     if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
                         onNavigate(NAV_LOCK)
                     } else {

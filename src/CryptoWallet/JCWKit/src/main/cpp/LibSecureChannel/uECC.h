@@ -30,52 +30,52 @@ platform. */
    Optimization level 4 currently only has an effect ARM platforms where more than one
    curve is enabled. */
 #ifndef uECC_OPTIMIZATION_LEVEL
-    #define uECC_OPTIMIZATION_LEVEL 2
+#define uECC_OPTIMIZATION_LEVEL 2
 #endif
 
 /* uECC_SQUARE_FUNC - If enabled (defined as nonzero), this will cause a specific function to be
 used for (scalar) squaring instead of the generic multiplication function. This can make things
 faster somewhat faster, but increases the code size. */
 #ifndef uECC_SQUARE_FUNC
-    #define uECC_SQUARE_FUNC 0
+#define uECC_SQUARE_FUNC 0
 #endif
 
 /* uECC_VLI_NATIVE_LITTLE_ENDIAN - If enabled (defined as nonzero), this will switch to native
-little-endian format for *all* arrays passed in and out of the public API. This includes public 
-and private keys, shared secrets, signatures and message hashes. 
+little-endian format for *all* arrays passed in and out of the public API. This includes public
+and private keys, shared secrets, signatures and message hashes.
 Using this switch reduces the amount of call stack memory used by uECC, since less intermediate
-translations are required. 
+translations are required.
 Note that this will *only* work on native little-endian processors and it will treat the uint8_t
-arrays passed into the public API as word arrays, therefore requiring the provided byte arrays 
+arrays passed into the public API as word arrays, therefore requiring the provided byte arrays
 to be word aligned on architectures that do not support unaligned accesses.
 IMPORTANT: Keys and signatures generated with uECC_VLI_NATIVE_LITTLE_ENDIAN=1 are incompatible
 with keys and signatures generated with uECC_VLI_NATIVE_LITTLE_ENDIAN=0; all parties must use
 the same endianness. */
 #ifndef uECC_VLI_NATIVE_LITTLE_ENDIAN
-    #define uECC_VLI_NATIVE_LITTLE_ENDIAN 0
+#define uECC_VLI_NATIVE_LITTLE_ENDIAN 0
 #endif
 
 /* Curve support selection. Set to 0 to remove that curve. */
 #ifndef uECC_SUPPORTS_secp160r1
-    #define uECC_SUPPORTS_secp160r1 0
+#define uECC_SUPPORTS_secp160r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp192r1
-    #define uECC_SUPPORTS_secp192r1 0
+#define uECC_SUPPORTS_secp192r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp224r1
-    #define uECC_SUPPORTS_secp224r1 0
+#define uECC_SUPPORTS_secp224r1 0
 #endif
 #ifndef uECC_SUPPORTS_secp256r1
-    #define uECC_SUPPORTS_secp256r1 1
+#define uECC_SUPPORTS_secp256r1 1
 #endif
 #ifndef uECC_SUPPORTS_secp256k1
-    #define uECC_SUPPORTS_secp256k1 1
+#define uECC_SUPPORTS_secp256k1 1
 #endif
 
 /* Specifies whether compressed point format is supported.
    Set to 0 to disable point compression/decompression functions. */
 #ifndef uECC_SUPPORT_COMPRESSED_POINT
-    #define uECC_SUPPORT_COMPRESSED_POINT 1
+#define uECC_SUPPORT_COMPRESSED_POINT 1
 #endif
 
 struct uECC_Curve_t;
@@ -259,10 +259,10 @@ Outputs:
 Returns 1 if the signature generated successfully, 0 if an error occurred.
 */
 uint16_t uECC_sign(const uint8_t *private_key,
-              const uint8_t *message_hash,
-              unsigned hash_size,
-              uint8_t *signature,
-              uECC_Curve curve);
+                   const uint8_t *message_hash,
+                   unsigned hash_size,
+                   uint8_t *signature,
+                   uECC_Curve curve);
 
 /* uECC_HashContext structure.
 This is used to pass in an arbitrary hash function to uECC_sign_deterministic().
@@ -350,10 +350,10 @@ Inputs:
 Returns 1 if the signature is valid, 0 if it is invalid.
 */
 uint16_t uECC_verify(const uint8_t *public_key,
-                const uint8_t *message_hash,
-                unsigned hash_size,
-                const uint8_t *signature,
-                uECC_Curve curve);
+                     const uint8_t *message_hash,
+                     unsigned hash_size,
+                     const uint8_t *signature,
+                     uECC_Curve curve);
 
 #ifdef __cplusplus
 } /* end of extern "C" */

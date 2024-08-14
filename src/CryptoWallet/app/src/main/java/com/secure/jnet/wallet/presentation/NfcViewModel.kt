@@ -15,6 +15,7 @@ import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
+import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -59,7 +60,7 @@ class NfcViewModel : ViewModel() {
         } else if (action != null && progress != null) {
             ShowStatus.CardFound
         } else if (result != null && result is NfcActionResult.ErrorResult) {
-            ShowStatus.Error(internalException?.message ?:result.error)
+            ShowStatus.Error(internalException?.message ?: result.error)
         } else if (result != null) {
             ShowStatus.Result(result)
         } else if (internalException != null) {
@@ -134,7 +135,8 @@ class NfcViewModel : ViewModel() {
     private val jcwCardWallet by lazy { JCWCardWallet(callBack, nonNativeCallBack, JCWKit()) }
     private val sentrySdk by lazy {
         SentrySdk(
-            enrollCode = byteArrayOf(1, 2, 3, 4),
+            enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
+//            enrollCode = byteArrayOf(1, 2, 3, 4),
         )
     }
 
@@ -186,8 +188,13 @@ class NfcViewModel : ViewModel() {
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
-//                        sentrySdk.getEnrollmentStatus()
-                        jcwCardWallet.getEnrollmentStatus(nfcAction.pinCode)
+                        sentrySdk.getEnrollmentStatus { dataIn: ByteArray ->
+                            Result.success(mIsoDep!!.transceive(dataIn))
+                        }.let {
+                            NfcActionResult.BiometricEnrollmentResult(
+                                it.mode == com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
+                            )
+                        }
                     }
 
                     is NfcAction.BiometricEnrollment -> {
@@ -203,6 +210,7 @@ class NfcViewModel : ViewModel() {
                     is NfcAction.ResetBiometricData -> {
                         jcwCardWallet.resetBiometricData()
                     }
+
                     is NfcAction.GetVersionInformation -> {
                         jcwCardWallet.versionInformation().also {
                             _versionInfo.value = it.version

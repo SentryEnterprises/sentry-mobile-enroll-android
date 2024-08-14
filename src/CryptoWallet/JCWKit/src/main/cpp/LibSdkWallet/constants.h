@@ -1,18 +1,12 @@
-#ifndef JCWKIT_CONSTANTS_H
-#define JCWKIT_CONSTANTS_H
+#ifndef Constants_h
+#define Constants_h
 
-#define _SDK_SUCCESS_                           (0)
-#define _SDK_ERROR_WRAP_	                    (500)
-#define _SDK_ERROR_UNWRAP_LENGTH_               (501)
-#define _SDK_ERROR_UNWRAP_DECRYPT_              (502)
-#define _SDK_ERROR_UNWRAP_ALIGN_                (503)
-#define _SDK_ERROR_KEY_CREATION_                (504)
-#define _SDK_ERROR_SECRET_CREATION_             (505)
-#define _SDK_ERROR_SECRETS_CREATION_            (506)
-#define _SDK_ERROR_PIN_UNDERSIZED_              (507)
-#define _SDK_ERROR_PIN_OVERSIZED_               (508)
-#define _SDK_ERROR_CVM_VERIFY_                  (509)
+#define SUCCESS 0
 
-#define _SDK_ERROR_APDU_RESPONSE_UNDERSIZED_    (0xFFFF)
+#define ERROR_KEYGENERATION             (-100)
+#define ERROR_SHAREDSECRETEXTRACTION    (-101)
 
-#endif //JCWKIT_CONSTANTS_H
+#define ERROR_INVALIDPARAMETER          (-1)
+#define ERROR_CRITERION                 (-5)
+
+#endif /* Constants_h */

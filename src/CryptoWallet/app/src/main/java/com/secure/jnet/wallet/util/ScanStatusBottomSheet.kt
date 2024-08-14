@@ -44,7 +44,13 @@ fun ScanStatusBottomSheet(
                 ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
                 is ShowStatus.Error -> "Scan Error" to showStatus.message
                 is ShowStatus.Result -> {
-                    if (showStatus.result is NfcActionResult.VerifyBiometricResult) {
+                    if (showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
+                        if (showStatus.result.isStatusEnrollment) {
+                            "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+                        } else {
+                            "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+                        }
+                    } else if (showStatus.result is NfcActionResult.VerifyBiometricResult) {
                         "Verification Status" to if (showStatus.result.isBiometricCorrect) {
                             "Fingerprint successfully verified!"
                         } else {

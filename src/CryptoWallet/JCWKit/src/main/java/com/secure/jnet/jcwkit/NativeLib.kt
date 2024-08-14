@@ -146,11 +146,11 @@ interface NativeLib : Library {
 
     fun LibSecureChannelInit(
         apduCommand: Pointer,
-        apduCommandLen: Int,
+        apduCommandLen: Pointer,
         privateKey: Pointer,
         publicKey: Pointer,
         secretShses: Pointer,
-    )
+    ): Int
 
     fun LibCalcSecretKeys(
         pubKey: Pointer,
@@ -161,7 +161,7 @@ interface NativeLib : Library {
         keyCMAC: Pointer,
         keyRMAC: Pointer,
         chaining: Pointer,
-    )
+    ): Int
 
     fun LibSdkEip1559(
         chainId: Pointer,

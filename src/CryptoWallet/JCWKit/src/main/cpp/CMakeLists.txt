@@ -46,7 +46,6 @@ add_library(
 
         LibSdkWallet/bip39.c
         LibSdkWallet/hal_hmac.c
-        LibSdkWallet/lib_sdk_wallet.c
         LibSdkWallet/preliminary.c
         LibSdkWallet/sha512.c
         LibSdkWallet/ripemd160.c
@@ -72,9 +71,6 @@ add_library(
         LibSecureChannel/uECC.c
         LibSecureChannel/wrapper.c
 
-        LibSdkEnrollment/lib_sdk_enroll.h
-        LibSdkEnrollment/lib_sdk_enroll.c
-
         LibSupport/BRBase58.c
         LibSupport/BRAddress.h
 
@@ -84,8 +80,6 @@ add_library(
         LibSupport/BRBech32.h
         LibSupport/BRCrypto.h
 
-        LibSupport/support.h
-        LibSupport/support.c
         )
 
 target_include_directories (

@@ -15,14 +15,12 @@ import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.presentation.auth.biometric.BiometricViewModel
 import com.secure.jnet.wallet.util.observe
 
 class BiometricFingerEnrollFragment : Fragment(
     R.layout.fragment_biometric_finger_enroll
 ) {
 
-    private val viewModel: BiometricViewModel = BiometricViewModel()
 
     private val nfcViewModel: NfcViewModel by activityViewModels()
 
@@ -61,17 +59,17 @@ class BiometricFingerEnrollFragment : Fragment(
 //            viewModel.processNfcActionResult(it)
 //        }
 
-        observe(viewModel.showNfcError) {
-            showError(it)
-        }
-
-        observe(viewModel.showBiometricEnrollError) {
-            showError(getString(R.string.biometric_enroll_failed))
-        }
-
-        observe(viewModel.showButtonContainer) {
-            binding.btnContainer.isVisible = true
-        }
+//        observe(viewModel.showNfcError) {
+//            showError(it)
+//        }
+//
+//        observe(viewModel.showBiometricEnrollError) {
+//            showError(getString(R.string.biometric_enroll_failed))
+//        }
+//
+//        observe(viewModel.showButtonContainer) {
+//            binding.btnContainer.isVisible = true
+//        }
 
         startFingerprintEnroll()
     }
