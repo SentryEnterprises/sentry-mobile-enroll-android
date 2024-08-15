@@ -30,10 +30,6 @@ android {
         release {
             isMinifyEnabled = false
 
-            consumerProguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
 
         debug {

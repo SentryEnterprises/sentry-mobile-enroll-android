@@ -205,15 +205,9 @@ fun ScanningStatusBottomSheet(
                     fontWeight = FontWeight.Bold,
                 )
 
-                val resultText = if (nfcActionResult != null) {
-                    "The reset was successful"
-                } else {
-                    "An error occurred. Please try again."
-                }
-
                 Text(
                     modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
-                    text = resultText,
+                    text = "The reset was successful",
                     color = Color.White,
                     fontFamily = fontFamily
                 )

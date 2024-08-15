@@ -4,12 +4,8 @@ import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.observe
 
@@ -17,19 +13,16 @@ class GetCardStateFragment : Fragment(
     R.layout.fragment_get_card_state
 ) {
 
-    private val viewModel: GetCardStateViewModel by viewModels()
-
-    private val nfcViewModel: NfcViewModel by activityViewModels()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
 
-        observe(viewModel.showEnrollmentStatus) {
-            showEnrollmentStatus(it)
-        }
-
-        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+//        observe(viewModel.showEnrollmentStatus) {
+//            showEnrollmentStatus(it)
+//        }
+//
+//        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
     }
 
     private fun showEnrollmentStatus(isEnrolled: Boolean) {
@@ -50,11 +43,11 @@ class GetCardStateFragment : Fragment(
             .setPositiveButton(R.string.global_ok) { dialog, _ ->
                 dialog.dismiss()
 
-                if (isEnrolled) {
-                    navigateToVerifyScreen()
-                } else {
-                    navigateToEnrollmentScreen()
-                }
+//                if (isEnrolled) {
+//                    navigateToVerifyScreen()
+//                } else {
+//                    navigateToEnrollmentScreen()
+//                }
             }
             .create()
             .show()
@@ -67,21 +60,21 @@ class GetCardStateFragment : Fragment(
             .setCancelable(false)
             .setPositiveButton(R.string.try_again) { dialog, _ ->
                 dialog.dismiss()
-                nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+//                nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
             }
             .create()
             .show()
     }
-
-    private fun navigateToEnrollmentScreen() {
-        findNavController().navigate(
-            GetCardStateFragmentDirections.actionAttachCardFragmentToBiometricTutorialFragment()
-        )
-    }
-
-    private fun navigateToVerifyScreen() {
-        findNavController().navigate(
-            GetCardStateFragmentDirections.actionAttachCardFragmentToBiometricVerifyFragment()
-        )
-    }
+//
+//    private fun navigateToEnrollmentScreen() {
+//        findNavController().navigate(
+//            GetCardStateFragmentDirections.actionAttachCardFragmentToBiometricTutorialFragment()
+//        )
+//    }
+//
+//    private fun navigateToVerifyScreen() {
+//        findNavController().navigate(
+//            GetCardStateFragmentDirections.actionAttachCardFragmentToBiometricVerifyFragment()
+//        )
+//    }
 }

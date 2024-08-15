@@ -13,7 +13,7 @@ fun byteArrayToHexString(data: ByteArray?): String =
         ?.map {
             it.toHexString()
         }?.joinToString("")
-        ?.toUpperCase()
+        ?.uppercase()
         ?: ""
 
 fun intToByteArray(vararg elements: Int): ByteArray =

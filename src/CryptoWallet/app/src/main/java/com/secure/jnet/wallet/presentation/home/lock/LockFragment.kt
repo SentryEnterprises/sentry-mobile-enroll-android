@@ -5,8 +5,6 @@ import android.app.AlertDialog
 import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.presentation.NfcViewModel
@@ -16,10 +14,6 @@ import com.secure.jnet.wallet.util.observe
 class LockFragment : Fragment(
     R.layout.fragment_lock
 ) {
-
-    private val viewModel: LockViewModel by viewModels()
-
-    private val nfcViewModel: NfcViewModel by activityViewModels()
 
     @SuppressLint("FragmentBackPressedCallback")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -45,7 +39,7 @@ class LockFragment : Fragment(
             .setCancelable(false)
             .setPositiveButton(R.string.try_again) { dialog, _ ->
                 dialog.dismiss()
-                nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
+//                nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
             }
             .create()
             .show()
@@ -58,7 +52,7 @@ class LockFragment : Fragment(
             .setCancelable(false)
             .setPositiveButton(R.string.global_ok) { dialog, _ ->
                 dialog.dismiss()
-                nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
+//                nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
             }
             .create()
             .show()

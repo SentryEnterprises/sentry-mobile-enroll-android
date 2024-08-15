@@ -1,12 +1,23 @@
 [versions]
 agp = "8.7.0-alpha06"
 
-kotlin = "2.0.0" # https://kotlinlang.org/docs/releases.html#release-details
+appcompat = "1.7.0"
+coreKtx = "1.13.1"
+junit = "4.13.2"
+kotlin = "2.0.10" # https://kotlinlang.org/docs/releases.html#release-details
+kotlinxCoroutinesAndroid = "1.8.0"
+lifecycleViewmodelKtx = "2.8.4"
+lottie = "6.5.0"
+material = "1.12.0"
+mockk = "1.13.8"
+navigationUiKtx = "2.7.7"
+timber = "5.0.1"
 
 
 [libraries]
 # Compatability with Kotlin: https://developer.android.com/jetpack/androidx/releases/compose-kotlin
 # Library matrix map: https://developer.android.com/jetpack/compose/bom/bom-mapping
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 compose-bom = { module = "androidx.compose:compose-bom", version = "2024.06.00" }
 compose-material3 = { module = "androidx.compose.material3:material3" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
@@ -19,13 +30,23 @@ compose-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
 compose-animation = { module = "androidx.compose.animation:animation" }
 
 
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
+lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version = "6.5.0" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationUiKtx" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-androidLibrary = { id = "com.android.library", version = "8.5.1" }
+androidLibrary = { id = "com.android.library", version = "8.5.2" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 [bundles]

@@ -6,14 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.activityViewModels
-import androidx.navigation.fragment.findNavController
+//import androidx.databinding.DataBindingUtil
 import com.secure.jnet.wallet.R
 import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
+//import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.observe
 
@@ -22,38 +22,37 @@ class BiometricFingerEnrollFragment : Fragment(
 ) {
 
 
-    private val nfcViewModel: NfcViewModel by activityViewModels()
 
-    private lateinit var binding: FragmentBiometricFingerEnrollBinding
+//    private lateinit var binding: FragmentBiometricFingerEnrollBinding
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_biometric_finger_enroll, container, false)
-        binding.lifecycleOwner = this
-        return binding.root
+//        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_biometric_finger_enroll, container, false)
+//        binding.lifecycleOwner = this
+        return LinearLayout(this.context)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.apply {
-            ivBack.setOnClickListener { findNavController().popBackStack() }
-
-            btnFinish.setOnClickListener {
-                navigateToBiometricDoneScreen()
-            }
-        }
+//        binding.apply {
+//            ivBack.setOnClickListener { findNavController().popBackStack() }
+//
+//            btnFinish.setOnClickListener {
+//                navigateToBiometricDoneScreen()
+//            }
+//        }
 
 //        observe(nfcViewModel.nfcShowProgress) {
 //            binding.progressContainer.isVisible = it
 //        }
 
-        observe(nfcViewModel.nfcBiometricProgress) {
-            updateBiometricProgress(it)
-        }
+//        observe(nfcViewModel.nfcBiometricProgress) {
+//            updateBiometricProgress(it)
+//        }
 
 //        observe(nfcViewModel.nfcActionResult) {
 //            viewModel.processNfcActionResult(it)
@@ -101,12 +100,12 @@ class BiometricFingerEnrollFragment : Fragment(
 //    }
 
     private fun startFingerprintEnroll() {
-        binding.apply {
-            tvProgress.text = "0%"
-            ivProgress.progress = 0.0F
-        }
+//        binding.apply {
+//            tvProgress.text = "0%"
+//            ivProgress.progress = 0.0F
+//        }
 
-        nfcViewModel.startNfcAction(NfcAction.BiometricEnrollment)
+//        nfcViewModel.startNfcAction(NfcAction.BiometricEnrollment)
     }
 
     private fun showError(message: String) {
@@ -126,10 +125,10 @@ class BiometricFingerEnrollFragment : Fragment(
     private fun updateBiometricProgress(progress: Int) {
         val calculatedProgress = progress * 0.218F / 100
 
-        binding.apply {
-            tvProgress.text = "$progress%"
-            ivProgress.progress = calculatedProgress
-        }
+//        binding.apply {
+//            tvProgress.text = "$progress%"
+//            ivProgress.progress = calculatedProgress
+//        }
     }
 
     private fun navigateToBiometricDoneScreen() {
