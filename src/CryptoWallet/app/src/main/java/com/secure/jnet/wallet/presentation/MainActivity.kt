@@ -14,13 +14,12 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.secure.jnet.wallet.data.nfc.NfcAction
 import timber.log.Timber
 import com.secure.jnet.wallet.presentation.cardState.GetCardStateScreen
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.secure.jnet.wallet.presentation.auth.biometric.enroll.ScanFingerprintScreen
 import com.secure.jnet.wallet.presentation.cardState.EnrollScreen
 import com.secure.jnet.wallet.presentation.cardState.LockScreen
 import com.secure.jnet.wallet.presentation.reset.ResetScreen
@@ -32,6 +31,7 @@ const val NAV_SETTINGS = "Settings"
 const val NAV_VERSION_INFO = "VersionInfo"
 const val NAV_RESET = "Reset"
 const val NAV_ENROLL = "Enroll"
+const val NAV_SCAN_FINGER = "ScanFinger"
 const val NAV_LOCK = "Lock"
 
 class MainActivity : ComponentActivity() {
@@ -85,6 +85,11 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(NAV_ENROLL) {
                         EnrollScreen(
+                            nfcViewModel = nfcViewModel,
+                            onNavigate = { navController.navigate(it) })
+                    }
+                    composable(NAV_SCAN_FINGER) {
+                        ScanFingerprintScreen (
                             nfcViewModel = nfcViewModel,
                             onNavigate = { navController.navigate(it) })
                     }

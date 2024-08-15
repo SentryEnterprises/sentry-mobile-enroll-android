@@ -1,4 +1,4 @@
-package com.secure.jnet.wallet.presentation.cardState
+package com.secure.jnet.wallet.presentation.auth.biometric.enroll
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
@@ -13,17 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import com.secure.jnet.wallet.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -37,8 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,18 +42,15 @@ import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.NAV_ENROLL
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_LOCK
-import com.secure.jnet.wallet.presentation.NAV_SCAN_FINGER
-import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnrollScreen(
+fun ScanFingerprintScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
@@ -111,12 +102,12 @@ fun EnrollScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
+            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
             LottieAnimation(composition)
 
             Image(
-                contentDescription = "step 1",
-                imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
+                contentDescription = "step 2",
+                imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_2)
             )
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
@@ -149,11 +140,7 @@ fun EnrollScreen(
             showStatus = showStatus,
             onButtonClicked = {
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
-                    if (showStatus.result.isStatusEnrollment) {
-                        onNavigate(NAV_SCAN_FINGER)
-                    } else {
-                        TODO("Verify fingerprint screen")
-                    }
+
                 } else if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
                     if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
                         onNavigate(NAV_LOCK)
