@@ -130,13 +130,17 @@ fun GetCardStateScreen(
             showStatus = showStatus,
             onButtonClicked = {
 
-                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                    if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
-                        onNavigate(NAV_LOCK)
-                    } else {
+                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
+                    if (showStatus.result.isStatusEnrollment) {
+                        println("navigate to enroll")
                         onNavigate(NAV_ENROLL)
+                    } else {
+                        println("navigate to lock")
+                        onNavigate(NAV_LOCK)
                     }
 
+                } else {
+                    println("unexpected: showStatus $showStatus")
                 }
                 nfcViewModel.startNfcAction(null)
             },

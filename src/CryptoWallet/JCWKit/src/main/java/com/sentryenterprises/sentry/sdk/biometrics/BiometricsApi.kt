@@ -182,9 +182,9 @@ internal class BiometricsApi(
 
         println(
             "     # Fingers: $maxNumberOfFingers\n" +
-            "     Enrolled Touches: $enrolledTouches\n" +
-            "     Remaining Touches: $remainingTouches\n" +
-            "     Mode: $mode\n"
+                    "     Enrolled Touches: $enrolledTouches\n" +
+                    "     Remaining Touches: $remainingTouches\n" +
+                    "     Mode: $mode\n"
         )
         val biometricMode: BiometricMode = if (mode == 0.toByte()) {
             BiometricMode.Enrollment
@@ -196,9 +196,9 @@ internal class BiometricsApi(
         println("-----------------------------")
 
         return BiometricEnrollmentStatus(
-            maximumFingers = maxNumberOfFingers,
-            enrolledTouches = enrolledTouches,
-            remainingTouches = remainingTouches,
+            maximumFingers = maxNumberOfFingers.toInt(),
+            enrolledTouches = enrolledTouches.toInt(),
+            remainingTouches = remainingTouches.toInt(),
             mode = biometricMode
         )
     }
@@ -222,7 +222,11 @@ internal class BiometricsApi(
         }
 
         println("unwrapAPDUResponse response ${response.formatted()}")
-        println("unwrapAPDUResponse responseData ${responseData.getByteArray(0,response.size+2).formatted()}")
+        println(
+            "unwrapAPDUResponse responseData ${
+                responseData.getByteArray(0, response.size + 2).formatted()
+            }"
+        )
 
         val unwrappedResponse = Memory(300)
         val unwrappedLength = Memory(1)
@@ -247,10 +251,10 @@ internal class BiometricsApi(
             }
 
             // TODO: Fix once we've converted security to pure Swift
-            error( "Unknown return value $response")
+            error("Unknown return value $response")
         }
 
-        return unwrappedResponse.getByteArray(0,unwrappedLength.getByte(0).toInt())
+        return unwrappedResponse.getByteArray(0, unwrappedLength.getByte(0).toInt())
     }
 
     /**
@@ -564,5 +568,94 @@ internal class BiometricsApi(
 //        return APDUReturnResult(data: result.0, statusWord: statusWord)
 //    }
         TODO()
+    }
+
+    fun resetEnrollAndScanFingerprint(tag: NfcIso7816Tag): Int {
+        println("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
+
+
+        if (useSecureChannel) {
+            val processFingerprintCommand = wrapAPDUCommand(
+                apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
+                keyEnc = keyENC,
+                keyCmac = keyCMAC,
+                chainingValue = chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+            sendAndConfirm(
+                apduCommand = processFingerprintCommand.wrapped,
+                name = "Reset And Process Fingerprint",
+                tag = tag
+            )
+        } else {
+            sendAndConfirm(
+                apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
+                name = "Reset And Process Fingerprint",
+                tag = tag
+            )
+        }
+
+        println("     Getting enrollment status")
+        val enrollmentStatus = getEnrollmentStatus(tag = tag)
+
+        println("     Remaining: ${enrollmentStatus.remainingTouches}")
+        return enrollmentStatus.remainingTouches.toInt()
+    }
+
+    fun enrollScanFingerprint(tag: NfcIso7816Tag): Int {
+        println("----- BiometricsAPI Enroll Scan Fingerprint")
+
+        if (useSecureChannel) {
+            val processFingerprintCommand = wrapAPDUCommand(
+                apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
+                keyEnc = keyENC,
+                keyCmac = keyCMAC,
+                chainingValue = chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+            sendAndConfirm(
+                apduCommand = processFingerprintCommand.wrapped,
+                name = "Process Fingerprint",
+                tag = tag
+            )
+        } else {
+            sendAndConfirm(
+                apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
+                name = "Process Fingerprint",
+                tag = tag
+            )
+        }
+        println("     Getting enrollment status")
+
+        val enrollmentStatus = getEnrollmentStatus(tag = tag)
+
+        println("     Remaining: ${enrollmentStatus.remainingTouches}")
+        return enrollmentStatus.remainingTouches.toInt()
+    }
+
+    fun verifyEnrolledFingerprint(tag: NfcIso7816Tag) {
+        println("----- BiometricsAPI Verify Enrolled Fingerprint")
+
+        if (useSecureChannel) {
+            val verifyEnrollCommand = wrapAPDUCommand(
+                apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
+                keyEnc = keyENC,
+                keyCmac = keyCMAC,
+                chainingValue = chainingValue,
+                encryptionCounter = encryptionCounter
+            )
+            sendAndConfirm(
+                apduCommand = verifyEnrollCommand.wrapped,
+                name = "Verify Enrolled Fingerprint",
+                tag = tag
+            )
+        } else {
+            sendAndConfirm(
+                apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
+                name = "Verify Enrolled Fingerprint",
+                tag = tag
+            )
+        }
+
     }
 }

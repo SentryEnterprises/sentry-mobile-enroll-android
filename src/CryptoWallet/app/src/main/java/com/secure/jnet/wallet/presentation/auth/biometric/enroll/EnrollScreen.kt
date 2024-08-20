@@ -1,4 +1,4 @@
-package com.secure.jnet.wallet.presentation.cardState
+package com.secure.jnet.wallet.presentation.auth.biometric.enroll
 
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
@@ -13,21 +13,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import com.secure.jnet.wallet.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -37,24 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
-import com.secure.jnet.wallet.presentation.NAV_ENROLL
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
-import com.secure.jnet.wallet.presentation.NAV_LOCK
-import com.secure.jnet.wallet.presentation.NAV_SCAN_FINGER
-import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.presentation.ShowStatus
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
+import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,20 +49,8 @@ fun EnrollScreen(
     onNavigate: (String) -> Unit,
 ) {
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
-
-    LaunchedEffect(showStatus) {
-        when (showStatus) {
-            is ShowStatus.Hidden -> sheetState.hide()
-
-            is ShowStatus.CardFound,
-            is ShowStatus.Scanning,
-            is ShowStatus.Error,
-            is ShowStatus.Result -> sheetState.expand()
-        }
-    }
-
+    val progress = nfcViewModel.fingerProgress.collectAsState().value
+    val action = nfcViewModel.nfcAction.collectAsState().value
 
     Scaffold(
         contentColor = Color.Black,
@@ -118,10 +90,16 @@ fun EnrollScreen(
                 contentDescription = "step 1",
                 imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
             )
+
+            val instructionText = when (progress) {
+                null -> "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning."
+                is BiometricProgress.Feedback -> "Card is reporting: ${progress.status}"
+                is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
+            }
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
                 color = Color.White,
-                text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                text = instructionText,
                 textAlign = TextAlign.Center,
                 fontFamily = fontFamily,
                 fontSize = 17.sp
@@ -132,42 +110,22 @@ fun EnrollScreen(
                     .fillMaxHeight()
                     .weight(1f)
             )
-            Button(
-                modifier = Modifier
-                    .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
-                    .fillMaxWidth(),
-                onClick = {
-                    nfcViewModel.startNfcAction(NfcAction.BiometricEnrollment)
+            if (action == null) {
+                Button(
+                    modifier = Modifier
+                        .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
+                        .fillMaxWidth(),
+                    onClick = {
+                        nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
+                    }
+                ) {
+                    Text("Scan Fingerprint")
                 }
-            ) {
-                Text("Scan Fingerprint")
+            } else {
+                Text("Card found")
             }
         }
 
-        ScanStatusBottomSheet(
-            sheetState = sheetState,
-            showStatus = showStatus,
-            onButtonClicked = {
-                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
-                    if (showStatus.result.isStatusEnrollment) {
-                        onNavigate(NAV_SCAN_FINGER)
-                    } else {
-                        TODO("Verify fingerprint screen")
-                    }
-                } else if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                    if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
-                        onNavigate(NAV_LOCK)
-                    } else {
-                        onNavigate(NAV_ENROLL)
-                    }
-
-                }
-                nfcViewModel.startNfcAction(null)
-            },
-            onDismiss = {
-                nfcViewModel.startNfcAction(null)
-            }
-        )
 
     }
 }

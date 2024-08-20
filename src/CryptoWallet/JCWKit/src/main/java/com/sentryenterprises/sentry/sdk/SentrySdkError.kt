@@ -34,6 +34,8 @@ sealed class SentrySDKError : Exception() {
     //  Indicates that the SentryCard is already enrolled and is in verification state.
     data object EnrollModeNotAvailable : SentrySDKError()
 
+    data object EnrollVerificationError : SentrySDKError()
+
     //  TEMPORARY
     data object BioVerifyAppletWrongVersion : SentrySDKError()
 

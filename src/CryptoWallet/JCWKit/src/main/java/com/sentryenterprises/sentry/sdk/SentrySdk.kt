@@ -1,7 +1,11 @@
 package com.sentryenterprises.sentry.sdk
 
+import com.secure.jnet.wallet.presentation.SentrySDKError
+import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 
 /**
@@ -66,5 +70,89 @@ class SentrySdk(
             throw e
         }
     }
+
+
+    fun enrollFinger(
+        iso7816Tag: NfcIso7816Tag,
+        resetOnFirstCall: Boolean = false,
+        onBiometricProgressChanged: (BiometricProgress) -> Unit
+    ): BiometricEnrollmentStatus {
+
+        biometricsAPI.initializeEnroll(tag = iso7816Tag, enrollCode = enrollCode)
+
+        val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = iso7816Tag)
+        if (enrollStatus == BiometricMode.Verification) {
+            throw SentrySDKError.EnrollModeNotAvailable
+        }
+
+        val maximumSteps =
+            enrollStatus.enrolledTouches + enrollStatus.remainingTouches
+
+        // if we're resetting, assume we have not yet enrolled anything
+        var enrollmentsLeft = if (resetOnFirstCall) {
+            maximumSteps
+        } else {
+            enrollStatus.remainingTouches
+        }
+
+        while (enrollmentsLeft > 0) {
+            try {
+                // scan the finger currently on the sensor
+                enrollmentsLeft = if (resetOnFirstCall) {
+                    biometricsAPI.resetEnrollAndScanFingerprint(tag = iso7816Tag)
+                } else {
+                    biometricsAPI.enrollScanFingerprint(tag = iso7816Tag)
+                }
+                onBiometricProgressChanged(BiometricProgress.Progressing(enrollmentsLeft))
+
+            } catch (e: SentrySDKError.ApduCommandError) {
+                if (e.code == APDUResponseCode.POOR_IMAGE_QUALITY.value) {
+                    onBiometricProgressChanged(BiometricProgress.Feedback("Poor image quality"))
+                } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
+                    onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
+                } else {
+                    throw e
+                }
+            }
+
+
+//            TODO()
+//            resetOnFirstCall = false
+
+            // inform the caller of the step that just finished
+//                if (session) {
+//                    stepFinished(session, maximumSteps - enrollmentsLeft, maximumSteps)
+//                }
+        }
+
+        // after all fingerprints are enrolled, perform a verify
+//        do {
+        try {
+            biometricsAPI.verifyEnrolledFingerprint(tag = iso7816Tag)
+        } catch (error: SentrySDKError.ApduCommandError) {
+
+            if (error.code == (APDUResponseCode.NO_MATCH_FOUND.value)) {
+                // expose a custom error if the verify enrolled fingerprint command didn't find a match
+                throw SentrySDKError.EnrollVerificationError
+            } else {
+                throw SentrySDKError.ApduCommandError(error.code)
+            }
+        }
+
+        // enrollment is fully completed
+//            if (session) {
+//                enrollmentComplete(session)
+//            }
+//        } catch (let error) {
+//        errorDuringSession = true
+//        if let session = session {
+//            connected(session, false)
+//        }
+//        throw error
+//    }
+
+        return BiometricEnrollmentStatus(0, 0, 0, BiometricMode.Enrollment)
+    }
+
 
 }

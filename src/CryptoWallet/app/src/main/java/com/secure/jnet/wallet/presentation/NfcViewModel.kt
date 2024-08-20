@@ -15,6 +15,8 @@ import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
+import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
+import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,6 +41,9 @@ class NfcViewModel : ViewModel() {
 
     private val _nfcProgress = MutableStateFlow<Int?>(null)
     val nfcProgress = _nfcProgress.asStateFlow()
+
+    private val _fingerProgress = MutableStateFlow<BiometricProgress?>(null)
+    val fingerProgress = _fingerProgress.asStateFlow()
 
     private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
     val nfcActionResult = _nfcActionResult.asStateFlow()
@@ -192,15 +197,23 @@ class NfcViewModel : ViewModel() {
                             Result.success(mIsoDep!!.transceive(dataIn))
                         }.let {
                             NfcActionResult.BiometricEnrollmentResult(
-                                it.mode == com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
+                                it.mode == Enrollment
                             )
                         }
                     }
 
-                    is NfcAction.BiometricEnrollment -> {
-                        jcwCardWallet.enrollFinger { progress ->
-                            _nfcBiometricProgress.postValue(progress)
+                    is NfcAction.EnrollFingerprint -> {
+                        sentrySdk.enrollFinger(
+                            iso7816Tag = { data -> Result.success(mIsoDep!!.transceive(data)) },
+                            onBiometricProgressChanged = { progress ->
+                                _fingerProgress.value = progress
+                            }
+                        ).let {
+                            NfcActionResult.BiometricEnrollmentResult(
+                                it.mode == Enrollment
+                            )
                         }
+
                     }
 
                     is NfcAction.VerifyBiometric -> {
