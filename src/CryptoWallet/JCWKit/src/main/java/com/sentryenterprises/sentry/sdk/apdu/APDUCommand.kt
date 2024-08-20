@@ -29,6 +29,9 @@ enum class APDUCommand (val value: ByteArray) {
     // Enrolls a fingerprint.
     PROCESS_FINGERPRINT(intToByteArray(0x84, 0x59, 0x03, 0x00, 0x02, 0x00, 0x01)), // note: the last byte indicates the finger number; this will need updating if/when 2 fingers are supported
 
+    /// Enrolls a fingerprint and resets biometric data (used for restarting enrollment process).
+    RESTART_ENROLL_AND_PROCESS_FINGERPRINT(intToByteArray(0x84, 0x59, 0x03, 0x00, 0x02, 0x02, 0x01)),
+
     // Verifies fingerprint enrollment.
     VERIFY_FINGERPRINT_ENROLLMENT(intToByteArray(0x84, 0x59, 0x00, 0x00, 0x01, 0x00)),
 
