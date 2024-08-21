@@ -1,12 +1,15 @@
 package com.sentryenterprises.sentry.sdk
 
+import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
+import com.sentryenterprises.sentry.sdk.models.VersionInfo
 
 /**
 Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
@@ -154,5 +157,83 @@ class SentrySdk(
         return BiometricEnrollmentStatus(0, 0, 0, BiometricMode.Enrollment)
     }
 
+    /**
+     * Resets the biometric data recorded on the card. This effectively erases all fingerprint enrollment and puts the card into an unenrolled state.
+     *
+     * Opens an `NFCReaderSession`, connects to an Nfc tag through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+     *
+     * - Warning: This is for development purposes only! This command only works on development cards, and fails when used on production cards.
+     */
+    fun resetCard(tag: NfcIso7816Tag): NfcActionResult.ResetBiometricsResult {
+        // reset the biometric data, setting the card into an unenrolled state
+        return biometricsAPI.resetBiometricData(tag = tag)
+    }
 
+
+    /**
+    Validates that the finger on the fingerprint sensor matches (or does not match) a fingerprint recorded during enrollment.
+
+    Opens an `NFCReaderSession`, connects to an `NFCISO7816Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+
+    This process waits up to five (5) seconds for a finger to be pressed against the sensor. This timeout is (currently) not configurable. If a finger is not detected on the sensor within the
+    timeout period, a `SentrySDKError.apduCommandError` is thrown, indicating either a user timeout expiration (0x6748) or a host interface timeout expiration (0x6749).
+
+    - Returns: `True` if the scanned fingerprint matches the one recorded during enrollment, otherwise `false`.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.enrollCodeLengthOutOfbounds` if `enrollCode` is less than four (4) characters or more than six (6) characters in length.
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.enrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
+     * `SentrySDKError.incorrectTagFormat` if an NFC session scanned a tag, but it is not an ISO7816 tag.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet on the SentryCard could not be initialized.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet on the SentryCard is blocked (likely requiring a full card reset).
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+     * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
+
+     */
+    fun validateFingerprint(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometricResult {
+
+        // initialize the Enroll applet
+        biometricsAPI.initializeVerify(tag = tag)
+
+        // perform a biometric fingerprint verification
+        return biometricsAPI.getFingerprintVerification(tag = tag)
+
+
+    }
+
+
+
+    fun getCardSoftwareVersions(tag: NfcIso7816Tag): NfcActionResult.VersionInformationResult {
+        var errorDuringSession = false
+
+        try {
+            // establish a connection
+
+            // get card OS version
+            val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
+            print("OS= $osVersion")
+
+            // get applet version
+            val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
+            print("Verify= $verifyVersion")
+
+            val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
+            print("Enroll= $enrollVersion")
+
+            val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
+            print("CVM= $cvmVersion")
+
+            return NfcActionResult.VersionInformationResult(
+                osVersion = osVersion,
+                enrollAppletVersion = enrollVersion,
+                cvmAppletVersion = cvmVersion,
+                verifyAppletVersion = verifyVersion
+            )
+        } catch (e: Exception) {
+            errorDuringSession = true
+            throw e
+        }
+
+    }
 }

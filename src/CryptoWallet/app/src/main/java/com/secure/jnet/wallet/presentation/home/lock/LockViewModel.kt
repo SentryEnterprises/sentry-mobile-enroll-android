@@ -2,8 +2,8 @@ package com.secure.jnet.wallet.presentation.home.lock
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 class LockViewModel() : ViewModel() {
 

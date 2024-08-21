@@ -12,7 +12,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 //import androidx.databinding.DataBindingUtil
 import com.secure.jnet.wallet.R
-import com.secure.jnet.wallet.data.nfc.NfcAction
 //import com.secure.jnet.wallet.databinding.FragmentBiometricFingerEnrollBinding
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.observe

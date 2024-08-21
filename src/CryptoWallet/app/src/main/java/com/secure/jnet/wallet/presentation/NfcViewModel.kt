@@ -4,20 +4,17 @@ import android.nfc.Tag
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.secure.jnet.jcwkit.JCWIOException
-import com.secure.jnet.jcwkit.JCWKit
 import com.secure.jnet.jcwkit.NonNativeSmartCardApduCallback
 import com.secure.jnet.jcwkit.SmartCardApduCallback
-import com.secure.jnet.jcwkit.models.BiometricMode
 import com.secure.jnet.jcwkit.utils.formatted
-import com.secure.jnet.wallet.data.JCWCardWallet
-import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
+import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
-import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
+import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -48,9 +45,6 @@ class NfcViewModel : ViewModel() {
     private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
     val nfcActionResult = _nfcActionResult.asStateFlow()
 
-    private val _versionInfo = MutableStateFlow<String>("")
-    val versionInformation = _versionInfo.asStateFlow()
-
     private val _nfcAction = MutableStateFlow<NfcAction?>(null)
     val nfcAction = _nfcAction.asStateFlow()
 
@@ -80,7 +74,7 @@ class NfcViewModel : ViewModel() {
         if (it != null
             && it is NfcActionResult.EnrollmentStatusResult
         ) {
-            val (title, message) = if (it.biometricMode == BiometricMode.VERIFY_MODE) {
+            val (title, message) = if (it.biometricMode == Verification) {
                 "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
             } else {
                 "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
@@ -137,7 +131,6 @@ class NfcViewModel : ViewModel() {
         }
     }
 
-    private val jcwCardWallet by lazy { JCWCardWallet(callBack, nonNativeCallBack, JCWKit()) }
     private val sentrySdk by lazy {
         SentrySdk(
             enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
@@ -158,6 +151,12 @@ class NfcViewModel : ViewModel() {
             Timber.d("----> Starting Action $nfcAction")
             startCardExchange(it)
         } ?: Timber.d("----> Tag discovered but action was null")
+    }
+
+    fun resetNfcAction() {
+        _nfcProgress.value = null
+        _nfcActionResult.value = null
+        _nfcAction.value = null
     }
 
     fun startNfcAction(nfcAction: NfcAction?) {
@@ -209,38 +208,45 @@ class NfcViewModel : ViewModel() {
                                 _fingerProgress.value = progress
                             }
                         ).let {
-                            NfcActionResult.BiometricEnrollmentResult(
-                                it.mode == Enrollment
+                            NfcActionResult.EnrollmentStatusResult(
+                                maxFingerNumber = it.maximumFingers,
+                                enrolledTouches = it.enrolledTouches,
+                                remainingTouches = it.remainingTouches,
+                                biometricMode = when (it.mode) {
+                                    Enrollment -> BiometricMode.Enrollment
+                                    Verification -> BiometricMode.Enrollment
+                                }
                             )
                         }
 
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        jcwCardWallet.verifyBiometric()
+                        sentrySdk.validateFingerprint(
+                            tag = { Result.success((mIsoDep!!.transceive(it))) }
+                        )
+//                        jcwCardWallet.verifyBiometric()
                     }
 
                     is NfcAction.ResetBiometricData -> {
-                        jcwCardWallet.resetBiometricData()
+                        sentrySdk.resetCard(
+                            tag = { Result.success((mIsoDep!!.transceive(it))) }
+                        )
                     }
 
                     is NfcAction.GetVersionInformation -> {
-                        jcwCardWallet.versionInformation().also {
-                            _versionInfo.value = it.version
-                        }
+                        sentrySdk.getCardSoftwareVersions(
+                            tag = { Result.success((mIsoDep!!.transceive(it))) }
+                        )
                     }
                 }.let { nfcActionResult ->
                     Timber.d("-----> $nfcAction = $nfcActionResult")
                     _nfcActionResult.value = nfcActionResult
                 }
 
-            } catch (e: JCWIOException) {
+            } catch (e: Exception) {
                 Timber.e(e)
                 var errorMessage = ErrorMessageHelper(e).getErrorMessage()
-
-                if (e.errorCode == 1000) {
-                    errorMessage = ErrorMessageHelper(internalException).getErrorMessage()
-                }
 
                 val nfcActionResult = NfcActionResult.ErrorResult(
                     errorMessage

@@ -2,9 +2,9 @@ package com.secure.jnet.wallet.presentation.cardState
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.secure.jnet.jcwkit.models.BiometricMode
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.util.SingleLiveEvent
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 class GetCardStateViewModel : ViewModel() {
 
@@ -21,7 +21,7 @@ class GetCardStateViewModel : ViewModel() {
             }
 
             is NfcActionResult.EnrollmentStatusResult -> {
-                _showEnrollmentStatus.value = nfcActionResult.biometricMode == BiometricMode.VERIFY_MODE
+                _showEnrollmentStatus.value = nfcActionResult.biometricMode == BiometricMode.Verification
             }
 
             else -> {

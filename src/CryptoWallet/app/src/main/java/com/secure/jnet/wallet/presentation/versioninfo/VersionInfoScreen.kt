@@ -1,11 +1,11 @@
-package com.secure.jnet.wallet.presentation.settings
+package com.secure.jnet.wallet.presentation.versioninfo
 
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -32,7 +32,6 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -40,12 +39,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
-import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.fontFamily
+import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,13 +59,12 @@ fun VersionInfoScreen(
     val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(nfcAction) {
-        if (nfcAction is NfcAction.GetVersionInformation || nfcActionResult != null) {
+        if (nfcAction is NfcAction.GetVersionInformation && nfcActionResult != null) {
             sheetState.expand()
         } else {
             sheetState.hide()
         }
     }
-    val versionInfo = nfcViewModel.versionInformation.collectAsState().value
 
     Scaffold(
         contentColor = Color.Black,
@@ -78,7 +75,7 @@ fun VersionInfoScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            nfcViewModel.startNfcAction(null)
+                            nfcViewModel.resetNfcAction()
                             onNavigate(NAV_SETTINGS)
                         },
                     ) {
@@ -112,41 +109,44 @@ fun VersionInfoScreen(
                     fontSize = 17.sp
                 )
             }
+            if (nfcActionResult is NfcActionResult.VersionInformationResult){
 
-            val info =
-                mapOf(
-                    "SDK Version" to "todo",
-                    "OS Version" to versionInfo,
-                    "Enroll Version" to "",
-                    "CVM Version" to "",
-                    "Verify Version" to ""
-                )
+                val info =
+                    mapOf(
+//                        "SDK Version" to BuildConfig.Version,
+                        "OS Version" to nfcActionResult.osVersion,
+                        "Enroll Version" to nfcActionResult.enrollAppletVersion,
+                        "CVM Version" to nfcActionResult.cvmAppletVersion,
+                        "Verify Version" to nfcActionResult.verifyAppletVersion
+                    )
 
-            LazyColumn(Modifier.weight(1f)) {
-                info.forEach {
-                    item {
-                        Column() {
-                            Text(
-                                modifier = Modifier.padding(
-                                    start = 14.dp,
-                                    top = 5.dp,
-                                    bottom = 5.dp
-                                ),
-                                text = it.key,
-                                fontFamily = fontFamily,
-                                color = Color.Gray
-                            )
-                            Text(
-                                modifier = Modifier.padding(start = 17.dp, bottom = 5.dp),
-                                text = it.value,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = fontFamily,
-                                color = Color.White
-                            )
-                            HorizontalDivider()
+                LazyColumn(Modifier.weight(1f)) {
+                    info.forEach {
+                        item {
+                            Column() {
+                                Text(
+                                    modifier = Modifier.padding(
+                                        start = 14.dp,
+                                        top = 5.dp,
+                                        bottom = 5.dp
+                                    ),
+                                    text = it.key,
+                                    fontFamily = fontFamily,
+                                    color = Color.Gray
+                                )
+                                Text(
+                                    modifier = Modifier.padding(start = 17.dp, bottom = 5.dp),
+                                    text = it.value.toString(),
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = fontFamily,
+                                    color = Color.White
+                                )
+                                HorizontalDivider()
+                            }
                         }
                     }
                 }
+
             }
 
             Button(
@@ -195,7 +195,7 @@ fun ScanningStatusBottomSheet(
             } else {
 
             }
-            if (nfcActionResult != null && nfcActionResult is NfcActionResult.VersionInformationResult) {
+            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometricsResult) {
 
                 Text(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),

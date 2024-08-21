@@ -1,7 +1,7 @@
-package com.secure.jnet.wallet.data.nfc
+package com.sentryenterprises.sentry.sdk.models
 
-import com.secure.jnet.jcwkit.models.BiometricMode
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
+
 
 sealed class NfcAction {
     data object VerifyBiometric : NfcAction()
@@ -27,17 +27,21 @@ sealed class NfcActionResult {
         val isStatusEnrollment: Boolean,
     ) : NfcActionResult()
 
-    data class ResetBiometricsResult(
-        val isSuccess: Boolean,
-        val code: Int,
-    ) : NfcActionResult()
+    sealed class ResetBiometricsResult(
+    ) : NfcActionResult() {
+        data object Success : ResetBiometricsResult()
+        data class Failed(val reason: String) : ResetBiometricsResult()
+    }
 
     data class VerifyBiometricResult(
         val isBiometricCorrect: Boolean,
     ) : NfcActionResult()
 
     data class VersionInformationResult(
-        val version: String,
+        val osVersion: VersionInfo,
+        val enrollAppletVersion: VersionInfo,
+        val cvmAppletVersion: VersionInfo,
+        val verifyAppletVersion : VersionInfo,
     ) : NfcActionResult()
 
     data class EnrollmentStatusResult(

@@ -5,9 +5,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.secure.jnet.wallet.R
-import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import com.secure.jnet.wallet.util.observe
 
 class GetCardStateFragment : Fragment(
     R.layout.fragment_get_card_state

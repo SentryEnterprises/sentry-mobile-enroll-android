@@ -23,7 +23,7 @@ import com.secure.jnet.wallet.presentation.auth.biometric.enroll.EnrollScreen
 import com.secure.jnet.wallet.presentation.cardState.LockScreen
 import com.secure.jnet.wallet.presentation.reset.ResetScreen
 import com.secure.jnet.wallet.presentation.settings.SettingsScreen
-import com.secure.jnet.wallet.presentation.settings.VersionInfoScreen
+import com.secure.jnet.wallet.presentation.versioninfo.VersionInfoScreen
 
 const val NAV_GET_CARD_STATE = "Main"
 const val NAV_SETTINGS = "Settings"

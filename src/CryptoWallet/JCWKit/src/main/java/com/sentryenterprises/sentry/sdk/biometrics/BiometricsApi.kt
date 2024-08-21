@@ -11,13 +11,18 @@ import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.Keys
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
+import com.sentryenterprises.sentry.sdk.models.VersionInfo
 import com.sentryenterprises.sentry.sdk.utils.asPointer
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import java.nio.ByteBuffer
 import kotlin.Int
+import kotlin.collections.get
 import kotlin.collections.indices
+import kotlin.compareTo
+import kotlin.text.toInt
 
 
 // A `tuple` containing an `APDU` command result data buffer and a status word.
@@ -657,5 +662,367 @@ internal class BiometricsApi(
             )
         }
 
+    }
+
+    fun resetBiometricData(tag: NfcIso7816Tag): NfcActionResult.ResetBiometricsResult {
+        println("----- BiometricsAPI Reset BiometricData")
+
+        try {
+            sendAndConfirm(
+                apduCommand = APDUCommand.RESET_BIOMETRIC_DATA.value,
+                name = "Reset Biometric Data",
+                tag = tag
+            )
+
+        } catch (e: SentrySDKError.ApduCommandError) {
+            return if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
+                NfcActionResult.ResetBiometricsResult.Failed("Operation Timeout")
+            } else {
+                NfcActionResult.ResetBiometricsResult.Failed("Reason code: ${e.code}")
+            }
+        }
+
+        return NfcActionResult.ResetBiometricsResult.Success
+
+    }
+
+
+    /**
+     * Retrieves the version of the Verify applet installed on the scanned card.
+     *
+     * @throws SentrySDKError.ApduCommandError containing the status word returned by the last failed `APDU` command.
+     *
+     */
+    internal fun getVerifyAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+        // Note: Due to the way Apple implemented APDU communication, it's possible to send a select command and receive a 9000 response
+        // even though the applet isn't actually installed on the card. The BioVerify applet has always supported a versioning command,
+        // so here we'll simply check if the command was processes, and if we get an 'instruction byte not supported' response, we assume
+        // the BioVerify applet isn't installed.
+
+        var version = VersionInfo(
+            isInstalled = false,
+            majorVersion = -1,
+            minorVersion = -1,
+            hotfixVersion = -1,
+            text = null
+        )
+        println("----- BiometricsAPI Get Verify Applet Version")
+
+        println("     Selecting Verify Applet")
+
+        send(
+            apduCommand = APDUCommand.SELECT_VERIFY_APPLET.value,
+            name = "Select Verify Applet",
+            tag = tag
+        )
+        val response = send(
+            apduCommand = APDUCommand.GET_VERIFY_APPLET_VERSION.value,
+            name = "Get Verify Applet Version",
+            tag = tag
+        )
+
+        if (response.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+            val responseBuffer = response.data
+
+            if (responseBuffer.size == 5) {
+                val majorVersion = responseBuffer[3].toInt()
+                val minorVersion = responseBuffer[4].toInt()
+                version = VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = null
+                )
+            } else if (responseBuffer.size == 4) {
+                val majorVersion = responseBuffer[2].toInt()
+                val minorVersion = responseBuffer[3].toInt()
+                version = VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = null
+                )
+            } else if (responseBuffer.size == 2) {
+                val majorVersion = responseBuffer[0].toInt()
+                val minorVersion = responseBuffer[1].toInt()
+                version = VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = null
+                )
+            }
+        } else if (response.statusWord == APDUResponseCode.INSTRUCTION_BYTE_NOT_SUPPORTED.value) {
+            version = VersionInfo(
+                isInstalled = false,
+                majorVersion = -1,
+                minorVersion = -1,
+                hotfixVersion = -1,
+                text = null
+            )
+        } else {
+            throw SentrySDKError.ApduCommandError(response.statusWord)
+        }
+
+        println("     Verify Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+        return version
+    }
+
+    /**
+    Retrieves the version of the Enrollment applet installed on the scanned card (only available on version 2.0 or greater).
+
+    - Note: If the Enrollment applet version on the card is earlier than 2.0, this returns -1 for all version values.
+
+    - Parameters:
+    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+
+    - Returns: A `VersionInfo` structure containing version information.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+
+     */
+    fun getEnrollmentAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+        var version = VersionInfo(
+            isInstalled = true,
+            majorVersion = -1,
+            minorVersion = -1,
+            hotfixVersion = -1,
+            text = null
+        )
+        println("----- BiometricsAPI Get Enrollment Applet Version")
+
+        println("     Selecting Enroll Applet")
+
+        try {
+            val response = sendAndConfirm(
+                apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
+                name = "Select Enroll Applet",
+                tag = tag
+            )
+
+            val responseBuffer = response.data
+
+            if (responseBuffer.size < 16) {
+                return VersionInfo(
+                    isInstalled = true,
+                    majorVersion = -1,
+                    minorVersion = -1,
+                    hotfixVersion = -1,
+                    text = null
+                )
+            } else {
+                val string = responseBuffer.toString()
+                val majorVersion = responseBuffer[13].toInt() - 0x30
+                val minorVersion = responseBuffer[15].toInt() - 0x30
+                version = VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = string
+                )
+            }
+        } catch (e: Exception) {
+//            if (error as NSError).domain == "NFCError" && (error as NSError).code == 2 {
+//                version = VersionInfo(isInstalled= false, majorVersion= -1, minorVersion= -1, hotfixVersion= -1, text= null)
+//            } else {
+            throw e
+//            }
+        }
+
+        println("     Enrollment Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+        return version
+    }
+
+
+    /**
+    Retrieves the version of the CDCVM applet installed on the scanned card (only available on version 2.0 or greater).
+
+    - Note: If the CDCVM applet version on the card is earlier than 2.0, this returns -1 for all version values.
+
+    - Parameters:
+    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+
+    - Returns: A `VersionInfo` structure containing version information.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+
+     */
+    fun getCVMAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+        var version = VersionInfo(
+            isInstalled = true,
+            majorVersion = -1,
+            minorVersion = -1,
+            hotfixVersion = -1,
+            text = null
+        )
+        var debugOutput = "----- BiometricsAPI Get CVM Applet Version\n"
+
+
+        debugOutput += "     Selecting CVM Applet\n"
+
+        try {
+            val response = sendAndConfirm(
+                apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
+                name = "Select CVM Applet",
+                tag = tag
+            )
+
+            val responseBuffer = response.data
+
+            if (responseBuffer.size > 11) {
+                val string = responseBuffer.toString()
+                val majorVersion = responseBuffer[10].toInt() - 0x30
+                val minorVersion = responseBuffer[12].toInt() - 0x30
+                version = VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = string
+                )
+            }
+        } catch (e: Exception) {
+//                if (error as NSError).domain == "NFCError" && (error as NSError).code == 2 {
+//                    version = VersionInfo(isInstalled: false, majorVersion: -1, minorVersion: -1, hotfixVersion: -1, text: nil)
+//                } else {
+            throw e
+//                }
+        }
+
+        println("     CVM Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+        return version
+    }
+
+
+    /**
+    Scans the finger currently on the fingerprint sensor, indicating if the scanned fingerprint matches one recorded during enrollment.
+
+    - Parameters:
+    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+
+    - Returns: `True` if the scanned fingerprint matches one recorded during enrollment, otherwise returns `false`.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+
+     */
+    fun getFingerprintVerification(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometricResult {
+
+        // TODO: !!! implement encryption !!!
+
+        println("----- BiometricsAPI Get Fingerprint Verification")
+
+
+        val returnData = send(
+            apduCommand = APDUCommand.GET_FINGERPRINT_VERIFY.value,
+            name = "Fingerprint Verification",
+            tag = tag
+        )
+
+        if (returnData.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+            if (returnData.data[3].toInt() == 0x00) {
+                throw SentrySDKError.CvmAppletNotAvailable
+            }
+
+            if (returnData.data[5].toInt() == 0x01) {
+                throw SentrySDKError.CvmAppletBlocked
+            }
+
+            if (returnData.data[4].toInt() == 0xA5) {
+                println("     Match")
+                return NfcActionResult.VerifyBiometricResult(true)
+            }
+
+            if (returnData.data[4].toInt() == 0x5A) {
+                println("     No match found")
+                return NfcActionResult.VerifyBiometricResult(false)
+            }
+
+            throw SentrySDKError.CvmAppletError(returnData.data[4].toInt())
+        }
+
+        throw SentrySDKError.ApduCommandError(returnData.statusWord)
+    }
+
+    fun getCardOSVersion(tag: NfcIso7816Tag): VersionInfo {
+        println("----- BiometricsAPI Get Card OS Version")
+
+        println("     Getting card OS version")
+        val returnData = sendAndConfirm(
+            apduCommand = APDUCommand.GET_OS_VERSION.value,
+            name = "Get Card OS Version",
+            tag = tag
+        )
+
+        println("     Processing response")
+        val dataBuffer = returnData.data
+
+        if (dataBuffer.size < 8) {
+            throw SentrySDKError.CardOSVersionError
+        }
+
+        if (dataBuffer[0] != 0xFE.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[1] < 0x40.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[2] != 0x7f.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[3] != 0x00.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[4] < 0x40.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[5] != 0x9f.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        if (dataBuffer[6] != 0x01.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+
+        val n = dataBuffer[7]
+        var p: Int = 8 + n
+
+        if (dataBuffer[p] != 0x9F.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        p += 1
+        if (dataBuffer[p] != 0x02.toByte()) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        p += 1
+        if (dataBuffer[p].toInt() != 5) {
+            throw SentrySDKError.CardOSVersionError
+        }
+        p += 1
+
+        val major = dataBuffer[p] - 0x30
+        p += 2
+        val minor = dataBuffer[p] - 0x30
+        p += 2
+        val hotfix = dataBuffer[p] - 0x30
+
+        val retVal = VersionInfo(
+            isInstalled = true,
+            majorVersion = major,
+            minorVersion = minor,
+            hotfixVersion = hotfix,
+            text = null
+        )
+
+        println("     Card OS Version: ${retVal.majorVersion}.${retVal.minorVersion}.${retVal.hotfixVersion}")
+        return retVal
     }
 }

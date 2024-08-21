@@ -40,14 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.util.fontFamily
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
+import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
 
 
@@ -79,6 +79,7 @@ fun ResetScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
+                            nfcViewModel.resetNfcAction()
                             onNavigate(NAV_SETTINGS)
                         },
                     ) {
@@ -154,10 +155,14 @@ fun ResetScreen(
                     fontWeight = Bold,
                 )
 
-                val resultText = if (nfcActionResult.isSuccess) {
-                    "The reset was successful, this card is no longer enrolled."
-                } else {
-                    "An error occurred. Please try again. (${nfcActionResult.code})"
+                val resultText = when (nfcActionResult) {
+                    is NfcActionResult.ResetBiometricsResult.Success -> {
+                        "The reset was successful, this card is no longer enrolled."
+                    }
+
+                    is NfcActionResult.ResetBiometricsResult.Failed -> {
+                        "An error occurred. Please try again. (${nfcActionResult.reason})"
+                    }
                 }
 
                 Text(

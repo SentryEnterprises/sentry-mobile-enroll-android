@@ -17,9 +17,9 @@ import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.jcwkit.models.BiometricMode
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.ShowStatus
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +57,7 @@ fun ScanStatusBottomSheet(
                             "Fingerprint did not match"
                         }
                     } else if (showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                        val (title, message) = if (showStatus.result.biometricMode == BiometricMode.VERIFY_MODE) {
+                        val (title, message) = if (showStatus.result.biometricMode == BiometricMode.Verification) {
                             "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
                         } else {
                             "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."

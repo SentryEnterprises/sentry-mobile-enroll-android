@@ -6,9 +6,6 @@ import androidx.fragment.app.Fragment
 import android.os.Bundle
 import android.view.View
 import com.secure.jnet.wallet.R
-import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.util.observe
 
 
 class LockFragment : Fragment(

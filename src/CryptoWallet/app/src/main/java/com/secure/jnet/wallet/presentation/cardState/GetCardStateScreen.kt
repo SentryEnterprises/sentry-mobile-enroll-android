@@ -33,9 +33,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.jcwkit.models.BiometricMode
-import com.secure.jnet.wallet.data.nfc.NfcAction
-import com.secure.jnet.wallet.data.nfc.NfcActionResult
 import com.secure.jnet.wallet.presentation.NAV_ENROLL
 import com.secure.jnet.wallet.presentation.NAV_LOCK
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
@@ -44,6 +41,8 @@ import com.secure.jnet.wallet.presentation.ShowStatus
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.fontFamily
+import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -142,10 +141,10 @@ fun GetCardStateScreen(
                 } else {
                     println("unexpected: showStatus $showStatus")
                 }
-                nfcViewModel.startNfcAction(null)
+                nfcViewModel.resetNfcAction()
             },
             onDismiss = {
-                nfcViewModel.startNfcAction(null)
+                nfcViewModel.resetNfcAction()
             }
         )
 

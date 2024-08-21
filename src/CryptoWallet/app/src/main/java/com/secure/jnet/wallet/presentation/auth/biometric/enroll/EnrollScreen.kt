@@ -34,11 +34,13 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.wallet.data.nfc.NfcAction
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.fontFamily
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
+import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +53,7 @@ fun EnrollScreen(
 
     val progress = nfcViewModel.fingerProgress.collectAsState().value
     val action = nfcViewModel.nfcAction.collectAsState().value
+    val actionResult = nfcViewModel.nfcActionResult.collectAsState().value
 
     Scaffold(
         contentColor = Color.Black,
@@ -79,11 +82,15 @@ fun EnrollScreen(
         Column(
             modifier = Modifier
                 .padding(paddingInsets)
-                .padding(top = 50.dp)
+                .padding(top = 30.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
+            val composition by when (action) {
+                null -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
+                else -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
+            }
+
             LottieAnimation(composition)
 
             Image(
@@ -91,19 +98,34 @@ fun EnrollScreen(
                 imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
             )
 
-            val instructionText = when (progress) {
-                null -> "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning."
-                is BiometricProgress.Feedback -> "Card is reporting: ${progress.status}"
-                is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
+            if (actionResult == null) {
+                val instructionText = when (progress) {
+                    null -> "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning."
+                    is BiometricProgress.Feedback -> "Card is reporting: ${progress.status}"
+                    is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
+                }
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    color = Color.White,
+                    text = instructionText,
+                    textAlign = TextAlign.Center,
+                    fontFamily = fontFamily,
+                    fontSize = 17.sp
+                )
+
+            } else {
+                if (actionResult is NfcActionResult.EnrollmentStatusResult) {
+                    val resultText = if (actionResult.biometricMode is BiometricMode.Verification) {
+                        "Success"
+                    } else {
+                        "Failure"
+                    }
+
+                    Text("Results: $resultText")
+                } else {
+                    println("Unexpected result: $actionResult")
+                }
             }
-            Text(
-                modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                color = Color.White,
-                text = instructionText,
-                textAlign = TextAlign.Center,
-                fontFamily = fontFamily,
-                fontSize = 17.sp
-            )
 
             Spacer(
                 modifier = Modifier
