@@ -6,8 +6,11 @@ import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
+import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollmentResult
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import com.sentryenterprises.sentry.sdk.models.VersionInfo
 
@@ -47,7 +50,7 @@ class SentrySdk(
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
 
      */
-    fun getEnrollmentStatus(iso7816Tag: NfcIso7816Tag): BiometricEnrollmentStatus {
+    fun getEnrollmentStatus(iso7816Tag: NfcIso7816Tag): BiometricEnrollmentResult {
         var errorDuringSession = false
 //        defer {
 //            // closes the NFC reader session
@@ -67,7 +70,7 @@ class SentrySdk(
 
             // get and return the enrollment status
             val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = iso7816Tag)
-            return enrollStatus
+            return BiometricEnrollmentResult(enrollStatus.mode == Enrollment)
         } catch (e: Exception) {
             errorDuringSession = true
             throw e
@@ -79,7 +82,7 @@ class SentrySdk(
         iso7816Tag: NfcIso7816Tag,
         resetOnFirstCall: Boolean = false,
         onBiometricProgressChanged: (BiometricProgress) -> Unit
-    ): BiometricEnrollmentStatus {
+    ): NfcActionResult.EnrollmentStatusResult {
 
         biometricsAPI.initializeEnroll(tag = iso7816Tag, enrollCode = enrollCode)
 
@@ -154,7 +157,12 @@ class SentrySdk(
 //        throw error
 //    }
 
-        return BiometricEnrollmentStatus(0, 0, 0, BiometricMode.Enrollment)
+        return NfcActionResult.EnrollmentStatusResult(
+            maxFingerNumber = 0,
+            enrolledTouches = 0,
+            remainingTouches = 0,
+            biometricMode = Verification,
+        )
     }
 
     /**

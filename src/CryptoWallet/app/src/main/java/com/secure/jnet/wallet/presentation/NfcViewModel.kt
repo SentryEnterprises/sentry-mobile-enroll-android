@@ -2,23 +2,17 @@ package com.secure.jnet.wallet.presentation
 
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.secure.jnet.jcwkit.NonNativeSmartCardApduCallback
-import com.secure.jnet.jcwkit.SmartCardApduCallback
-import com.secure.jnet.jcwkit.utils.formatted
-import com.secure.jnet.wallet.util.SingleLiveEvent
 import com.sentryenterprises.sentry.sdk.SentrySdk
-import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import kotlin.Result
 import kotlin.concurrent.thread
@@ -32,9 +26,6 @@ sealed class ShowStatus {
 }
 
 class NfcViewModel : ViewModel() {
-
-    private val _nfcBiometricProgress = SingleLiveEvent<Int>()
-    val nfcBiometricProgress: LiveData<Int> = _nfcBiometricProgress
 
     private val _nfcProgress = MutableStateFlow<Int?>(null)
     val nfcProgress = _nfcProgress.asStateFlow()
@@ -51,91 +42,38 @@ class NfcViewModel : ViewModel() {
     val showStatus = nfcAction.combine(nfcActionResult) { action, result ->
         action to result
     }.combine(nfcProgress) { (action, result), progress ->
-        val internalException = this.internalException
+//        val internalException = this.internalException
         if (action == null && result == null && progress == null) {
             ShowStatus.Hidden
         } else if (action != null && progress == null) {
             ShowStatus.Scanning
         } else if (action != null && progress != null) {
             ShowStatus.CardFound
-        } else if (result != null && result is NfcActionResult.ErrorResult) {
-            ShowStatus.Error(internalException?.message ?: result.error)
-        } else if (result != null) {
-            ShowStatus.Result(result)
-        } else if (internalException != null) {
-            ShowStatus.Error(internalException.message ?: "Unknown error")
+//        } else if (result != null && result is NfcActionResult.ErrorResult) {
+//            ShowStatus.Error(internalException?.message ?: result.error)
+//        } else if (result != null) {
+//            ShowStatus.Result(result)
+//        } else if (internalException != null) {
+//            ShowStatus.Error(internalException.message ?: "Unknown error")
         } else {
             ShowStatus.Error("Unknown error, likely due to incorrect placement.")
-        }
-    }
-
-
-    val showEnrollmentStatus = _nfcActionResult.map {
-        if (it != null
-            && it is NfcActionResult.EnrollmentStatusResult
-        ) {
-            val (title, message) = if (it.biometricMode == Verification) {
-                "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
-            } else {
-                "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
-            }
-
-            title to message
-        } else {
-            null
         }
     }
 
     private var tag: Tag? = null
     private var mIsoDep: IsoDep? = null
 
-    private var internalException: Exception? = null
-
-    private val callBack = SmartCardApduCallback { dataIn, dataInLen, dataOut, dataOutLen ->
-        internalException = null
-
-        try {
-            val dataInBytes = dataIn?.getByteArray(0, dataInLen)!!
-
-            dataInBytes.logCommand()
-
-            val response = mIsoDep!!.transceive(dataInBytes)
-            val responseLength = response.size
-
-            response.logResponse()
-
-            dataOut!!.write(0, response, 0, responseLength)
-            dataOutLen!!.setInt(0, responseLength)
-
-            0
-        } catch (e: Exception) {
-            Timber.e(e, "callback error")
-            internalException = e
-            throw e
-
-            1000
-        }
-    }
-    private val nonNativeCallBack = NonNativeSmartCardApduCallback { dataIn ->
-        try {
-            dataIn.logCommand()
-
-            val response = mIsoDep!!.transceive(dataIn)
-
-            response.logResponse()
-
-            Result.success(response)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            Result.failure(e)
-        }
-    }
-
     private val sentrySdk by lazy {
         SentrySdk(
             enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
-//            enrollCode = byteArrayOf(1, 2, 3, 4),
         )
+    }
+
+    private val tagCallback = object : NfcIso7816Tag {
+        override fun transceive(dataIn: ByteArray): Result<ByteArray> {
+            return Result.success(mIsoDep!!.transceive(dataIn))
+        }
+
     }
 
 
@@ -192,52 +130,28 @@ class NfcViewModel : ViewModel() {
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
-                        sentrySdk.getEnrollmentStatus { dataIn: ByteArray ->
-                            Result.success(mIsoDep!!.transceive(dataIn))
-                        }.let {
-                            NfcActionResult.BiometricEnrollmentResult(
-                                it.mode == Enrollment
-                            )
-                        }
+                        sentrySdk.getEnrollmentStatus(tagCallback)
                     }
 
                     is NfcAction.EnrollFingerprint -> {
                         sentrySdk.enrollFinger(
-                            iso7816Tag = { data -> Result.success(mIsoDep!!.transceive(data)) },
+                            iso7816Tag = tagCallback,
                             onBiometricProgressChanged = { progress ->
                                 _fingerProgress.value = progress
                             }
-                        ).let {
-                            NfcActionResult.EnrollmentStatusResult(
-                                maxFingerNumber = it.maximumFingers,
-                                enrolledTouches = it.enrolledTouches,
-                                remainingTouches = it.remainingTouches,
-                                biometricMode = when (it.mode) {
-                                    Enrollment -> BiometricMode.Enrollment
-                                    Verification -> BiometricMode.Enrollment
-                                }
-                            )
-                        }
-
+                        )
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        sentrySdk.validateFingerprint(
-                            tag = { Result.success((mIsoDep!!.transceive(it))) }
-                        )
-//                        jcwCardWallet.verifyBiometric()
+                        sentrySdk.validateFingerprint(tagCallback)
                     }
 
                     is NfcAction.ResetBiometricData -> {
-                        sentrySdk.resetCard(
-                            tag = { Result.success((mIsoDep!!.transceive(it))) }
-                        )
+                        sentrySdk.resetCard(tagCallback)
                     }
 
                     is NfcAction.GetVersionInformation -> {
-                        sentrySdk.getCardSoftwareVersions(
-                            tag = { Result.success((mIsoDep!!.transceive(it))) }
-                        )
+                        sentrySdk.getCardSoftwareVersions(tagCallback)
                     }
                 }.let { nfcActionResult ->
                     Timber.d("-----> $nfcAction = $nfcActionResult")
@@ -300,21 +214,4 @@ class NfcViewModel : ViewModel() {
         }
     }
 
-    private fun ByteArray.logCommand() {
-        Timber.d("---------------------------")
-        Timber.d(
-            "=> ${
-                this.formatted()
-            }"
-        )
-    }
-
-    private fun ByteArray.logResponse() {
-        Timber.d(
-            "<= ${
-                this.formatted()
-            }"
-        )
-        Timber.d("---------------------------\n")
-    }
 }
