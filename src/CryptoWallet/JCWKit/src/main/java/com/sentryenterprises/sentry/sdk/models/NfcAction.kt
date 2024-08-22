@@ -1,8 +1,5 @@
 package com.sentryenterprises.sentry.sdk.models
 
-import com.sentryenterprises.sentry.sdk.models.BiometricMode
-
-
 sealed class NfcAction {
     data object VerifyBiometric : NfcAction()
     data object GetVersionInformation : NfcAction()
