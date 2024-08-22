@@ -44,26 +44,18 @@ fun ScanStatusBottomSheet(
                 ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
                 is ShowStatus.Error -> "Scan Error" to showStatus.message
                 is ShowStatus.Result -> {
-                    if (showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
+                    if (showStatus.result is NfcActionResult.BiometricEnrollment) {
                         if (showStatus.result.isStatusEnrollment) {
                             "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
                         } else {
                             "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
                         }
-                    } else if (showStatus.result is NfcActionResult.VerifyBiometricResult) {
+                    } else if (showStatus.result is NfcActionResult.VerifyBiometric) {
                         "Verification Status" to if (showStatus.result.isBiometricCorrect) {
                             "Fingerprint successfully verified!"
                         } else {
                             "Fingerprint did not match"
                         }
-                    } else if (showStatus.result is NfcActionResult.EnrollmentStatusResult) {
-                        val (title, message) = if (showStatus.result.biometricMode == BiometricMode.Verification) {
-                            "Enrollment Status: Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
-                        } else {
-                            "Enrollment Status: Not enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
-                        }
-
-                        title to message
                     } else error("Unexpected state $showStatus")
                 }
 

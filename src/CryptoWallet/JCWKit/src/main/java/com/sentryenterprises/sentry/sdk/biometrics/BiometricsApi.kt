@@ -664,7 +664,7 @@ internal class BiometricsApi(
 
     }
 
-    fun resetBiometricData(tag: NfcIso7816Tag): NfcActionResult.ResetBiometricsResult {
+    fun resetBiometricData(tag: NfcIso7816Tag): NfcActionResult.ResetBiometrics {
         println("----- BiometricsAPI Reset BiometricData")
 
         try {
@@ -676,13 +676,13 @@ internal class BiometricsApi(
 
         } catch (e: SentrySDKError.ApduCommandError) {
             return if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
-                NfcActionResult.ResetBiometricsResult.Failed("Operation Timeout")
+                NfcActionResult.ResetBiometrics.Failed("Operation Timeout")
             } else {
-                NfcActionResult.ResetBiometricsResult.Failed("Reason code: ${e.code}")
+                NfcActionResult.ResetBiometrics.Failed("Reason code: ${e.code}")
             }
         }
 
-        return NfcActionResult.ResetBiometricsResult.Success
+        return NfcActionResult.ResetBiometrics.Success
 
     }
 
@@ -915,7 +915,7 @@ internal class BiometricsApi(
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
 
      */
-    fun getFingerprintVerification(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometricResult {
+    fun getFingerprintVerification(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometric {
 
         // TODO: !!! implement encryption !!!
 
@@ -939,12 +939,12 @@ internal class BiometricsApi(
 
             if (returnData.data[4].toInt() == 0xA5) {
                 println("     Match")
-                return NfcActionResult.VerifyBiometricResult(true)
+                return NfcActionResult.VerifyBiometric(true)
             }
 
             if (returnData.data[4].toInt() == 0x5A) {
                 println("     No match found")
-                return NfcActionResult.VerifyBiometricResult(false)
+                return NfcActionResult.VerifyBiometric(false)
             }
 
             throw SentrySDKError.CvmAppletError(returnData.data[4].toInt())

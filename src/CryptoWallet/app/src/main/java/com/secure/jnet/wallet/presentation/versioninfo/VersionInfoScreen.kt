@@ -109,7 +109,7 @@ fun VersionInfoScreen(
                     fontSize = 17.sp
                 )
             }
-            if (nfcActionResult is NfcActionResult.VersionInformationResult){
+            if (nfcActionResult is NfcActionResult.VersionInformation){
 
                 val info =
                     mapOf(
@@ -195,7 +195,7 @@ fun ScanningStatusBottomSheet(
             } else {
 
             }
-            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometricsResult) {
+            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometrics) {
 
                 Text(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),

@@ -129,7 +129,7 @@ fun GetCardStateScreen(
             showStatus = showStatus,
             onButtonClicked = {
 
-                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollmentResult) {
+                if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                     if (showStatus.result.isStatusEnrollment) {
                         println("navigate to enroll")
                         onNavigate(NAV_ENROLL)

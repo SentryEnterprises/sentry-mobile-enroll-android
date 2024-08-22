@@ -145,7 +145,7 @@ fun ResetScreen(
             },
             sheetState = sheetState,
         ) {
-            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometricsResult) {
+            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometrics) {
 
                 Text(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
@@ -156,11 +156,11 @@ fun ResetScreen(
                 )
 
                 val resultText = when (nfcActionResult) {
-                    is NfcActionResult.ResetBiometricsResult.Success -> {
+                    is NfcActionResult.ResetBiometrics.Success -> {
                         "The reset was successful, this card is no longer enrolled."
                     }
 
-                    is NfcActionResult.ResetBiometricsResult.Failed -> {
+                    is NfcActionResult.ResetBiometrics.Failed -> {
                         "An error occurred. Please try again. (${nfcActionResult.reason})"
                     }
                 }
