@@ -33,6 +33,8 @@ class NfcViewModel : ViewModel() {
     private val _fingerProgress = MutableStateFlow<BiometricProgress?>(null)
     val fingerProgress = _fingerProgress.asStateFlow()
 
+    private val resetEnrollFingerPrintNeeded = MutableStateFlow<Boolean>(false)
+
     private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
     val nfcActionResult = _nfcActionResult.asStateFlow()
 
@@ -134,12 +136,22 @@ class NfcViewModel : ViewModel() {
                     }
 
                     is NfcAction.EnrollFingerprint -> {
-                        sentrySdk.enrollFinger(
-                            iso7816Tag = tagCallback,
-                            onBiometricProgressChanged = { progress ->
-                                _fingerProgress.value = progress
+                        try {
+
+                            sentrySdk.enrollFinger(
+                                iso7816Tag = tagCallback,
+                                resetOnFirstCall = resetEnrollFingerPrintNeeded.value,
+                                onBiometricProgressChanged = { progress ->
+                                    _fingerProgress.value = progress
+                                }
+                            ).also {
+                                resetEnrollFingerPrintNeeded.value = false
                             }
-                        )
+                        } catch (e: SentrySDKError.EnrollVerificationError) {
+                            resetEnrollFingerPrintNeeded.value = true
+                            Timber.e(e)
+                            NfcActionResult.EnrollFingerprint.Failed
+                        }
                     }
 
                     is NfcAction.VerifyBiometric -> {
@@ -162,14 +174,14 @@ class NfcViewModel : ViewModel() {
                 Timber.e(e)
                 var errorMessage = ErrorMessageHelper(e).getErrorMessage()
 
-                val nfcActionResult = NfcActionResult.ErrorResult(
+                val nfcActionResult = NfcActionResult.Error(
                     errorMessage
                 )
                 _nfcActionResult.value = nfcActionResult
             } catch (e: Exception) {
                 Timber.e(e)
 
-                val nfcActionResult = NfcActionResult.ErrorResult(
+                val nfcActionResult = NfcActionResult.Error(
                     "${e.message}"
                 )
                 _nfcActionResult.value = nfcActionResult

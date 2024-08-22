@@ -1,18 +1,14 @@
 package com.sentryenterprises.sentry.sdk
 
-import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
-import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
-import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
-import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollmentResult
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollment
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
-import com.sentryenterprises.sentry.sdk.models.VersionInfo
 
 /**
 Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
@@ -23,16 +19,13 @@ The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be i
  */
 class SentrySdk(
     private val enrollCode: ByteArray,
-    private val verboseDebugOutput: Boolean = true,
-    private val useSecureCommunication: Boolean = true,
-
-    ) {
-    private val biometricsAPI: BiometricsApi =
-        BiometricsApi(verboseDebugOutput, useSecureChannel = useSecureCommunication)
-
-//    private var session: NFCReaderSession?
-//    private var connectedTag: NFCISO7816Tag?
-//    private var callback: ((Result<NFCISO7816Tag, Error>) -> Void)?
+    verboseDebugOutput: Boolean = true,
+    useSecureCommunication: Boolean = true,
+) {
+    private val biometricsAPI: BiometricsApi = BiometricsApi(
+        isDebugOutputVerbose = verboseDebugOutput,
+        useSecureChannel = useSecureCommunication
+    )
 
 
     /**
@@ -50,27 +43,14 @@ class SentrySdk(
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
 
      */
-    fun getEnrollmentStatus(iso7816Tag: NfcIso7816Tag): BiometricEnrollmentResult {
+    fun getEnrollmentStatus(iso7816Tag: NfcIso7816Tag): BiometricEnrollment {
         var errorDuringSession = false
-//        defer {
-//            // closes the NFC reader session
-//            if errorDuringSession {
-//                session?.invalidate(errorMessage: cardCommunicationErrorText)
-//            } else {
-//                session?.invalidate()
-//            }
-//        }
 
         try {
-            // establish a connection
-//            let isoTag = try await establishConnection()
-
-            // initialize the Enroll applet
             biometricsAPI.initializeEnroll(tag = iso7816Tag, enrollCode = enrollCode)
 
-            // get and return the enrollment status
             val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = iso7816Tag)
-            return BiometricEnrollmentResult(enrollStatus.mode == Enrollment)
+            return BiometricEnrollment(enrollStatus.mode == Enrollment)
         } catch (e: Exception) {
             errorDuringSession = true
             throw e
@@ -82,12 +62,12 @@ class SentrySdk(
         iso7816Tag: NfcIso7816Tag,
         resetOnFirstCall: Boolean = false,
         onBiometricProgressChanged: (BiometricProgress) -> Unit
-    ): NfcActionResult.EnrollmentStatusResult {
+    ): NfcActionResult.EnrollFingerprint {
 
         biometricsAPI.initializeEnroll(tag = iso7816Tag, enrollCode = enrollCode)
 
         val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = iso7816Tag)
-        if (enrollStatus == BiometricMode.Verification) {
+        if (enrollStatus == Verification) {
             throw SentrySDKError.EnrollModeNotAvailable
         }
 
@@ -103,7 +83,6 @@ class SentrySdk(
 
         while (enrollmentsLeft > 0) {
             try {
-                // scan the finger currently on the sensor
                 enrollmentsLeft = if (resetOnFirstCall) {
                     biometricsAPI.resetEnrollAndScanFingerprint(tag = iso7816Tag)
                 } else {
@@ -120,49 +99,19 @@ class SentrySdk(
                     throw e
                 }
             }
-
-
-//            TODO()
-//            resetOnFirstCall = false
-
-            // inform the caller of the step that just finished
-//                if (session) {
-//                    stepFinished(session, maximumSteps - enrollmentsLeft, maximumSteps)
-//                }
         }
 
-        // after all fingerprints are enrolled, perform a verify
-//        do {
         try {
             biometricsAPI.verifyEnrolledFingerprint(tag = iso7816Tag)
         } catch (error: SentrySDKError.ApduCommandError) {
-
             if (error.code == (APDUResponseCode.NO_MATCH_FOUND.value)) {
-                // expose a custom error if the verify enrolled fingerprint command didn't find a match
                 throw SentrySDKError.EnrollVerificationError
             } else {
                 throw SentrySDKError.ApduCommandError(error.code)
             }
         }
 
-        // enrollment is fully completed
-//            if (session) {
-//                enrollmentComplete(session)
-//            }
-//        } catch (let error) {
-//        errorDuringSession = true
-//        if let session = session {
-//            connected(session, false)
-//        }
-//        throw error
-//    }
-
-        return NfcActionResult.EnrollmentStatusResult(
-            maxFingerNumber = 0,
-            enrolledTouches = 0,
-            remainingTouches = 0,
-            biometricMode = Verification,
-        )
+        return NfcActionResult.EnrollFingerprint.Complete
     }
 
     /**
@@ -172,7 +121,7 @@ class SentrySdk(
      *
      * - Warning: This is for development purposes only! This command only works on development cards, and fails when used on production cards.
      */
-    fun resetCard(tag: NfcIso7816Tag): NfcActionResult.ResetBiometricsResult {
+    fun resetCard(tag: NfcIso7816Tag): NfcActionResult.ResetBiometrics {
         // reset the biometric data, setting the card into an unenrolled state
         return biometricsAPI.resetBiometricData(tag = tag)
     }
@@ -199,49 +148,30 @@ class SentrySdk(
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
 
      */
-    fun validateFingerprint(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometricResult {
-
-        // initialize the Enroll applet
+    fun validateFingerprint(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometric {
         biometricsAPI.initializeVerify(tag = tag)
-
-        // perform a biometric fingerprint verification
         return biometricsAPI.getFingerprintVerification(tag = tag)
-
-
     }
 
 
+    fun getCardSoftwareVersions(tag: NfcIso7816Tag): NfcActionResult.VersionInformation {
+        val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
+        print("OS= $osVersion")
 
-    fun getCardSoftwareVersions(tag: NfcIso7816Tag): NfcActionResult.VersionInformationResult {
-        var errorDuringSession = false
+        val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
+        print("Verify= $verifyVersion")
 
-        try {
-            // establish a connection
+        val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
+        print("Enroll= $enrollVersion")
 
-            // get card OS version
-            val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
-            print("OS= $osVersion")
+        val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
+        print("CVM= $cvmVersion")
 
-            // get applet version
-            val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
-            print("Verify= $verifyVersion")
-
-            val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
-            print("Enroll= $enrollVersion")
-
-            val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
-            print("CVM= $cvmVersion")
-
-            return NfcActionResult.VersionInformationResult(
-                osVersion = osVersion,
-                enrollAppletVersion = enrollVersion,
-                cvmAppletVersion = cvmVersion,
-                verifyAppletVersion = verifyVersion
-            )
-        } catch (e: Exception) {
-            errorDuringSession = true
-            throw e
-        }
-
+        return NfcActionResult.VersionInformation(
+            osVersion = osVersion,
+            enrollAppletVersion = enrollVersion,
+            cvmAppletVersion = cvmVersion,
+            verifyAppletVersion = verifyVersion
+        )
     }
 }

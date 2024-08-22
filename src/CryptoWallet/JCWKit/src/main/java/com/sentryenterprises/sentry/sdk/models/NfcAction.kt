@@ -12,7 +12,7 @@ sealed class NfcAction {
 
 sealed class NfcActionResult {
 
-    data class ErrorResult(
+    data class Error(
         val error: String,
     ) : NfcActionResult()
 
@@ -20,31 +20,29 @@ sealed class NfcActionResult {
 //        val isPinCorrect: Boolean,
 //    ) : NfcActionResult()
 
-    data class BiometricEnrollmentResult(
+    data class BiometricEnrollment(
         val isStatusEnrollment: Boolean,
     ) : NfcActionResult()
 
-    sealed class ResetBiometricsResult(
-    ) : NfcActionResult() {
-        data object Success : ResetBiometricsResult()
-        data class Failed(val reason: String) : ResetBiometricsResult()
+    sealed class ResetBiometrics() : NfcActionResult() {
+        data object Success : ResetBiometrics()
+        data class Failed(val reason: String) : ResetBiometrics()
     }
 
-    data class VerifyBiometricResult(
+    data class VerifyBiometric(
         val isBiometricCorrect: Boolean,
     ) : NfcActionResult()
 
-    data class VersionInformationResult(
+    data class VersionInformation(
         val osVersion: VersionInfo,
         val enrollAppletVersion: VersionInfo,
         val cvmAppletVersion: VersionInfo,
         val verifyAppletVersion : VersionInfo,
     ) : NfcActionResult()
 
-    data class EnrollmentStatusResult(
-        val maxFingerNumber: Int,
-        val enrolledTouches: Int,
-        val remainingTouches: Int,
-        val biometricMode: BiometricMode
-    ) : NfcActionResult()
+    sealed class EnrollFingerprint(): NfcActionResult() {
+        data object Complete : EnrollFingerprint()
+        data object Failed : EnrollFingerprint()
+    }
+
 }

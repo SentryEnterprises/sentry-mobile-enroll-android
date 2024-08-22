@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.util.fontFamily
-import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -114,11 +113,10 @@ fun EnrollScreen(
                 )
 
             } else {
-                if (actionResult is NfcActionResult.EnrollmentStatusResult) {
-                    val resultText = if (actionResult.biometricMode is BiometricMode.Verification) {
-                        "Success"
-                    } else {
-                        "Failure"
+                if (actionResult is NfcActionResult.EnrollFingerprint) {
+                    val resultText = when (actionResult) {
+                        is NfcActionResult.EnrollFingerprint.Complete -> "Success"
+                        NfcActionResult.EnrollFingerprint.Failed -> "Failed"
                     }
 
                     Text("Results: $resultText")
