@@ -1,6 +1,7 @@
 package com.secure.jnet.wallet.presentation
 
 import android.nfc.Tag
+import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import com.sentryenterprises.sentry.sdk.SentrySdk
@@ -53,8 +54,8 @@ class NfcViewModel : ViewModel() {
             ShowStatus.CardFound
 //        } else if (result != null && result is NfcActionResult.ErrorResult) {
 //            ShowStatus.Error(internalException?.message ?: result.error)
-//        } else if (result != null) {
-//            ShowStatus.Result(result)
+        } else if (result != null) {
+            ShowStatus.Result(result)
 //        } else if (internalException != null) {
 //            ShowStatus.Error(internalException.message ?: "Unknown error")
         } else {
@@ -73,7 +74,11 @@ class NfcViewModel : ViewModel() {
 
     private val tagCallback = object : NfcIso7816Tag {
         override fun transceive(dataIn: ByteArray): Result<ByteArray> {
-            return Result.success(mIsoDep!!.transceive(dataIn))
+            return try {
+                Result.success(mIsoDep!!.transceive(dataIn))
+            } catch (e: TagLostException) {
+                Result.failure(e)
+            }
         }
 
     }
@@ -137,7 +142,6 @@ class NfcViewModel : ViewModel() {
 
                     is NfcAction.EnrollFingerprint -> {
                         try {
-
                             sentrySdk.enrollFinger(
                                 iso7816Tag = tagCallback,
                                 resetOnFirstCall = resetEnrollFingerPrintNeeded.value,
@@ -147,7 +151,8 @@ class NfcViewModel : ViewModel() {
                             ).also {
                                 resetEnrollFingerPrintNeeded.value = false
                             }
-                        } catch (e: SentrySDKError.EnrollVerificationError) {
+                        } catch (e: Exception) {
+//                        } catch (e: SentrySDKError.EnrollVerificationError) { TODO should be hitting this
                             resetEnrollFingerPrintNeeded.value = true
                             Timber.e(e)
                             NfcActionResult.EnrollFingerprint.Failed

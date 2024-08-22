@@ -66,6 +66,7 @@ fun EnrollScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
+                            nfcViewModel.resetNfcAction()
                             onNavigate(NAV_GET_CARD_STATE)
                         },
                     ) {
@@ -85,6 +86,7 @@ fun EnrollScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             val composition by when (action) {
                 null -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
                 else -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
@@ -96,12 +98,33 @@ fun EnrollScreen(
                 contentDescription = "step 1",
                 imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
             )
-
-            if (actionResult == null) {
+            if (action == null && actionResult == null) {
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    color = Color.White,
+                    text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                    textAlign = TextAlign.Center,
+                    fontFamily = fontFamily,
+                    fontSize = 17.sp
+                )
+            } else if (action == null && actionResult is NfcActionResult.EnrollFingerprint) {
+                val resultText = when (actionResult) {
+                    is NfcActionResult.EnrollFingerprint.Complete -> "Enrollment complete!"
+                    is NfcActionResult.EnrollFingerprint.Failed -> "Card is reporting: $progress"
+                }
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    color = Color.White,
+                    text = resultText,
+                    textAlign = TextAlign.Center,
+                    fontFamily = fontFamily,
+                    fontSize = 17.sp
+                )
+            } else {
                 val instructionText = when (progress) {
-                    null -> "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning."
-                    is BiometricProgress.Feedback -> "Card is reporting: ${progress.status}"
                     is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
+                    else -> "Connecting to card"
+
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -111,18 +134,6 @@ fun EnrollScreen(
                     fontFamily = fontFamily,
                     fontSize = 17.sp
                 )
-
-            } else {
-                if (actionResult is NfcActionResult.EnrollFingerprint) {
-                    val resultText = when (actionResult) {
-                        is NfcActionResult.EnrollFingerprint.Complete -> "Success"
-                        NfcActionResult.EnrollFingerprint.Failed -> "Failed"
-                    }
-
-                    Text("Results: $resultText")
-                } else {
-                    println("Unexpected result: $actionResult")
-                }
             }
 
             Spacer(
@@ -130,7 +141,7 @@ fun EnrollScreen(
                     .fillMaxHeight()
                     .weight(1f)
             )
-            if (action == null) {
+            if (action == null && actionResult == null) {
                 Button(
                     modifier = Modifier
                         .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)

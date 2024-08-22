@@ -153,7 +153,7 @@ internal class BiometricsApi(
                     apduCommand = enrollStatusCommand.wrapped,
                     name = "Get Enroll Status",
                     tag = tag
-                )
+                ).getOrThrow()
 
             if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
                 throw SentrySDKError.ApduCommandError(returnData.statusWord)
@@ -170,7 +170,7 @@ internal class BiometricsApi(
                 apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
                 name = "Get Enrollment Status",
                 tag = tag
-            )
+            ).getOrThrow()
             dataArray = returnData.data
         }
 
@@ -479,15 +479,18 @@ internal class BiometricsApi(
 
             val securityInitResponse =
                 sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
+
+            if (securityInitResponse.isFailure) {
+                throw SentrySDKError.SecureChannelInitializationError
+            }
+
             val secretKeys =
-                if (securityInitResponse.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+                if (securityInitResponse.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
                     calcSecretKeys(
-                        receivedPubKey = securityInitResponse.data,
+                        receivedPubKey = securityInitResponse.getOrThrow().data,
                         sharedSecret = sharedSecret,
                         privateKey = privateKey
                     )
-
-
                 } else {
                     throw SentrySDKError.SecureChannelInitializationError
                 }
@@ -516,14 +519,14 @@ internal class BiometricsApi(
         apduCommand: ByteArray,
         name: String? = null,
         tag: NfcIso7816Tag
-    ): APDUReturnResult {
+    ): Result<APDUReturnResult> {
         val returnData = send(apduCommand = apduCommand, name = name, tag = tag)
 
-        if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-            throw SentrySDKError.ApduCommandError(returnData.statusWord)
-        }
-
-        return returnData
+        return if (returnData.isSuccess && returnData.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+            returnData
+        } else if (returnData.isSuccess){
+            Result.failure(SentrySDKError.ApduCommandError(returnData.getOrThrow().statusWord))
+        } else returnData
     }
 
 
@@ -532,7 +535,7 @@ internal class BiometricsApi(
         apduCommand: ByteArray,
         name: String? = null,
         tag: NfcIso7816Tag
-    ): APDUReturnResult {
+    ): Result<APDUReturnResult> {
 
 
         println("     >>> Sending $name => ${(apduCommand.formatted())}\n")
@@ -543,7 +546,7 @@ internal class BiometricsApi(
 //    }
         val result = tag.transceive(apduCommand)
 
-        if (result.isSuccess) {
+        return if (result.isSuccess) {
             println("     >>> Received $name => ${(result.getOrNull()?.formatted())}\n")
 
             val resultArray = result.getOrThrow()
@@ -557,12 +560,17 @@ internal class BiometricsApi(
                     )
                 ).int
 
-            return APDUReturnResult(
-                data = result.getOrThrow().copyOf(resultArray.size - 2),
-                statusWord = statusWord
+            Result.success(
+                APDUReturnResult(
+                    data = result.getOrThrow().copyOf(resultArray.size - 2),
+                    statusWord = statusWord
+                )
             )
 
+        } else {
+            Result.failure(result.exceptionOrNull()!!)
         }
+
 
 //    let result = try await
 //
@@ -572,7 +580,6 @@ internal class BiometricsApi(
 //        let statusWord: Int = Int(result.1) << 8 + Int(result.2)
 //        return APDUReturnResult(data: result.0, statusWord: statusWord)
 //    }
-        TODO()
     }
 
     fun resetEnrollAndScanFingerprint(tag: NfcIso7816Tag): Int {
@@ -719,7 +726,7 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_VERIFY_APPLET_VERSION.value,
             name = "Get Verify Applet Version",
             tag = tag
-        )
+        ).getOrThrow()
 
         if (response.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             val responseBuffer = response.data
@@ -802,7 +809,7 @@ internal class BiometricsApi(
                 apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
                 name = "Select Enroll Applet",
                 tag = tag
-            )
+            ).getOrThrow()
 
             val responseBuffer = response.data
 
@@ -871,7 +878,7 @@ internal class BiometricsApi(
                 apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
                 name = "Select CVM Applet",
                 tag = tag
-            )
+            ).getOrThrow()
 
             val responseBuffer = response.data
 
@@ -926,7 +933,7 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_FINGERPRINT_VERIFY.value,
             name = "Fingerprint Verification",
             tag = tag
-        )
+        ).getOrThrow()
 
         if (returnData.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             if (returnData.data[3].toInt() == 0x00) {
@@ -961,7 +968,7 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_OS_VERSION.value,
             name = "Get Card OS Version",
             tag = tag
-        )
+        ).getOrThrow()
 
         println("     Processing response")
         val dataBuffer = returnData.data
