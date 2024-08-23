@@ -41,6 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
+import com.secure.jnet.wallet.presentation.ShowStatus
+import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -57,6 +59,7 @@ fun VersionInfoScreen(
     val nfcActionResult = nfcViewModel.nfcActionResult.collectAsState().value
     val progress = nfcViewModel.nfcProgress.collectAsState().value
     val sheetState = rememberModalBottomSheetState()
+    val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
 
     LaunchedEffect(nfcAction) {
         if (nfcAction is NfcAction.GetVersionInformation && nfcActionResult != null) {
@@ -163,6 +166,16 @@ fun VersionInfoScreen(
 
 
     }
+
+
+    ScanStatusBottomSheet(
+        sheetState = sheetState,
+        showStatus = showStatus,
+        onButtonClicked = {
+        },
+        onDismiss = {
+        }
+    )
     ScanningStatusBottomSheet(
         sheetState = sheetState,
         nfcActionResult = nfcActionResult,
