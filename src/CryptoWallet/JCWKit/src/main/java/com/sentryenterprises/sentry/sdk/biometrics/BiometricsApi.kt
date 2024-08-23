@@ -481,6 +481,7 @@ internal class BiometricsApi(
                 sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
 
             if (securityInitResponse.isFailure) {
+                securityInitResponse.exceptionOrNull()?.printStackTrace()
                 throw SentrySDKError.SecureChannelInitializationError
             }
 
