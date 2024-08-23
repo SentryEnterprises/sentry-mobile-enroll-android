@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.NAV_ENROLL
-import com.secure.jnet.wallet.presentation.NAV_LOCK
+import com.secure.jnet.wallet.presentation.NAV_VERIFY
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
@@ -131,11 +131,9 @@ fun GetCardStateScreen(
 
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                     if (showStatus.result.isStatusEnrollment) {
-                        println("navigate to enroll")
                         onNavigate(NAV_ENROLL)
                     } else {
-                        println("navigate to lock")
-                        onNavigate(NAV_LOCK)
+                        onNavigate(NAV_VERIFY)
                     }
 
                 } else {

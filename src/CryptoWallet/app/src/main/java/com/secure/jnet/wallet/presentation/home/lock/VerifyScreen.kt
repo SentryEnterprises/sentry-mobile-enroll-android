@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 
@@ -34,13 +33,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.secure.jnet.wallet.presentation.NAV_ENROLL
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
-import com.secure.jnet.wallet.presentation.NAV_LOCK
-import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
-import com.secure.jnet.wallet.util.PIN_BIOMETRIC
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.NfcAction
@@ -48,7 +43,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LockScreen(
+fun VerifyScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
     onNavigate: (String) -> Unit,
