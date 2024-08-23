@@ -936,20 +936,20 @@ internal class BiometricsApi(
         ).getOrThrow()
 
         if (returnData.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-            if (returnData.data[3].toInt() == 0x00) {
+            if (returnData.data[3] == 0x00.toByte()) {
                 throw SentrySDKError.CvmAppletNotAvailable
             }
 
-            if (returnData.data[5].toInt() == 0x01) {
+            if (returnData.data[5] == 0x01.toByte()) {
                 throw SentrySDKError.CvmAppletBlocked
             }
 
-            if (returnData.data[4].toInt() == 0xA5) {
+            if (returnData.data[4] == 0xA5.toByte()) {
                 println("     Match")
                 return NfcActionResult.VerifyBiometric(true)
             }
 
-            if (returnData.data[4].toInt() == 0x5A) {
+            if (returnData.data[4] == 0x5A.toByte()) {
                 println("     No match found")
                 return NfcActionResult.VerifyBiometric(false)
             }
