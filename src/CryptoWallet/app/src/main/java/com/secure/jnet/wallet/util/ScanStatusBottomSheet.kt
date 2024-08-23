@@ -18,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.ShowStatus
-import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,15 +62,8 @@ fun ScanStatusBottomSheet(
                 ShowStatus.Hidden -> "" to "" // Nothing
             }
 
-            val okButtonText = when (showStatus) {
-                ShowStatus.Hidden -> "" // Nothing
 
-                is ShowStatus.Result,
-                is ShowStatus.Error -> "Ok"
 
-                ShowStatus.CardFound,
-                ShowStatus.Scanning -> "Cancel"
-            }
 
             Text(
                 modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
@@ -88,12 +80,31 @@ fun ScanStatusBottomSheet(
                 fontFamily = fontFamily,
                 fontWeight = Normal,
             )
+
             Button(
                 modifier = Modifier
                     .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
                     .fillMaxWidth(),
                 onClick = onButtonClicked
             ) {
+                val okButtonText =
+                    if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
+                        if (showStatus.result.isStatusEnrollment) {
+                            "Enroll"
+                        } else {
+                            "Verify"
+                        }
+                    } else {
+                        when (showStatus) {
+                            ShowStatus.Hidden -> "" // Nothing
+
+                            is ShowStatus.Result,
+                            is ShowStatus.Error -> "Ok"
+
+                            ShowStatus.CardFound,
+                            ShowStatus.Scanning -> "Cancel"
+                        }
+                    }
                 Text(okButtonText)
             }
         }
