@@ -24,15 +24,10 @@ android {
     defaultConfig {
         minSdk = 31
         targetSdk = 34
+        versionCode = 39
+        versionName = "0.0.${versionCode}"
     }
 
-
-    buildTypes["debug"].apply {
-        isDebuggable = true
-        ndk {
-            isDebuggable = true
-        }
-    }
 
     kotlinOptions {
         jvmTarget = "17"
@@ -42,9 +37,36 @@ android {
         kotlinCompilerExtensionVersion = "1.1.1"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../deployKey.keystore")
+            storePassword = System.getenv("SENTRY_KEYSTORE_PASSWORD")
+            keyAlias = System.getenv("SENTRY_KEYSTORE_ALIAS")
+            keyPassword = System.getenv("SENTRY_KEYSTORE_ALIAS_PASSWORD")
+        }
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("release")
+        }
+        debug {
+            isDebuggable = true
+            ndk {
+                isDebuggable = true
+            }
+        }
+    }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
 
 }
 
