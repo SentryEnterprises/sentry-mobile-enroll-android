@@ -110,7 +110,7 @@ class NfcViewModel : ViewModel() {
         _nfcActionResult.value = null
         _nfcAction.value = nfcAction
 
-//        startCardExchange(nfcAction)
+        nfcAction?.let { startCardExchange(it) }
     }
 
     @Synchronized
