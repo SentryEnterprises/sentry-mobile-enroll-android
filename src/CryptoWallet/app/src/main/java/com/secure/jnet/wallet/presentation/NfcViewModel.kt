@@ -45,19 +45,18 @@ class NfcViewModel : ViewModel() {
     val showStatus = nfcAction.combine(nfcActionResult) { action, result ->
         action to result
     }.combine(nfcProgress) { (action, result), progress ->
-//        val internalException = this.internalException
         if (action == null && result == null && progress == null) {
             ShowStatus.Hidden
-        } else if (action != null && progress == null) {
-            ShowStatus.Scanning
-        } else if (action != null && progress != null) {
-            ShowStatus.CardFound
+        } else if (action != null) {
+            if (progress == null) {
+                ShowStatus.Scanning
+            } else {
+                ShowStatus.CardFound
+            }
 //        } else if (result != null && result is NfcActionResult.ErrorResult) {
 //            ShowStatus.Error(internalException?.message ?: result.error)
         } else if (result != null) {
             ShowStatus.Result(result)
-//        } else if (internalException != null) {
-//            ShowStatus.Error(internalException.message ?: "Unknown error")
         } else {
             ShowStatus.Error("Unknown error, likely due to incorrect placement.")
         }

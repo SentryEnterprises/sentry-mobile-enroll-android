@@ -16,10 +16,6 @@ sealed class NfcActionResult {
         val error: String,
     ) : NfcActionResult()
 
-//    data class VerifyPinResult(
-//        val isPinCorrect: Boolean,
-//    ) : NfcActionResult()
-
     data class BiometricEnrollment(
         val isStatusEnrollment: Boolean,
     ) : NfcActionResult()
