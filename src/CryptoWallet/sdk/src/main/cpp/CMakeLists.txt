@@ -71,14 +71,6 @@ add_library(
         LibSecureChannel/uECC.c
         LibSecureChannel/wrapper.c
 
-        LibSupport/BRBase58.c
-        LibSupport/BRAddress.h
-
-        LibSupport/BRBech32.c
-        LibSupport/BRBase58.h
-
-        LibSupport/BRBech32.h
-        LibSupport/BRCrypto.h
 
         )
 
