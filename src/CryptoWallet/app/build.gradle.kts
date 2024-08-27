@@ -24,7 +24,7 @@ android {
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-        versionCode = 39
+        versionCode = 40
         versionName = "0.0.${versionCode}"
     }
 
@@ -71,7 +71,7 @@ android {
 }
 
 dependencies {
-    implementation (project(":JCWKit"))
+    implementation (project(":sdk"))
 
     implementation (libs.core.ktx)
     implementation (libs.appcompat)

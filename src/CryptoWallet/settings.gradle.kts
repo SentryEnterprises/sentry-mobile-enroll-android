@@ -18,4 +18,4 @@ pluginManagement {
 }
 
 include (":app")
-include (":JCWKit")
+include (":sdk")

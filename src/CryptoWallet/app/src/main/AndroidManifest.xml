@@ -19,7 +19,7 @@
         android:theme="@style/Theme.CryptoWallet">
 
         <activity
-            android:name=".presentation.MainActivity"
+            android:name="com.sentryenterprises.sentry.enrollment.MainActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:screenOrientation="portrait"
