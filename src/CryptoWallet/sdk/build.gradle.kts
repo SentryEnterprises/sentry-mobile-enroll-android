@@ -5,16 +5,12 @@ plugins {
 }
 
 android {
-    namespace = "com.secure.jnet.jcwkit"
+    namespace = "com.sentryenterprises.sentry.sdk"
     compileSdk = 34
 
     defaultConfig {
         minSdk = 28
 
-
-        consumerProguardFiles(
-            "consumer-rules.pro"
-        )
         externalNativeBuild {
             cmake {
                 cppFlags ( "")
@@ -28,8 +24,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
 
+            consumerProguardFiles(
+                "consumer-rules.pro"
+            )
         }
 
         debug {
@@ -61,7 +60,7 @@ android {
 }
 
 dependencies {
-    api (libs.jna)
+    implementation ("net.java.dev.jna:jna:5.13.0@aar")
 
     implementation (libs.core.ktx)
     implementation (libs.appcompat)

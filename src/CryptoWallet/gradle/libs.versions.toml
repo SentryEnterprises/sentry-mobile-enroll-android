@@ -3,7 +3,6 @@ agp = "8.5.2"
 
 appcompat = "1.7.0"
 coreKtx = "1.13.1"
-jna = "5.13.0"
 junit = "4.13.2"
 kotlin = "2.0.10" # https://kotlinlang.org/docs/releases.html#release-details
 kotlinxCoroutinesAndroid = "1.8.0"
@@ -32,7 +31,6 @@ compose-animation = { module = "androidx.compose.animation:animation" }
 
 
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
-jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
