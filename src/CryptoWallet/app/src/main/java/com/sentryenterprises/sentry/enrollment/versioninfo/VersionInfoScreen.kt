@@ -168,16 +168,15 @@ fun VersionInfoScreen(
         sheetState = sheetState,
         showStatus = showStatus,
         onButtonClicked = {
+
+            nfcViewModel.resetNfcAction()
+            onNavigate(NAV_SETTINGS)
         },
         onDismiss = {
+            nfcViewModel.resetNfcAction()
         }
     )
-    ScanningStatusBottomSheet(
-        sheetState = sheetState,
-        nfcActionResult = nfcActionResult,
-        nfcAction = nfcAction,
-        progress = progress
-    )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

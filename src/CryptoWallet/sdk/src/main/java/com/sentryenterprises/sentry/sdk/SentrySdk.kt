@@ -180,8 +180,10 @@ class SentrySdk(
     fun openConnection(tag: Tag): Boolean {
         val isoDep = IsoDep.get(tag)
         return try {
-            isoDep.timeout = 30000
-            isoDep.connect()
+            if (!isoDep.isConnected) {
+                isoDep.timeout = 30000
+                isoDep.connect()
+            }
             true
         } catch (e: SecurityException) {
             println("Ignore SecurityException Tag out of date")
