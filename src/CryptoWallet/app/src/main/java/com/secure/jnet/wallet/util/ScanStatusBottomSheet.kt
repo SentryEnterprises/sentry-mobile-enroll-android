@@ -70,14 +70,12 @@ fun ScanStatusBottomSheet(
                 text = statusTitle,
                 fontSize = 23.sp,
                 color = Color.LightGray,
-                fontFamily = fontFamily,
                 fontWeight = Bold,
             )
             Text(
                 modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
                 text = statusText,
                 color = Color.White,
-                fontFamily = fontFamily,
                 fontWeight = Normal,
             )
 

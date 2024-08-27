@@ -43,7 +43,6 @@ import com.secure.jnet.wallet.presentation.NAV_SETTINGS
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
-import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
@@ -89,7 +88,7 @@ fun VersionInfoScreen(
                     }
                 },
                 title = {
-                    Text("Version Information", fontFamily = fontFamily)
+                    Text("Version Information")
                 },
             )
         }
@@ -108,7 +107,6 @@ fun VersionInfoScreen(
                     color = Color.White,
                     text = "Place your card on a flat, non-metallic surface then place the phone on top.",
                     textAlign = TextAlign.Center,
-                    fontFamily = fontFamily,
                     fontSize = 17.sp
                 )
             }
@@ -134,14 +132,12 @@ fun VersionInfoScreen(
                                         bottom = 5.dp
                                     ),
                                     text = it.key,
-                                    fontFamily = fontFamily,
                                     color = Color.Gray
                                 )
                                 Text(
                                     modifier = Modifier.padding(start = 17.dp, bottom = 5.dp),
                                     text = it.value.toString(),
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = fontFamily,
                                     color = Color.White
                                 )
                                 HorizontalDivider()
@@ -214,7 +210,6 @@ fun ScanningStatusBottomSheet(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
                     text = "Reset Result",
                     color = Color.White,
-                    fontFamily = fontFamily,
                     fontWeight = FontWeight.Bold,
                 )
 
@@ -222,7 +217,6 @@ fun ScanningStatusBottomSheet(
                     modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
                     text = "The reset was successful",
                     color = Color.White,
-                    fontFamily = fontFamily
                 )
 
             } else {
@@ -240,7 +234,6 @@ fun ScanningStatusBottomSheet(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
                     text = statusText,
                     color = Color.White,
-                    fontFamily = fontFamily,
                     fontWeight = FontWeight.Bold,
                 )
             }

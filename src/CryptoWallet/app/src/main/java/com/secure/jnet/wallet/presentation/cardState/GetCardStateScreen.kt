@@ -40,7 +40,6 @@ import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
 import com.secure.jnet.wallet.util.PIN_BIOMETRIC
-import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
@@ -75,7 +74,7 @@ fun GetCardStateScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Get Enrollment Status", fontFamily = fontFamily)
+                    Text("Get Enrollment Status")
                 },
                 actions = {
                     IconButton(onClick = { onNavigate(NAV_SETTINGS) }) {
@@ -103,7 +102,6 @@ fun GetCardStateScreen(
                 color = Color.White,
                 text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                 textAlign = TextAlign.Center,
-                fontFamily = fontFamily,
                 fontSize = 17.sp
             )
 

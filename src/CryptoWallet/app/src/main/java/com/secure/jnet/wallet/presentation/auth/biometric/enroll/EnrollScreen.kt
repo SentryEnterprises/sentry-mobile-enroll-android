@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -61,7 +60,7 @@ fun EnrollScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Fingerprint scan", fontFamily = fontFamily)
+                    Text("Fingerprint scan")
                 },
                 navigationIcon = {
                     IconButton(
@@ -104,7 +103,6 @@ fun EnrollScreen(
                     color = Color.White,
                     text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                     textAlign = TextAlign.Center,
-                    fontFamily = fontFamily,
                     fontSize = 17.sp
                 )
             } else if (action == null && actionResult is NfcActionResult.EnrollFingerprint) {
@@ -117,7 +115,6 @@ fun EnrollScreen(
                     color = Color.White,
                     text = resultText,
                     textAlign = TextAlign.Center,
-                    fontFamily = fontFamily,
                     fontSize = 17.sp
                 )
             } else {
@@ -131,7 +128,6 @@ fun EnrollScreen(
                     color = Color.White,
                     text = instructionText,
                     textAlign = TextAlign.Center,
-                    fontFamily = fontFamily,
                     fontSize = 17.sp
                 )
             }

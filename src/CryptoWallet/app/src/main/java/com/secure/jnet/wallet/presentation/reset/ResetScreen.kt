@@ -42,7 +42,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_SETTINGS
-import com.secure.jnet.wallet.util.fontFamily
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
@@ -90,7 +89,7 @@ fun ResetScreen(
                     }
                 },
                 title = {
-                    Text("Reset Biometric Data", fontFamily = fontFamily)
+                    Text("Reset Biometric Data")
                 },
             )
         }
@@ -110,7 +109,6 @@ fun ResetScreen(
                 color = Color.White,
                 text = "This resets the biometric fingerprint data on the card. The card will not be enrolled after this action.",
                 textAlign = TextAlign.Center,
-                fontFamily = fontFamily,
                 fontSize = 17.sp
             )
             Text(
@@ -118,7 +116,6 @@ fun ResetScreen(
                 color = Color.White,
                 text = "Lay the phone over the top of the card so that just the fingerprint is visible.",
                 textAlign = TextAlign.Center,
-                fontFamily = fontFamily,
                 fontSize = 17.sp
             )
 
@@ -151,7 +148,6 @@ fun ResetScreen(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
                     text = "Reset Result",
                     color = Color.White,
-                    fontFamily = fontFamily,
                     fontWeight = Bold,
                 )
 
@@ -169,7 +165,6 @@ fun ResetScreen(
                     modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
                     text = resultText,
                     color = Color.White,
-                    fontFamily = fontFamily
                 )
 
             } else {
@@ -189,7 +184,6 @@ fun ResetScreen(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
                     text = statusText,
                     color = Color.White,
-                    fontFamily = fontFamily,
                     fontWeight = Bold,
                 )
             }

@@ -6,7 +6,6 @@ import com.secure.jnet.jcwkit.utils.formatted
 import com.secure.jnet.wallet.presentation.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
-import com.sentryenterprises.sentry.sdk.biometrics.SUCCESS
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
@@ -19,21 +18,14 @@ import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import java.nio.ByteBuffer
 import kotlin.Int
-import kotlin.collections.get
-import kotlin.collections.indices
-import kotlin.compareTo
-import kotlin.text.toInt
 
 
-// A `tuple` containing an `APDU` command result data buffer and a status word.
 private data class APDUReturnResult(val data: ByteArray, val statusWord: Int)
 
 private const val SUCCESS = 0
 
 private const val ERROR_KEYGENERATION = -100
 private const val ERROR_SHAREDSECRETEXTRACTION = -101
-private const val ERROR_INVALIDPARAMETER = -1
-private const val ERROR_CRITERION = -5
 
 /**
 Communicates with the IDEX Enroll applet by sending various `APDU` commands in the appropriate order.
@@ -64,7 +56,6 @@ internal class BiometricsApi(
         val wrapped: ByteArray
     )
 
-    // Encodes an APDU command.
     private fun wrapAPDUCommand(
         apduCommand: ByteArray,
         keyEnc: ByteArray,
@@ -118,14 +109,12 @@ internal class BiometricsApi(
     }
 
     /**
-    Retrieves the biometric enrollment status recorded by the Enrollment applet on the card.
-
-    - Parameters:
-    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
-
-    - Returns: A `BiometricEnrollmentStatus` structure containing information on the fingerprint enrollment status.
-
-    This method can throw the following exceptions:
+     * Retrieves the biometric enrollment status recorded by the Enrollment applet on the card.
+     *
+     * @param tag The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+     * @return BiometricEnrollmentStatus structure containing information on the fingerprint enrollment status.
+     *
+     * This method can throw the following exceptions:
      * `SentrySDKError.enrollmentStatusBufferTooSmall` if the buffer returned from the `APDU` command was unexpectedly too small.
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
@@ -133,10 +122,6 @@ internal class BiometricsApi(
     fun getEnrollmentStatus(tag: NfcIso7816Tag): BiometricEnrollmentStatus {
         println("----- BiometricsAPI Get Enrollment Status")
         var dataArray: ByteArray = byteArrayOf()
-
-//        defer {
-//            if isDebugOutputVerbose { print(debugOutput) }
-//        }
 
         println("     Getting enrollment status")
 
@@ -263,27 +248,21 @@ internal class BiometricsApi(
     }
 
     /**
-    Initializes the BioVerify applet by selecting the applet on the SentryCard. Call this method before calling other methods in this unit that communicate with the BioVerify applet.
-
-    - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not setup during initialization.
-
-    - Parameters:
-    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
-
-    This method can throw the following exceptions:
+     * Initializes the BioVerify applet by selecting the applet on the SentryCard. Call this method before calling other methods in this unit that communicate with the BioVerify applet.
+     * The BioVerify applet does not currently support secure communication, so a secure channel is not setup during initialization.
+     *
+     * @param tag The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+     *
+     * This method can throw the following exceptions:
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
      * `SentrySDKError.secureChannelInitializationError` if `useSecureCommunication` is `true` but an error occurred initializing the secure communication encryption.
      * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the BioVerify applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
     fun initializeVerify(tag: NfcIso7816Tag) {
-        var debugOutput = "----- BiometricsAPI Initialize Verify\n"
 
-        if (isDebugOutputVerbose) {
-            print(debugOutput)
-        }
-
-        debugOutput += "     Selecting Verify Applet\n"
+        println("----- BiometricsAPI Initialize Verify")
+        println("     Selecting Verify Applet")
 
         APDUCommand.SELECT_VERIFY_APPLET
         sendAndConfirm(
@@ -292,9 +271,8 @@ internal class BiometricsApi(
             tag = tag
         )
 
-//        // use a secure channel, setup keys
-        debugOutput += "     Initializing Secure Channel\n"
-//
+        println("     Initializing Secure Channel")
+
         encryptionCounter = ByteArray(16) { 0 }
 
         chainingValue = byteArrayOf()
@@ -305,39 +283,10 @@ internal class BiometricsApi(
         keyENC = byteArrayOf()
         keyCMAC = byteArrayOf()
         keyRMAC = byteArrayOf()
-//
-//        // initialize the secure channel. this sets up keys and encryption
-//        val authInfo = try getAuthInitCommand()
-//        privateKey.append(contentsOf: authInfo.privateKey)
-//        publicKey.append(contentsOf: authInfo.publicKey)
-//        sharedSecret.append(contentsOf: authInfo.sharedSecret)
-//
-//        let securityInitResponse = try await sendAndConfirm(apduCommand: authInfo.apduCommand, name: "Auth Init", to: tag)
-//
-//        if securityInitResponse.statusWord == APDUResponseCode.operationSuccessful.rawValue {
-//            let secretKeys = try calcSecretKeys(receivedPubKey: securityInitResponse.data.toArrayOfBytes(), sharedSecret: sharedSecret, privateKey: privateKey)
-//
-//            keyRespt.append(contentsOf: secretKeys.keyRespt)
-//            keyENC.append(contentsOf: secretKeys.keyENC)
-//            keyCMAC.append(contentsOf: secretKeys.keyCMAC)
-//            keyRMAC.append(contentsOf: secretKeys.keyRMAC)
-//            chainingValue.append(contentsOf: secretKeys.chainingValue)
-//        } else {
-//            throw SentrySDKError.secureChannelInitializationError
-//        }
 
-        debugOutput += "------------------------------\n"
     }
-// done after select but before verifying pin
-    // returns 5F494104 <keys> 8610 <chaining value> 9000
-    // 5F494104 D13CD1EDF0CFDC960CB8CC060DEA15203D6C3D7C81B8DA8D020C012652E8A50CE59D462EEBFBC6A3AF55C47E5DCD897EFD371321389DA2B227EEF48FA6143106 8610 498EDA1B2CDF9E20BEE060BA439FAB20 9000
-    // whatever processes the response from this command should check:
-    //  starts with 5F494104
-    //  calls calcSecretKeys
-    //  checks 8610 and extracts the chaining value
-    // Note: We may need to call this and calcSecretKeys each time a new applet is selected!
 
-    /// Initializes secure communication.
+
     @OptIn(ExperimentalStdlibApi::class)
     private fun getAuthInitCommand(): AuthInitData {
         val apduCommand: Pointer = Memory(100)
@@ -375,7 +324,6 @@ internal class BiometricsApi(
         )
     }
 
-    /// Calculates secret keys.
     @OptIn(ExperimentalStdlibApi::class)
     private fun calcSecretKeys(
         receivedPubKey: ByteArray,
@@ -383,11 +331,11 @@ internal class BiometricsApi(
         privateKey: ByteArray
     ): Keys {
 
-        val keyRespt = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
-        val keyENC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
-        val keyCMAC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
-        val keyRMAC = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
-        val chaining = Memory(16)//UnsafeMutablePointer<UInt8>.allocate(capacity: 16)
+        val keyRespt = Memory(16)
+        val keyENC = Memory(16)
+        val keyCMAC = Memory(16)
+        val keyRMAC = Memory(16)
+        val chaining = Memory(16)
 
 
         val response = NativeLib.INSTANCE.LibCalcSecretKeys(
@@ -427,13 +375,12 @@ internal class BiometricsApi(
     }
 
     /**
-    Initializes the Enroll applet by selecting the applet on the SentryCard and verifying the enroll code. If no enroll code is set, this sets the enroll code to the indicated value. Call this method before calling other methods in this unit that communicate with the Enroll applet.
-
-    - Parameters:
-    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
-    - enrollCode: An array of `UInt8` bytes containing the enroll code digits. This array must be 4-6 bytes in length, and each byte must be in the range 0-9.
-
-    This method can throw the following exceptions:
+     * Initializes the Enroll applet by selecting the applet on the SentryCard and verifying the enroll code. If no enroll code is set, this sets the enroll code to the indicated value. Call this method before calling other methods in this unit that communicate with the Enroll applet.
+     *
+     * @param tag The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+     * @param enrollCode An array of `UInt8` bytes containing the enroll code digits. This array must be 4-6 bytes in length, and each byte must be in the range 0-9.
+     *
+     * This method can throw the following exceptions:
      * `SentrySDKError.enrollCodeLengthOutOfbounds` if the indicated `enrollCode` is less than four (4) characters or more than six (6) characters in length.
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
      * `SentrySDKError.enrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
@@ -531,20 +478,14 @@ internal class BiometricsApi(
     }
 
 
-    /// Sends an APDU command.
     private fun send(
         apduCommand: ByteArray,
         name: String? = null,
         tag: NfcIso7816Tag
     ): Result<APDUReturnResult> {
 
-
         println("     >>> Sending $name => ${(apduCommand.formatted())}\n")
 
-//
-//    guard let command = NFCISO7816APDU(data: data) else {
-//        throw SentrySDKError.invalidAPDUCommand
-//    }
         val result = tag.transceive(apduCommand)
 
         return if (result.isSuccess) {
@@ -572,15 +513,6 @@ internal class BiometricsApi(
             Result.failure(result.exceptionOrNull()!!)
         }
 
-
-//    let result = try await
-//
-//        let resultData = result.0 + Data([result.1]) + Data([result.2])
-//        debugOutput += "     <<< Received <= \(resultData.toHex())\n"
-//
-//        let statusWord: Int = Int(result.1) << 8 + Int(result.2)
-//        return APDUReturnResult(data: result.0, statusWord: statusWord)
-//    }
     }
 
     fun resetEnrollAndScanFingerprint(tag: NfcIso7816Tag): Int {
@@ -775,21 +707,17 @@ internal class BiometricsApi(
             throw SentrySDKError.ApduCommandError(response.statusWord)
         }
 
-        println("     Verify Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+        println("     Verify Applet Version: $version")
         return version
     }
 
     /**
-    Retrieves the version of the Enrollment applet installed on the scanned card (only available on version 2.0 or greater).
-
-    - Note: If the Enrollment applet version on the card is earlier than 2.0, this returns -1 for all version values.
-
-    - Parameters:
-    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
-
-    - Returns: A `VersionInfo` structure containing version information.
-
-    This method can throw the following exceptions:
+     * Retrieves the version of the Enrollment applet installed on the scanned card (only available on version 2.0 or greater).
+     * - Note: If the Enrollment applet version on the card is earlier than 2.0, this returns -1 for all version values.
+     *
+     * @param tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+     * @return VersionInfo structure containing version information.
+     * This method can throw the following exceptions:
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
@@ -842,7 +770,7 @@ internal class BiometricsApi(
 //            }
         }
 
-        println("     Enrollment Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+        println("     Enrollment Applet Version: $version")
         return version
     }
 

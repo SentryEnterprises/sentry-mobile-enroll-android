@@ -28,7 +28,6 @@ import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NAV_RESET
 import com.secure.jnet.wallet.presentation.NAV_VERSION_INFO
 import com.secure.jnet.wallet.presentation.NfcViewModel
-import com.secure.jnet.wallet.util.fontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +56,7 @@ fun SettingsScreen(
                     }
                 },
                 title = {
-                    Text("Options", fontFamily = fontFamily)
+                    Text("Options")
                 },
             )
         }
@@ -71,7 +70,6 @@ fun SettingsScreen(
             Text(
                 modifier = Modifier.padding(17.dp),
                 text = "CARD ACTIONS",
-                fontFamily = fontFamily,
                 color = Color.Gray
             )
             HorizontalDivider()
@@ -83,7 +81,6 @@ fun SettingsScreen(
                 Text(
                     modifier = Modifier.padding(17.dp),
                     text = "Reset Biometric Data",
-                    fontFamily = fontFamily,
                     color = Color.White
                 )
             }
@@ -94,7 +91,6 @@ fun SettingsScreen(
             Text(
                 modifier = Modifier.padding(17.dp),
                 text = "INFORMATION",
-                fontFamily = fontFamily,
                 color = Color.Gray
             )
             HorizontalDivider()
@@ -106,7 +102,6 @@ fun SettingsScreen(
                 Text(
                     modifier = Modifier.padding(17.dp),
                     text = "Retrieve Card Version Information",
-                    fontFamily = fontFamily,
                     color = Color.White
                 )
             }

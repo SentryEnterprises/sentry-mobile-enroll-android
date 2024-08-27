@@ -37,7 +37,6 @@ import com.secure.jnet.wallet.presentation.NAV_GET_CARD_STATE
 import com.secure.jnet.wallet.presentation.NfcViewModel
 import com.secure.jnet.wallet.presentation.ShowStatus
 import com.secure.jnet.wallet.util.ScanStatusBottomSheet
-import com.secure.jnet.wallet.util.fontFamily
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 
 
@@ -83,7 +82,7 @@ fun VerifyScreen(
                     }
                 },
                 title = {
-                    Text("Verify Fingerprint", fontFamily = fontFamily)
+                    Text("Verify Fingerprint")
                 },
             )
         }
@@ -103,7 +102,6 @@ fun VerifyScreen(
                 color = Color.White,
                 text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                 textAlign = TextAlign.Center,
-                fontFamily = fontFamily,
                 fontSize = 17.sp
             )
 
