@@ -391,18 +391,14 @@ internal class BiometricsApi(
 
      */
     fun initializeEnroll(tag: Tag, enrollCode: ByteArray) {
-        var debugOutput = "----- BiometricsAPI Initialize Enroll - Enroll Code: ${enrollCode}\n"
-
-        if (isDebugOutputVerbose) {
-            print(debugOutput)
-        }
+        println("----- BiometricsAPI Initialize Enroll - Enroll Code: ${enrollCode}")
 
         // sanity check - enroll code must be between 4 and 6 characters
         if (enrollCode.size < 4 || enrollCode.size > 6) {
             throw SentrySDKError.EnrollCodeLengthOutOfBounds
         }
 
-        debugOutput += "     Selecting Enroll Applet\n"
+        println("     Selecting Enroll Applet")
         sendAndConfirm(
             apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
             name = "Select Enroll Applet",
@@ -411,7 +407,7 @@ internal class BiometricsApi(
 
         // if using a secure channel, setup keys
         if (useSecureChannel) {
-            debugOutput += "     Initializing Secure Channel\n"
+            println("     Initializing Secure Channel")
 
             encryptionCounter = ByteArray(16) { 0 }
             chainingValue = byteArrayOf()
@@ -468,7 +464,7 @@ internal class BiometricsApi(
     private fun sendAndConfirm(
         apduCommand: ByteArray,
         name: String? = null,
-        tag: Tag
+        tag: Tag,
     ): Result<APDUReturnResult> {
         val returnData = send(apduCommand = apduCommand, name = name, tag = tag)
 
@@ -609,7 +605,7 @@ internal class BiometricsApi(
     fun resetBiometricData(tag: Tag): NfcActionResult.ResetBiometrics {
         println("----- BiometricsAPI Reset BiometricData")
 
-        try {
+        val result = try {
             sendAndConfirm(
                 apduCommand = APDUCommand.RESET_BIOMETRIC_DATA.value,
                 name = "Reset Biometric Data",
@@ -624,7 +620,11 @@ internal class BiometricsApi(
             }
         }
 
-        return NfcActionResult.ResetBiometrics.Success
+        return if (result.isSuccess) {
+            NfcActionResult.ResetBiometrics.Success
+        } else {
+            NfcActionResult.ResetBiometrics.Failed(result.exceptionOrNull()?.message ?: "Not successful")
+        }
 
     }
 
@@ -799,41 +799,31 @@ internal class BiometricsApi(
             hotfixVersion = -1,
             text = null
         )
-        var debugOutput = "----- BiometricsAPI Get CVM Applet Version\n"
+        println("----- BiometricsAPI Get CVM Applet Version")
 
+        val response = sendAndConfirm(
+            apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
+            name = "Select CVM Applet",
+            tag = tag
+        ).getOrThrow()
 
-        debugOutput += "     Selecting CVM Applet\n"
+        val responseBuffer = response.data
 
-        try {
-            val response = sendAndConfirm(
-                apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
-                name = "Select CVM Applet",
-                tag = tag
-            ).getOrThrow()
-
-            val responseBuffer = response.data
-
-            if (responseBuffer.size > 11) {
-                val string = responseBuffer.toString()
-                val majorVersion = responseBuffer[10].toInt() - 0x30
-                val minorVersion = responseBuffer[12].toInt() - 0x30
-                version = VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = string
-                )
-            }
-        } catch (e: Exception) {
-//                if (error as NSError).domain == "NFCError" && (error as NSError).code == 2 {
-//                    version = VersionInfo(isInstalled: false, majorVersion: -1, minorVersion: -1, hotfixVersion: -1, text: nil)
-//                } else {
-            throw e
-//                }
+        if (responseBuffer.size > 11) {
+            val string = responseBuffer.toString()
+            val majorVersion = responseBuffer[10].toInt() - 0x30
+            val minorVersion = responseBuffer[12].toInt() - 0x30
+            version = VersionInfo(
+                isInstalled = true,
+                majorVersion = majorVersion,
+                minorVersion = minorVersion,
+                hotfixVersion = 0,
+                text = string
+            )
         }
 
-        println("     CVM Applet Version: ${version.isInstalled} - ${version.majorVersion}.${version.minorVersion}.${version.hotfixVersion}")
+
+        println("     CVM Applet Version: $version")
         return version
     }
 
@@ -952,7 +942,7 @@ internal class BiometricsApi(
         p += 2
         val hotfix = dataBuffer[p] - 0x30
 
-        val retVal = VersionInfo(
+        val version = VersionInfo(
             isInstalled = true,
             majorVersion = major,
             minorVersion = minor,
@@ -960,9 +950,16 @@ internal class BiometricsApi(
             text = null
         )
 
-        println("     Card OS Version: ${retVal.majorVersion}.${retVal.minorVersion}.${retVal.hotfixVersion}")
-        return retVal
+        println("     Card OS Version: $version")
+        return version
     }
+
+    private fun println(text: String) {
+        if (isDebugOutputVerbose) {
+            System.out.println(text)
+        }
+    }
+
 }
 
 private fun Tag.transceive(bytes: ByteArray): Result<ByteArray> = try {
