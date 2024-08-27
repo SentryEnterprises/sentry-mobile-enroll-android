@@ -15,6 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import com.secure.jnet.wallet.BuildConfig
 
 import com.secure.jnet.wallet.R
 import androidx.compose.material3.Icon
@@ -113,7 +114,7 @@ fun VersionInfoScreen(
 
                 val info =
                     mapOf(
-//                        "SDK Version" to BuildConfig.Version,
+                        "App Version" to BuildConfig.VERSION_CODE,
                         "OS Version" to nfcActionResult.osVersion,
                         "Enroll Version" to nfcActionResult.enrollAppletVersion,
                         "CVM Version" to nfcActionResult.cvmAppletVersion,
