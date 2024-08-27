@@ -17,6 +17,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "SentryBiometricEnrollAndVerify"
 include (":app")
 include (":JCWKit")

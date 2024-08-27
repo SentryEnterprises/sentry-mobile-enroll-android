@@ -1,7 +1,7 @@
-package com.secure.jnet.wallet.presentation
+package com.sentryenterprises.sentry.sdk.apdu
 
-import com.secure.jnet.jcwkit.utils.intToByteArray
 import com.secure.jnet.wallet.presentation.SentrySDKError.DataSizeNotSupported
+import com.sentryenterprises.sentry.sdk.utils.intToByteArray
 import kotlin.experimental.and
 import kotlin.experimental.or
 

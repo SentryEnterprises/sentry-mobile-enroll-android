@@ -2,8 +2,7 @@ package com.sentryenterprises.sentry.sdk.biometrics
 
 
 import com.secure.jnet.jcwkit.NativeLib
-import com.secure.jnet.jcwkit.utils.formatted
-import com.secure.jnet.wallet.presentation.APDUCommand
+import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
@@ -14,6 +13,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import com.sentryenterprises.sentry.sdk.models.VersionInfo
 import com.sentryenterprises.sentry.sdk.utils.asPointer
+import com.sentryenterprises.sentry.sdk.utils.formatted
 import com.sun.jna.Memory
 import com.sun.jna.Pointer
 import java.nio.ByteBuffer
