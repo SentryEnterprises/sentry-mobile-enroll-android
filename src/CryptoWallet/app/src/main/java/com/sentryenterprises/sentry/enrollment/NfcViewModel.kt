@@ -1,19 +1,15 @@
 package com.sentryenterprises.sentry.enrollment
 
 import android.nfc.Tag
-import android.nfc.TagLostException
-import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import com.sentryenterprises.sentry.sdk.SentrySdk
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
-import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import timber.log.Timber
-import kotlin.Result
 import kotlin.concurrent.thread
 
 sealed class ShowStatus {
@@ -61,23 +57,11 @@ class NfcViewModel : ViewModel() {
     }
 
     private var tag: Tag? = null
-    private var mIsoDep: IsoDep? = null
 
     private val sentrySdk by lazy {
         SentrySdk(
             enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
         )
-    }
-
-    private val tagCallback = object : NfcIso7816Tag {
-        override fun transceive(dataIn: ByteArray): Result<ByteArray> {
-            return try {
-                Result.success(mIsoDep!!.transceive(dataIn))
-            } catch (e: TagLostException) {
-                Result.failure(e)
-            }
-        }
-
     }
 
 
@@ -112,6 +96,7 @@ class NfcViewModel : ViewModel() {
 
     @Synchronized
     private fun startCardExchange(nfcAction: NfcAction) {
+        val tag = this.tag
         if (tag == null) {
             Timber.d("----> startCardExchange() tag was null, exiting")
             return
@@ -121,7 +106,7 @@ class NfcViewModel : ViewModel() {
             return
         }
 
-        if (!openConnection()) {
+        if (!sentrySdk.openConnection(tag)) {
             Timber.d("----> could not open connection, exiting")
             return
         }
@@ -134,13 +119,13 @@ class NfcViewModel : ViewModel() {
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
-                        sentrySdk.getEnrollmentStatus(tagCallback)
+                        sentrySdk.getEnrollmentStatus(tag)
                     }
 
                     is NfcAction.EnrollFingerprint -> {
                         try {
                             sentrySdk.enrollFinger(
-                                iso7816Tag = tagCallback,
+                                tag = tag,
                                 resetOnFirstCall = resetEnrollFingerPrintNeeded.value,
                                 onBiometricProgressChanged = { progress ->
                                     _fingerProgress.value = progress
@@ -157,15 +142,15 @@ class NfcViewModel : ViewModel() {
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        sentrySdk.validateFingerprint(tagCallback)
+                        sentrySdk.validateFingerprint(tag)
                     }
 
                     is NfcAction.ResetBiometricData -> {
-                        sentrySdk.resetCard(tagCallback)
+                        sentrySdk.resetCard(tag)
                     }
 
                     is NfcAction.GetVersionInformation -> {
-                        sentrySdk.getCardSoftwareVersions(tagCallback)
+                        sentrySdk.getCardSoftwareVersions(tag)
                     }
                 }.let { nfcActionResult ->
                     Timber.d("-----> $nfcAction = $nfcActionResult")
@@ -188,7 +173,7 @@ class NfcViewModel : ViewModel() {
                 )
                 _nfcActionResult.value = nfcActionResult
             } finally {
-                closeConnection()
+                sentrySdk.closeConnection(tag)
 
                 _nfcAction.value = null
                 _nfcProgress.value = null
@@ -198,34 +183,5 @@ class NfcViewModel : ViewModel() {
         }
     }
 
-    private fun openConnection(): Boolean {
-        // TODO: We may need to expose exceptions here
-        return try {
-            mIsoDep = IsoDep.get(tag)
-            mIsoDep!!.timeout = 30000
-            mIsoDep!!.connect()
-            true
-        } catch (e: SecurityException) {
-            Timber.e("Ignore SecurityException Tag out of date")
-            Timber.e(e)
-            false
-        } catch (e: Exception) {
-            Timber.e(e)
-            false
-        }
-    }
-
-    private fun closeConnection() {
-        try {
-            mIsoDep?.close()
-        } catch (e: SecurityException) {
-            Timber.e("Ignoring security exception for tag out of date")
-            Timber.e(e)
-        } catch (e: Exception) {
-            Timber.e(e)
-        } finally {
-            mIsoDep = null
-        }
-    }
 
 }

@@ -1,6 +1,9 @@
 package com.sentryenterprises.sentry.sdk.biometrics
 
 
+import android.nfc.Tag
+import android.nfc.TagLostException
+import android.nfc.tech.IsoDep
 import com.secure.jnet.jcwkit.NativeLib
 import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
 import com.secure.jnet.wallet.presentation.SentrySDKError
@@ -10,7 +13,6 @@ import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.Keys
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
-import com.sentryenterprises.sentry.sdk.models.NfcIso7816Tag
 import com.sentryenterprises.sentry.sdk.models.VersionInfo
 import com.sentryenterprises.sentry.sdk.utils.asPointer
 import com.sentryenterprises.sentry.sdk.utils.formatted
@@ -119,7 +121,7 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentStatus(tag: NfcIso7816Tag): BiometricEnrollmentStatus {
+    fun getEnrollmentStatus(tag: Tag): BiometricEnrollmentStatus {
         println("----- BiometricsAPI Get Enrollment Status")
         var dataArray: ByteArray = byteArrayOf()
 
@@ -259,7 +261,7 @@ internal class BiometricsApi(
      * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the BioVerify applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
-    fun initializeVerify(tag: NfcIso7816Tag) {
+    fun initializeVerify(tag: Tag) {
 
         println("----- BiometricsAPI Initialize Verify")
         println("     Selecting Verify Applet")
@@ -388,7 +390,7 @@ internal class BiometricsApi(
      * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the Enroll applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
-    fun initializeEnroll(tag: NfcIso7816Tag, enrollCode: ByteArray) {
+    fun initializeEnroll(tag: Tag, enrollCode: ByteArray) {
         var debugOutput = "----- BiometricsAPI Initialize Enroll - Enroll Code: ${enrollCode}\n"
 
         if (isDebugOutputVerbose) {
@@ -466,13 +468,13 @@ internal class BiometricsApi(
     private fun sendAndConfirm(
         apduCommand: ByteArray,
         name: String? = null,
-        tag: NfcIso7816Tag
+        tag: Tag
     ): Result<APDUReturnResult> {
         val returnData = send(apduCommand = apduCommand, name = name, tag = tag)
 
         return if (returnData.isSuccess && returnData.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             returnData
-        } else if (returnData.isSuccess){
+        } else if (returnData.isSuccess) {
             Result.failure(SentrySDKError.ApduCommandError(returnData.getOrThrow().statusWord))
         } else returnData
     }
@@ -481,7 +483,7 @@ internal class BiometricsApi(
     private fun send(
         apduCommand: ByteArray,
         name: String? = null,
-        tag: NfcIso7816Tag
+        tag: Tag
     ): Result<APDUReturnResult> {
 
         println("     >>> Sending $name => ${(apduCommand.formatted())}\n")
@@ -515,7 +517,7 @@ internal class BiometricsApi(
 
     }
 
-    fun resetEnrollAndScanFingerprint(tag: NfcIso7816Tag): Int {
+    fun resetEnrollAndScanFingerprint(tag: Tag): Int {
         println("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
 
@@ -547,7 +549,7 @@ internal class BiometricsApi(
         return enrollmentStatus.remainingTouches.toInt()
     }
 
-    fun enrollScanFingerprint(tag: NfcIso7816Tag): Int {
+    fun enrollScanFingerprint(tag: Tag): Int {
         println("----- BiometricsAPI Enroll Scan Fingerprint")
 
         if (useSecureChannel) {
@@ -578,7 +580,7 @@ internal class BiometricsApi(
         return enrollmentStatus.remainingTouches.toInt()
     }
 
-    fun verifyEnrolledFingerprint(tag: NfcIso7816Tag) {
+    fun verifyEnrolledFingerprint(tag: Tag) {
         println("----- BiometricsAPI Verify Enrolled Fingerprint")
 
         if (useSecureChannel) {
@@ -604,7 +606,7 @@ internal class BiometricsApi(
 
     }
 
-    fun resetBiometricData(tag: NfcIso7816Tag): NfcActionResult.ResetBiometrics {
+    fun resetBiometricData(tag: Tag): NfcActionResult.ResetBiometrics {
         println("----- BiometricsAPI Reset BiometricData")
 
         try {
@@ -633,7 +635,7 @@ internal class BiometricsApi(
      * @throws SentrySDKError.ApduCommandError containing the status word returned by the last failed `APDU` command.
      *
      */
-    internal fun getVerifyAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+    internal fun getVerifyAppletVersion(tag: Tag): VersionInfo {
         // Note: Due to the way Apple implemented APDU communication, it's possible to send a select command and receive a 9000 response
         // even though the applet isn't actually installed on the card. The BioVerify applet has always supported a versioning command,
         // so here we'll simply check if the command was processes, and if we get an 'instruction byte not supported' response, we assume
@@ -721,7 +723,7 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+    fun getEnrollmentAppletVersion(tag: Tag): VersionInfo {
         var version = VersionInfo(
             isInstalled = true,
             majorVersion = -1,
@@ -789,7 +791,7 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getCVMAppletVersion(tag: NfcIso7816Tag): VersionInfo {
+    fun getCVMAppletVersion(tag: Tag): VersionInfo {
         var version = VersionInfo(
             isInstalled = true,
             majorVersion = -1,
@@ -851,7 +853,7 @@ internal class BiometricsApi(
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
 
      */
-    fun getFingerprintVerification(tag: NfcIso7816Tag): NfcActionResult.VerifyBiometric {
+    fun getFingerprintVerification(tag: Tag): NfcActionResult.VerifyBiometric {
 
         // TODO: !!! implement encryption !!!
 
@@ -889,7 +891,7 @@ internal class BiometricsApi(
         throw SentrySDKError.ApduCommandError(returnData.statusWord)
     }
 
-    fun getCardOSVersion(tag: NfcIso7816Tag): VersionInfo {
+    fun getCardOSVersion(tag: Tag): VersionInfo {
         println("----- BiometricsAPI Get Card OS Version")
 
         println("     Getting card OS version")
@@ -961,4 +963,10 @@ internal class BiometricsApi(
         println("     Card OS Version: ${retVal.majorVersion}.${retVal.minorVersion}.${retVal.hotfixVersion}")
         return retVal
     }
+}
+
+private fun Tag.transceive(bytes: ByteArray): Result<ByteArray> = try {
+    Result.success(IsoDep.get(this).transceive(bytes))
+} catch (e: TagLostException) {
+    Result.failure(e)
 }
