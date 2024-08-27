@@ -17,7 +17,7 @@ kotlin {
 }
 
 android {
-    namespace = "com.secure.jnet.wallet"
+    namespace = "com.sentryenterprises.sentry.enrollment"
 
     compileSdk = 34
 
