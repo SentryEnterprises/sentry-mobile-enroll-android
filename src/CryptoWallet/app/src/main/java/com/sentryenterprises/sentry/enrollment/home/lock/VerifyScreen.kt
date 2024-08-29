@@ -38,6 +38,7 @@ import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
 import com.sentryenterprises.sentry.sdk.models.NfcAction
+import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,6 +126,15 @@ fun VerifyScreen(
         ScanStatusBottomSheet(
             sheetState = sheetState,
             showStatus = showStatus,
+            onShowResultText = { result ->
+                if (result is NfcActionResult.VerifyBiometric) {
+                    "Verification Status" to if (result.isBiometricCorrect) {
+                        "Fingerprint successfully verified!"
+                    } else {
+                        "Fingerprint did not match"
+                    }
+                } else error("Unexpected state $showStatus")
+            },
             onButtonClicked = {
                 nfcViewModel.resetNfcAction()
             },

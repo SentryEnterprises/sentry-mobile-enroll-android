@@ -10,6 +10,7 @@ import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollment
+import java.io.IOException
 
 /**
 Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
@@ -197,6 +198,9 @@ class SentrySdk(
                 isoDep.connect()
             }
             true
+        } catch (e: IOException) {
+            e.printStackTrace()
+            false
         } catch (e: SecurityException) {
             log("Ignore SecurityException Tag out of date")
             e.printStackTrace()

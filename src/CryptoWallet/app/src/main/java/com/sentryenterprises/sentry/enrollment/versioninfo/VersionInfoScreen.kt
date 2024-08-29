@@ -61,7 +61,7 @@ fun VersionInfoScreen(
     val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
 
     LaunchedEffect(nfcAction) {
-        if (nfcAction is NfcAction.GetVersionInformation && nfcActionResult != null) {
+        if (nfcAction is NfcAction.GetVersionInformation || nfcActionResult != null) {
             sheetState.expand()
         } else {
             sheetState.hide()
@@ -110,15 +110,16 @@ fun VersionInfoScreen(
                     fontSize = 17.sp
                 )
             }
-            if (nfcActionResult is NfcActionResult.VersionInformation){
+            val actionResult = nfcActionResult?.getOrNull()
+            if (actionResult is NfcActionResult.VersionInformation){
 
                 val info =
                     mapOf(
                         "App Version" to BuildConfig.VERSION_CODE,
-                        "OS Version" to nfcActionResult.osVersion,
-                        "Enroll Version" to nfcActionResult.enrollAppletVersion,
-                        "CVM Version" to nfcActionResult.cvmAppletVersion,
-                        "Verify Version" to nfcActionResult.verifyAppletVersion
+                        "OS Version" to actionResult.osVersion,
+                        "Enroll Version" to actionResult.enrollAppletVersion,
+                        "CVM Version" to actionResult.cvmAppletVersion,
+                        "Verify Version" to actionResult.verifyAppletVersion
                     )
 
                 LazyColumn(Modifier.weight(1f)) {
@@ -167,75 +168,13 @@ fun VersionInfoScreen(
     ScanStatusBottomSheet(
         sheetState = sheetState,
         showStatus = showStatus,
-        onButtonClicked = {
-
-            nfcViewModel.resetNfcAction()
-            onNavigate(NAV_SETTINGS)
+        onShowResultText = { result ->
+            if (result is NfcActionResult.VersionInformation) {
+                "Version check complete" to "Click above to dismiss"
+            } else error("Unexpected state $showStatus")
         },
-        onDismiss = {
-            nfcViewModel.resetNfcAction()
-        }
+        onButtonClicked = null,
+        onDismiss = null,
     )
 
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ScanningStatusBottomSheet(
-    sheetState: SheetState,
-    nfcActionResult: NfcActionResult?,
-    progress: Int?,
-    nfcAction: NfcAction?
-) {
-
-    val scope = rememberCoroutineScope()
-    if (sheetState.isVisible) {
-        ModalBottomSheet(
-            onDismissRequest = {
-                scope.launch {
-                    sheetState.hide()
-                }
-            },
-            sheetState = sheetState,
-        ) {
-            if (progress != null || nfcAction != null) {
-                CircularProgressIndicator(color = Color.White)
-            } else {
-
-            }
-            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometrics) {
-
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
-                    text = "Reset Result",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                )
-
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
-                    text = "The reset was successful",
-                    color = Color.White,
-                )
-
-            } else {
-
-                val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.GetVersionInformation) {
-                    "Scanning" to true
-                } else if (progress != null) {
-                    "Card found" to true
-                } else {
-                    "An error occurred. Please try again." to false
-                }
-
-
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
-                    text = statusText,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                )
-            }
-        }
-    }
 }

@@ -25,12 +25,13 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun ScanStatusBottomSheet(
     sheetState: SheetState,
     showStatus: ShowStatus,
-    onButtonClicked: () -> Unit,
-    onDismiss: () -> Unit,
+    onShowResultText: (NfcActionResult) -> Pair<String, String>,
+    onButtonClicked: (() -> Unit)?,
+    onDismiss: (() -> Unit)?,
 ) {
     if (sheetState.isVisible) {
         ModalBottomSheet(
-            onDismissRequest = onDismiss,
+            onDismissRequest = onDismiss ?: {},
             sheetState = sheetState,
         ) {
             if (showStatus is ShowStatus.Scanning) {
@@ -42,28 +43,10 @@ fun ScanStatusBottomSheet(
             val (statusTitle, statusText) = when (showStatus) {
                 ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
                 is ShowStatus.Error -> "Scan Error" to showStatus.message
-                is ShowStatus.Result -> {
-                    if (showStatus.result is NfcActionResult.BiometricEnrollment) {
-                        if (showStatus.result.isStatusEnrollment) {
-                            "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
-                        } else {
-                            "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
-                        }
-                    } else if (showStatus.result is NfcActionResult.VerifyBiometric) {
-                        "Verification Status" to if (showStatus.result.isBiometricCorrect) {
-                            "Fingerprint successfully verified!"
-                        } else {
-                            "Fingerprint did not match"
-                        }
-                    } else error("Unexpected state $showStatus")
-                }
-
+                is ShowStatus.Result -> onShowResultText(showStatus.result)
                 ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
                 ShowStatus.Hidden -> "" to "" // Nothing
             }
-
-
-
 
             Text(
                 modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
@@ -79,32 +62,35 @@ fun ScanStatusBottomSheet(
                 fontWeight = Normal,
             )
 
-            Button(
-                modifier = Modifier
-                    .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
-                    .fillMaxWidth(),
-                onClick = onButtonClicked
-            ) {
-                val okButtonText =
-                    if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
-                        if (showStatus.result.isStatusEnrollment) {
-                            "Enroll"
+            onButtonClicked?.let {
+                Button(
+                    modifier = Modifier
+                        .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
+                        .fillMaxWidth(),
+                    onClick = onButtonClicked
+                ) {
+                    val okButtonText =
+                        if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
+                            if (showStatus.result.isStatusEnrollment) {
+                                "Enroll"
+                            } else {
+                                "Verify"
+                            }
                         } else {
-                            "Verify"
-                        }
-                    } else {
-                        when (showStatus) {
-                            ShowStatus.Hidden -> "" // Nothing
+                            when (showStatus) {
+                                ShowStatus.Hidden -> "" // Nothing
 
-                            is ShowStatus.Result,
-                            is ShowStatus.Error -> "Ok"
+                                is ShowStatus.Result,
+                                is ShowStatus.Error -> "Ok"
 
-                            ShowStatus.CardFound,
-                            ShowStatus.Scanning -> "Cancel"
+                                ShowStatus.CardFound,
+                                ShowStatus.Scanning -> "Cancel"
+                            }
                         }
-                    }
-                Text(okButtonText)
+                    Text(okButtonText)
+                }
             }
+
         }
     }
 }

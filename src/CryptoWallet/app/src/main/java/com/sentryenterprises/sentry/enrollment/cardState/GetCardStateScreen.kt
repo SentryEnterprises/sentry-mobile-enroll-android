@@ -125,6 +125,15 @@ fun GetCardStateScreen(
         ScanStatusBottomSheet(
             sheetState = sheetState,
             showStatus = showStatus,
+            onShowResultText = { result ->
+                if (result is NfcActionResult.BiometricEnrollment) {
+                    if (result.isStatusEnrollment) {
+                        "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+                    } else {
+                        "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+                    }
+                } else error("Unexpected state $showStatus")
+            },
             onButtonClicked = {
 
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {

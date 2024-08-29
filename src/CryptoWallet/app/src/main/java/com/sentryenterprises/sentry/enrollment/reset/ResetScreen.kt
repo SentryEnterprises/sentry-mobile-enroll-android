@@ -136,7 +136,7 @@ fun ResetScreen(
             },
             sheetState = sheetState,
         ) {
-            if (nfcActionResult != null && nfcActionResult is NfcActionResult.ResetBiometrics) {
+            if (nfcActionResult?.getOrNull() != null && nfcActionResult.getOrNull() is NfcActionResult.ResetBiometrics) {
 
                 Text(
                     modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
@@ -145,14 +145,16 @@ fun ResetScreen(
                     fontWeight = Bold,
                 )
 
-                val resultText = when (nfcActionResult) {
+                val resultText = when (nfcActionResult.getOrNull()) {
                     is NfcActionResult.ResetBiometrics.Success -> {
                         "The reset was successful, this card is no longer enrolled."
                     }
 
                     is NfcActionResult.ResetBiometrics.Failed -> {
-                        "An error occurred. Please try again. (${nfcActionResult.reason})"
+                        "An error occurred. Please try again. (${nfcActionResult})"
                     }
+                    else -> "Illegal state: $nfcActionResult"
+
                 }
 
                 Text(
@@ -168,7 +170,7 @@ fun ResetScreen(
                 } else if (progress != null){
                     "Card found" to true
                 } else {
-                    "Error" to false
+                    "Error $nfcActionResult" to false
                 }
                 if (isProgressing) {
                     CircularProgressIndicator(color = Color.White)

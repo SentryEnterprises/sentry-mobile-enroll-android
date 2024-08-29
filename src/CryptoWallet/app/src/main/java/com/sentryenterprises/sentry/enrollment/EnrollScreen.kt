@@ -101,10 +101,11 @@ fun EnrollScreen(
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
                 )
-            } else if (action == null && actionResult is NfcActionResult.EnrollFingerprint) {
-                val resultText = when (actionResult) {
+            } else if (action == null && actionResult?.getOrNull() is NfcActionResult.EnrollFingerprint) {
+                val resultText = when (actionResult.getOrNull()) {
                     is NfcActionResult.EnrollFingerprint.Complete -> "Enrollment complete!"
                     is NfcActionResult.EnrollFingerprint.Failed -> "Card is reporting: $progress"
+                    else -> error("when do we get here? $actionResult")
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -116,8 +117,8 @@ fun EnrollScreen(
             } else {
                 val instructionText = when (progress) {
                     is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
-                    else -> "Connecting to card"
-
+                    is BiometricProgress.Feedback -> "Connecting to card ${progress.status}"
+                    null -> "Connecting to card"
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -127,6 +128,7 @@ fun EnrollScreen(
                     fontSize = 17.sp
                 )
             }
+
 
             Spacer(
                 modifier = Modifier
