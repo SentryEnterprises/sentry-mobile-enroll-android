@@ -20,27 +20,25 @@ The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be i
  */
 class SentrySdk(
     private val enrollCode: ByteArray,
-    verboseDebugOutput: Boolean = true,
+    private val isDebugOutputVerbose: Boolean = true,
 ) {
     private val biometricsAPI: BiometricsApi = BiometricsApi(
-        isDebugOutputVerbose = verboseDebugOutput,
+        isDebugOutputVerbose = isDebugOutputVerbose,
     )
 
-
     /**
-    Retrieves the biometric fingerprint enrollment status.
-
-    Opens an `NFCReaderSession`, connects to an `Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
-
-    - Returns: A `BiometricEnrollmentStatus` structure containing information on the fingerprint enrollment status.
-
-    This method can throw the following exceptions:
-     * `SentrySDKError.enrollCodeLengthOutOfbounds` if `enrollCode` is less than four (4) characters or more than six (6) characters in length.
-     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
-     * `SentrySDKError.enrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
-     * `SentrySDKError.incorrectTagFormat` if an NFC session scanned a tag, but it is not an ISO7816 tag.
+     * Retrieves the biometric fingerprint enrollment status.
+     *
+     * Opens an `NFCReaderSession`, connects to an `Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+     *
+     * @return BiometricEnrollment fingerprint enrollment status
+     *
+     * This method can throw the following exceptions:
+     * `SentrySDKError.EnrollCodeLengthOutOfbounds` if `enrollCode` is less than four (4) characters or more than six (6) characters in length.
+     * `SentrySDKError.ApduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.EnrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
+     * `SentrySDKError.IncorrectTagFormat` if an NFC session scanned a tag, but it is not an ISO7816 tag.
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
-
      */
     fun getEnrollmentStatus(tag: Tag): BiometricEnrollment {
         var errorDuringSession = false
@@ -48,7 +46,7 @@ class SentrySdk(
         try {
             biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-            val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag)
+            val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
             return BiometricEnrollment(enrollStatus.mode == Enrollment)
         } catch (e: Exception) {
             errorDuringSession = true
@@ -65,7 +63,7 @@ class SentrySdk(
 
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-        val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag)
+        val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
         if (enrollStatus == Verification) {
             throw SentrySDKError.EnrollModeNotAvailable
         }
@@ -83,9 +81,9 @@ class SentrySdk(
         while (enrollmentsLeft > 0) {
             try {
                 enrollmentsLeft = if (resetOnFirstCall) {
-                    biometricsAPI.resetEnrollAndScanFingerprint(tag = tag)
+                    biometricsAPI.resetEnrollAndScanFingerprint(tag = tag).getOrThrow()
                 } else {
-                    biometricsAPI.enrollScanFingerprint(tag = tag)
+                    biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
                 }
                 onBiometricProgressChanged(BiometricProgress.Progressing(enrollmentsLeft))
 
@@ -155,16 +153,16 @@ class SentrySdk(
 
     fun getCardSoftwareVersions(tag: Tag): NfcActionResult.VersionInformation {
         val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
-        print("OS= $osVersion")
+        log("OS= $osVersion")
 
         val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
-        print("Verify= $verifyVersion")
+        log("Verify= $verifyVersion")
 
         val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
-        print("Enroll= $enrollVersion")
+        log("Enroll= $enrollVersion")
 
         val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
-        print("CVM= $cvmVersion")
+        log("CVM= $cvmVersion")
 
         return NfcActionResult.VersionInformation(
             osVersion = osVersion,
@@ -184,10 +182,10 @@ class SentrySdk(
             }
             true
         } catch (e: SecurityException) {
-            println("Ignore SecurityException Tag out of date")
+            log("Ignore SecurityException Tag out of date")
             e.printStackTrace()
             false
-        } 
+        }
     }
 
     fun closeConnection(tag: Tag) {
@@ -195,8 +193,15 @@ class SentrySdk(
         try {
             isoDep?.close()
         } catch (e: SecurityException) {
-            println("Ignore SecurityException Tag out of date")
+            log("Ignore SecurityException Tag out of date")
             e.printStackTrace()
+        }
+    }
+
+
+    private fun log(text: String) {
+        if (isDebugOutputVerbose) {
+            println(text)
         }
     }
 }

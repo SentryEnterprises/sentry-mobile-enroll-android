@@ -65,7 +65,7 @@ internal class BiometricsApi(
         encryptionCounter: ByteArray
     ): WrapAPDUCommandResponse {
 
-        println("calcSecretKeys encryptionCounter ${encryptionCounter.formatted()} ")
+        log("calcSecretKeys encryptionCounter ${encryptionCounter.formatted()} ")
 
         val command = apduCommand.asPointer()
         val wrappedCommand = Memory(300)
@@ -120,11 +120,11 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentStatus(tag: Tag): BiometricEnrollmentStatus {
-        println("----- BiometricsAPI Get Enrollment Status")
+    fun getEnrollmentStatus(tag: Tag): Result<BiometricEnrollmentStatus> {
+        log("----- BiometricsAPI Get Enrollment Status")
         var dataArray: ByteArray = byteArrayOf()
 
-        println("     Getting enrollment status")
+        log("     Getting enrollment status")
 
         val enrollStatusCommand = wrapAPDUCommand(
             apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
@@ -141,7 +141,7 @@ internal class BiometricsApi(
             ).getOrThrow()
 
         if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-            throw SentrySDKError.ApduCommandError(returnData.statusWord)
+            return Result.failure(SentrySDKError.ApduCommandError(returnData.statusWord))
         }
 
         dataArray = unwrapAPDUResponse(
@@ -163,7 +163,7 @@ internal class BiometricsApi(
         val remainingTouches = dataArray[33]
         val mode = dataArray[39]
 
-        println(
+        log(
             "     # Fingers: $maxNumberOfFingers\n" +
                     "     Enrolled Touches: $enrolledTouches\n" +
                     "     Remaining Touches: $remainingTouches\n" +
@@ -176,13 +176,15 @@ internal class BiometricsApi(
         }
 
 
-        println("-----------------------------")
+        log("-----------------------------")
 
-        return BiometricEnrollmentStatus(
-            maximumFingers = maxNumberOfFingers.toInt(),
-            enrolledTouches = enrolledTouches.toInt(),
-            remainingTouches = remainingTouches.toInt(),
-            mode = biometricMode
+        return Result.success(
+            BiometricEnrollmentStatus(
+                maximumFingers = maxNumberOfFingers.toInt(),
+                enrolledTouches = enrolledTouches.toInt(),
+                remainingTouches = remainingTouches.toInt(),
+                mode = biometricMode
+            )
         )
     }
 
@@ -204,8 +206,8 @@ internal class BiometricsApi(
             setByte(response.size + 1L, (statusWord and 0x00FF).toByte())
         }
 
-        println("unwrapAPDUResponse response ${response.formatted()}")
-        println(
+        log("unwrapAPDUResponse response ${response.formatted()}")
+        log(
             "unwrapAPDUResponse responseData ${
                 responseData.getByteArray(0, response.size + 2).formatted()
             }"
@@ -254,8 +256,8 @@ internal class BiometricsApi(
      */
     fun initializeVerify(tag: Tag) {
 
-        println("----- BiometricsAPI Initialize Verify")
-        println("     Selecting Verify Applet")
+        log("----- BiometricsAPI Initialize Verify")
+        log("     Selecting Verify Applet")
 
         APDUCommand.SELECT_VERIFY_APPLET
         sendAndConfirm(
@@ -263,20 +265,6 @@ internal class BiometricsApi(
             name = "Select Verify Applet",
             tag = tag
         )
-
-        println("     Initializing Secure Channel")
-
-        encryptionCounter = ByteArray(16) { 0 }
-
-        chainingValue = byteArrayOf()
-        privateKey = byteArrayOf()
-        publicKey = byteArrayOf()
-        sharedSecret = byteArrayOf()
-        keyRespt = byteArrayOf()
-        keyENC = byteArrayOf()
-        keyCMAC = byteArrayOf()
-        keyRMAC = byteArrayOf()
-
     }
 
 
@@ -288,7 +276,7 @@ internal class BiometricsApi(
         val publicKey: Pointer = Memory(64)
         val secretShses: Pointer = Memory(32)
 
-        println("LibSecureChannelInit")
+        log("LibSecureChannelInit")
 
         val response = NativeLib.INSTANCE.LibSecureChannelInit(
             apduCommand,
@@ -354,12 +342,12 @@ internal class BiometricsApi(
             error("Unknown return value ${response.toByte().toHexString()}")
         }
 
-        println("calcSecretKeys ")
+        log("calcSecretKeys ")
 
         return Keys(
             keyRespt = keyRespt.getByteArray(0, 16),
             keyENC = keyENC.getByteArray(0, 16).also {
-                println("keyEnc ${it.formatted()}")
+                log("keyEnc ${it.formatted()}")
             },
             keyCMAC = keyCMAC.getByteArray(0, 16),
             keyRMAC = keyRMAC.getByteArray(0, 16),
@@ -382,14 +370,14 @@ internal class BiometricsApi(
 
      */
     fun initializeEnroll(tag: Tag, enrollCode: ByteArray) {
-        println("----- BiometricsAPI Initialize Enroll - Enroll Code: $enrollCode")
+        log("----- BiometricsAPI Initialize Enroll - Enroll Code: $enrollCode")
 
         // sanity check - enroll code must be between 4 and 6 characters
         if (enrollCode.size < 4 || enrollCode.size > 6) {
             throw SentrySDKError.EnrollCodeLengthOutOfBounds
         }
 
-        println("     Selecting Enroll Applet")
+        log("     Selecting Enroll Applet")
         sendAndConfirm(
             apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
             name = "Select Enroll Applet",
@@ -397,7 +385,7 @@ internal class BiometricsApi(
         )
 
         // if using a secure channel, setup keys
-        println("     Initializing Secure Channel")
+        log("     Initializing Secure Channel")
 
         encryptionCounter = ByteArray(16) { 0 }
         chainingValue = byteArrayOf()
@@ -469,12 +457,12 @@ internal class BiometricsApi(
         tag: Tag
     ): Result<APDUReturnResult> {
 
-        println("     >>> Sending $name => ${(apduCommand.formatted())}\n")
+        log("     >>> Sending $name => ${(apduCommand.formatted())}\n")
 
         val result = tag.transceive(apduCommand)
 
         return if (result.isSuccess) {
-            println("     >>> Received $name => ${(result.getOrNull()?.formatted())}\n")
+            log("     >>> Received $name => ${(result.getOrNull()?.formatted())}\n")
 
             val resultArray = result.getOrThrow()
             val statusWord =
@@ -500,76 +488,76 @@ internal class BiometricsApi(
 
     }
 
-    fun resetEnrollAndScanFingerprint(tag: Tag): Int {
-        println("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
+    fun resetEnrollAndScanFingerprint(tag: Tag): Result<Int> {
+        log("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
 
-            val processFingerprintCommand = wrapAPDUCommand(
-                apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
-                keyEnc = keyENC,
-                keyCmac = keyCMAC,
-                chainingValue = chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-            sendAndConfirm(
-                apduCommand = processFingerprintCommand.wrapped,
-                name = "Reset And Process Fingerprint",
-                tag = tag
-            )
+        val processFingerprintCommand = wrapAPDUCommand(
+            apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
+            keyEnc = keyENC,
+            keyCmac = keyCMAC,
+            chainingValue = chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+        sendAndConfirm(
+            apduCommand = processFingerprintCommand.wrapped,
+            name = "Reset And Process Fingerprint",
+            tag = tag
+        )
 
 
-        println("     Getting enrollment status")
-        val enrollmentStatus = getEnrollmentStatus(tag = tag)
+        log("     Getting enrollment status")
+        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
-        println("     Remaining: ${enrollmentStatus.remainingTouches}")
-        return enrollmentStatus.remainingTouches.toInt()
+        log("     Remaining: ${enrollmentStatus.remainingTouches}")
+        return Result.success(enrollmentStatus.remainingTouches.toInt())
     }
 
-    fun enrollScanFingerprint(tag: Tag): Int {
-        println("----- BiometricsAPI Enroll Scan Fingerprint")
+    fun enrollScanFingerprint(tag: Tag): Result<Int> {
+        log("----- BiometricsAPI Enroll Scan Fingerprint")
 
-            val processFingerprintCommand = wrapAPDUCommand(
-                apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
-                keyEnc = keyENC,
-                keyCmac = keyCMAC,
-                chainingValue = chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-            sendAndConfirm(
-                apduCommand = processFingerprintCommand.wrapped,
-                name = "Process Fingerprint",
-                tag = tag
-            )
+        val processFingerprintCommand = wrapAPDUCommand(
+            apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
+            keyEnc = keyENC,
+            keyCmac = keyCMAC,
+            chainingValue = chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+        sendAndConfirm(
+            apduCommand = processFingerprintCommand.wrapped,
+            name = "Process Fingerprint",
+            tag = tag
+        )
 
-        println("     Getting enrollment status")
+        log("     Getting enrollment status")
 
-        val enrollmentStatus = getEnrollmentStatus(tag = tag)
+        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
-        println("     Remaining: ${enrollmentStatus.remainingTouches}")
-        return enrollmentStatus.remainingTouches.toInt()
+        log("     Remaining: ${enrollmentStatus.remainingTouches}")
+        return Result.success(enrollmentStatus.remainingTouches.toInt())
     }
 
     fun verifyEnrolledFingerprint(tag: Tag) {
-        println("----- BiometricsAPI Verify Enrolled Fingerprint")
+        log("----- BiometricsAPI Verify Enrolled Fingerprint")
 
-            val verifyEnrollCommand = wrapAPDUCommand(
-                apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
-                keyEnc = keyENC,
-                keyCmac = keyCMAC,
-                chainingValue = chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-            sendAndConfirm(
-                apduCommand = verifyEnrollCommand.wrapped,
-                name = "Verify Enrolled Fingerprint",
-                tag = tag
-            )
+        val verifyEnrollCommand = wrapAPDUCommand(
+            apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
+            keyEnc = keyENC,
+            keyCmac = keyCMAC,
+            chainingValue = chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+        sendAndConfirm(
+            apduCommand = verifyEnrollCommand.wrapped,
+            name = "Verify Enrolled Fingerprint",
+            tag = tag
+        )
 
 
     }
 
     fun resetBiometricData(tag: Tag): NfcActionResult.ResetBiometrics {
-        println("----- BiometricsAPI Reset BiometricData")
+        log("----- BiometricsAPI Reset BiometricData")
 
         val result = try {
             sendAndConfirm(
@@ -616,9 +604,9 @@ internal class BiometricsApi(
             hotfixVersion = -1,
             text = null
         )
-        println("----- BiometricsAPI Get Verify Applet Version")
+        log("----- BiometricsAPI Get Verify Applet Version")
 
-        println("     Selecting Verify Applet")
+        log("     Selecting Verify Applet")
 
         send(
             apduCommand = APDUCommand.SELECT_VERIFY_APPLET.value,
@@ -677,7 +665,7 @@ internal class BiometricsApi(
             throw SentrySDKError.ApduCommandError(response.statusWord)
         }
 
-        println("     Verify Applet Version: $version")
+        log("     Verify Applet Version: $version")
         return version
     }
 
@@ -699,9 +687,9 @@ internal class BiometricsApi(
             hotfixVersion = -1,
             text = null
         )
-        println("----- BiometricsAPI Get Enrollment Applet Version")
+        log("----- BiometricsAPI Get Enrollment Applet Version")
 
-        println("     Selecting Enroll Applet")
+        log("     Selecting Enroll Applet")
 
         try {
             val response = sendAndConfirm(
@@ -740,7 +728,7 @@ internal class BiometricsApi(
 //            }
         }
 
-        println("     Enrollment Applet Version: $version")
+        log("     Enrollment Applet Version: $version")
         return version
     }
 
@@ -767,7 +755,7 @@ internal class BiometricsApi(
             hotfixVersion = -1,
             text = null
         )
-        println("----- BiometricsAPI Get CVM Applet Version")
+        log("----- BiometricsAPI Get CVM Applet Version")
 
         val response = sendAndConfirm(
             apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
@@ -791,31 +779,27 @@ internal class BiometricsApi(
         }
 
 
-        println("     CVM Applet Version: $version")
+        log("     CVM Applet Version: $version")
         return version
     }
 
 
     /**
-    Scans the finger currently on the fingerprint sensor, indicating if the scanned fingerprint matches one recorded during enrollment.
-
-    - Parameters:
-    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
-
-    - Returns: `True` if the scanned fingerprint matches one recorded during enrollment, otherwise returns `false`.
-
-    This method can throw the following exceptions:
+     * Scans the finger currently on the fingerprint sensor, indicating if the scanned fingerprint matches one recorded during enrollment.
+     *
+     * @param: tag Nfc tag
+     *
+     * @return fingerprint match
+     *
+     * This method can throw the following exceptions:
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
      * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
      * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
-
+     *
      */
     fun getFingerprintVerification(tag: Tag): NfcActionResult.VerifyBiometric {
-
-        // TODO: !!! implement encryption !!!
-
-        println("----- BiometricsAPI Get Fingerprint Verification")
+        log("----- BiometricsAPI Get Fingerprint Verification")
 
 
         val returnData = send(
@@ -834,12 +818,12 @@ internal class BiometricsApi(
             }
 
             if (returnData.data[4] == 0xA5.toByte()) {
-                println("     Match")
+                log("     Match")
                 return NfcActionResult.VerifyBiometric(true)
             }
 
             if (returnData.data[4] == 0x5A.toByte()) {
-                println("     No match found")
+                log("     No match found")
                 return NfcActionResult.VerifyBiometric(false)
             }
 
@@ -850,16 +834,16 @@ internal class BiometricsApi(
     }
 
     fun getCardOSVersion(tag: Tag): VersionInfo {
-        println("----- BiometricsAPI Get Card OS Version")
+        log("----- BiometricsAPI Get Card OS Version")
 
-        println("     Getting card OS version")
+        log("     Getting card OS version")
         val returnData = sendAndConfirm(
             apduCommand = APDUCommand.GET_OS_VERSION.value,
             name = "Get Card OS Version",
             tag = tag
         ).getOrThrow()
 
-        println("     Processing response")
+        log("     Processing response")
         val dataBuffer = returnData.data
 
         if (dataBuffer.size < 8) {
@@ -918,13 +902,13 @@ internal class BiometricsApi(
             text = null
         )
 
-        println("     Card OS Version: $version")
+        log("     Card OS Version: $version")
         return version
     }
 
-    private fun println(text: String) {
+    private fun log(text: String) {
         if (isDebugOutputVerbose) {
-            System.out.println(text)
+            println(text)
         }
     }
 
