@@ -40,17 +40,17 @@ class SentrySdk(
      * `SentrySDKError.IncorrectTagFormat` if an NFC session scanned a tag, but it is not an ISO7816 tag.
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
      */
-    fun getEnrollmentStatus(tag: Tag): BiometricEnrollment {
+    fun getEnrollmentStatus(tag: Tag): Result<BiometricEnrollment> {
         var errorDuringSession = false
 
-        try {
+        return try {
             biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
             val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
-            return BiometricEnrollment(enrollStatus.mode == Enrollment)
+            Result.success(BiometricEnrollment(enrollStatus.mode == Enrollment))
         } catch (e: Exception) {
             errorDuringSession = true
-            throw e
+            Result.failure(e)
         }
     }
 
@@ -118,9 +118,13 @@ class SentrySdk(
      *
      * - Warning: This is for development purposes only! This command only works on development cards, and fails when used on production cards.
      */
-    fun resetCard(tag: Tag): NfcActionResult.ResetBiometrics {
-        // reset the biometric data, setting the card into an unenrolled state
-        return biometricsAPI.resetBiometricData(tag = tag)
+    fun resetCard(tag: Tag): Result<NfcActionResult.ResetBiometrics> {
+        return try {
+            // reset the biometric data, setting the card into an unenrolled state
+            Result.success(biometricsAPI.resetBiometricData(tag = tag))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 
@@ -145,31 +149,43 @@ class SentrySdk(
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
 
      */
-    fun validateFingerprint(tag: Tag): NfcActionResult.VerifyBiometric {
-        biometricsAPI.initializeVerify(tag = tag)
-        return biometricsAPI.getFingerprintVerification(tag = tag)
+    fun validateFingerprint(tag: Tag): Result<NfcActionResult.VerifyBiometric> {
+        return try {
+            biometricsAPI.initializeVerify(tag = tag)
+            Result.success(biometricsAPI.getFingerprintVerification(tag = tag))
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 
-    fun getCardSoftwareVersions(tag: Tag): NfcActionResult.VersionInformation {
-        val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
-        log("OS= $osVersion")
+    fun getCardSoftwareVersions(tag: Tag): Result<NfcActionResult.VersionInformation> {
+        return try {
+            val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
+            log("OS= $osVersion")
 
-        val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
-        log("Verify= $verifyVersion")
+            val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
+            log("Verify= $verifyVersion")
 
-        val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
-        log("Enroll= $enrollVersion")
+            val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
+            log("Enroll= $enrollVersion")
 
-        val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
-        log("CVM= $cvmVersion")
+            val cvmVersion = biometricsAPI.getCVMAppletVersion(tag = tag)
+            log("CVM= $cvmVersion")
 
-        return NfcActionResult.VersionInformation(
-            osVersion = osVersion,
-            enrollAppletVersion = enrollVersion,
-            cvmAppletVersion = cvmVersion,
-            verifyAppletVersion = verifyVersion
-        )
+
+            return Result.success(
+                NfcActionResult.VersionInformation(
+                    osVersion = osVersion,
+                    enrollAppletVersion = enrollVersion,
+                    cvmAppletVersion = cvmVersion,
+                    verifyAppletVersion = verifyVersion
+                )
+            )
+
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
 

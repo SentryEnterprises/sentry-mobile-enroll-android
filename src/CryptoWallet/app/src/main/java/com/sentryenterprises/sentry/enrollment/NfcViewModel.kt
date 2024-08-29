@@ -30,7 +30,7 @@ class NfcViewModel : ViewModel() {
 
     private val resetEnrollFingerPrintNeeded = MutableStateFlow<Boolean>(false)
 
-    private val _nfcActionResult = MutableStateFlow<NfcActionResult?>(null)
+    private val _nfcActionResult = MutableStateFlow<Result<NfcActionResult>?>(null)
     val nfcActionResult = _nfcActionResult.asStateFlow()
 
     private val _nfcAction = MutableStateFlow<NfcAction?>(null)
@@ -50,7 +50,11 @@ class NfcViewModel : ViewModel() {
 //        } else if (result != null && result is NfcActionResult.ErrorResult) {
 //            ShowStatus.Error(internalException?.message ?: result.error)
         } else if (result != null) {
-            ShowStatus.Result(result)
+            if (result.isSuccess) {
+                ShowStatus.Result(result.getOrThrow())
+            } else {
+                ShowStatus.Error(result.exceptionOrNull()?.message ?: "Unknown error $result")
+            }
         } else {
             ShowStatus.Error("Unknown error, likely due to incorrect placement.")
         }
@@ -132,12 +136,15 @@ class NfcViewModel : ViewModel() {
                                 }
                             ).also {
                                 resetEnrollFingerPrintNeeded.value = false
+                            }.let {
+                            Result.success(it)
                             }
                         } catch (e: Exception) {
 //                        } catch (e: SentrySDKError.EnrollVerificationError) { TODO should be hitting this
                             resetEnrollFingerPrintNeeded.value = true
                             Timber.e(e)
-                            NfcActionResult.EnrollFingerprint.Failed
+                            Result.failure(e)
+//                            NfcActionResult.EnrollFingerprint.Failed
                         }
                     }
 
@@ -152,26 +159,16 @@ class NfcViewModel : ViewModel() {
                     is NfcAction.GetVersionInformation -> {
                         sentrySdk.getCardSoftwareVersions(tag)
                     }
-                }.let { nfcActionResult ->
+                }.let { nfcActionResult: Result<NfcActionResult> ->
                     Timber.d("-----> $nfcAction = $nfcActionResult")
+
                     _nfcActionResult.value = nfcActionResult
                 }
 
             } catch (e: Exception) {
                 Timber.e(e)
-                var errorMessage = ErrorMessageHelper(e).getErrorMessage()
 
-                val nfcActionResult = NfcActionResult.Error(
-                    errorMessage
-                )
-                _nfcActionResult.value = nfcActionResult
-            } catch (e: Exception) {
-                Timber.e(e)
-
-                val nfcActionResult = NfcActionResult.Error(
-                    "${e.message}"
-                )
-                _nfcActionResult.value = nfcActionResult
+                _nfcActionResult.value = Result.failure(e)
             } finally {
                 sentrySdk.closeConnection(tag)
 
