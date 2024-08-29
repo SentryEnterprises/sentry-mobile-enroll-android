@@ -34,7 +34,6 @@ Communicates with the IDEX Enroll applet by sending various `APDU` commands in t
  */
 internal class BiometricsApi(
     val isDebugOutputVerbose: Boolean = true,
-    val useSecureChannel: Boolean = true,
 ) {
 
     // Note - This is reset when selecting a new applet (i.e. after initing the secure channel)
@@ -127,39 +126,31 @@ internal class BiometricsApi(
 
         println("     Getting enrollment status")
 
-        if (useSecureChannel) {
-            val enrollStatusCommand = wrapAPDUCommand(
-                apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
-                keyEnc = keyENC,
-                keyCmac = keyCMAC,
-                chainingValue = chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-            val returnData =
-                send(
-                    apduCommand = enrollStatusCommand.wrapped,
-                    name = "Get Enroll Status",
-                    tag = tag
-                ).getOrThrow()
-
-            if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-                throw SentrySDKError.ApduCommandError(returnData.statusWord)
-            }
-
-            dataArray = unwrapAPDUResponse(
-                response = returnData.data,
-                statusWord = returnData.statusWord,
-                chainingValue = chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-        } else {
-            val returnData = sendAndConfirm(
-                apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
-                name = "Get Enrollment Status",
+        val enrollStatusCommand = wrapAPDUCommand(
+            apduCommand = APDUCommand.GET_ENROLL_STATUS.value,
+            keyEnc = keyENC,
+            keyCmac = keyCMAC,
+            chainingValue = chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+        val returnData =
+            send(
+                apduCommand = enrollStatusCommand.wrapped,
+                name = "Get Enroll Status",
                 tag = tag
             ).getOrThrow()
-            dataArray = returnData.data
+
+        if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+            throw SentrySDKError.ApduCommandError(returnData.statusWord)
         }
+
+        dataArray = unwrapAPDUResponse(
+            response = returnData.data,
+            statusWord = returnData.statusWord,
+            chainingValue = chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+
 
         // sanity check - this buffer should be at least 40 bytes in length, possibly more
         if (dataArray.size < 40) {
@@ -257,8 +248,8 @@ internal class BiometricsApi(
      *
      * This method can throw the following exceptions:
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
-     * `SentrySDKError.secureChannelInitializationError` if `useSecureCommunication` is `true` but an error occurred initializing the secure communication encryption.
-     * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the BioVerify applet on the SentryCard does nto support secure communication (highly unlikely).
+     * `SentrySDKError.secureChannelInitializationError` error occurred initializing the secure communication encryption.
+     * `SentrySDKError.secureCommunicationNotSupported` the version of the BioVerify applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
     fun initializeVerify(tag: Tag) {
@@ -386,12 +377,12 @@ internal class BiometricsApi(
      * `SentrySDKError.enrollCodeLengthOutOfbounds` if the indicated `enrollCode` is less than four (4) characters or more than six (6) characters in length.
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
      * `SentrySDKError.enrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
-     * `SentrySDKError.secureChannelInitializationError` if `useSecureCommunication` is `true` but an error occurred initializing the secure communication encryption.
-     * `SentrySDKError.secureCommunicationNotSupported` if `useSecureCommunication` is `true` but the version of the Enroll applet on the SentryCard does nto support secure communication (highly unlikely).
+     * `SentrySDKError.secureChannelInitializationError` error occurred initializing the secure communication encryption.
+     * `SentrySDKError.secureCommunicationNotSupported` the version of the Enroll applet on the SentryCard does nto support secure communication (highly unlikely).
 
      */
     fun initializeEnroll(tag: Tag, enrollCode: ByteArray) {
-        println("----- BiometricsAPI Initialize Enroll - Enroll Code: ${enrollCode}")
+        println("----- BiometricsAPI Initialize Enroll - Enroll Code: $enrollCode")
 
         // sanity check - enroll code must be between 4 and 6 characters
         if (enrollCode.size < 4 || enrollCode.size > 6) {
@@ -406,58 +397,54 @@ internal class BiometricsApi(
         )
 
         // if using a secure channel, setup keys
-        if (useSecureChannel) {
-            println("     Initializing Secure Channel")
+        println("     Initializing Secure Channel")
 
-            encryptionCounter = ByteArray(16) { 0 }
-            chainingValue = byteArrayOf()
-            keyRespt = byteArrayOf()
-            keyENC = byteArrayOf()
-            keyCMAC = byteArrayOf()
-            keyRMAC = byteArrayOf()
+        encryptionCounter = ByteArray(16) { 0 }
+        chainingValue = byteArrayOf()
+        keyRespt = byteArrayOf()
+        keyENC = byteArrayOf()
+        keyCMAC = byteArrayOf()
+        keyRMAC = byteArrayOf()
 
-            // initialize the secure channel. this sets up keys and encryption
-            val authInfo = getAuthInitCommand()
-            privateKey = authInfo.privateKey
-            publicKey = authInfo.publicKey
-            sharedSecret = authInfo.sharedSecret
+        // initialize the secure channel. this sets up keys and encryption
+        val authInfo = getAuthInitCommand()
+        privateKey = authInfo.privateKey
+        publicKey = authInfo.publicKey
+        sharedSecret = authInfo.sharedSecret
 
-            val securityInitResponse =
-                sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
+        val securityInitResponse =
+            sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
 
-            if (securityInitResponse.isFailure) {
-                securityInitResponse.exceptionOrNull()?.printStackTrace()
+        if (securityInitResponse.isFailure) {
+            securityInitResponse.exceptionOrNull()?.printStackTrace()
+            throw SentrySDKError.SecureChannelInitializationError
+        }
+
+        val secretKeys =
+            if (securityInitResponse.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+                calcSecretKeys(
+                    receivedPubKey = securityInitResponse.getOrThrow().data,
+                    sharedSecret = sharedSecret,
+                    privateKey = privateKey
+                )
+            } else {
                 throw SentrySDKError.SecureChannelInitializationError
             }
+        keyRespt = secretKeys.keyRespt
+        keyENC = secretKeys.keyENC
+        keyCMAC = secretKeys.keyCMAC
+        keyRMAC = secretKeys.keyRMAC
+        chainingValue = secretKeys.chainingValue
 
-            val secretKeys =
-                if (securityInitResponse.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-                    calcSecretKeys(
-                        receivedPubKey = securityInitResponse.getOrThrow().data,
-                        sharedSecret = sharedSecret,
-                        privateKey = privateKey
-                    )
-                } else {
-                    throw SentrySDKError.SecureChannelInitializationError
-                }
-            keyRespt = secretKeys.keyRespt
-            keyENC = secretKeys.keyENC
-            keyCMAC = secretKeys.keyCMAC
-            keyRMAC = secretKeys.keyRMAC
-            chainingValue = secretKeys.chainingValue
+        val enrollCodeCommand = wrapAPDUCommand(
+            apduCommand = APDUCommand.verifyEnrollCode(enrollCode),
+            keyEnc = secretKeys.keyENC,
+            keyCmac = secretKeys.keyCMAC,
+            chainingValue = secretKeys.chainingValue,
+            encryptionCounter = encryptionCounter
+        )
+        sendAndConfirm(enrollCodeCommand.wrapped, "Verify Enroll Code", tag = tag)
 
-            val enrollCodeCommand = wrapAPDUCommand(
-                apduCommand = APDUCommand.verifyEnrollCode(enrollCode),
-                keyEnc = secretKeys.keyENC,
-                keyCmac = secretKeys.keyCMAC,
-                chainingValue = secretKeys.chainingValue,
-                encryptionCounter = encryptionCounter
-            )
-            sendAndConfirm(enrollCodeCommand.wrapped, "Verify Enroll Code", tag = tag)
-
-        } else {
-            TODO("are we using non secure channels?")
-        }
     }
 
     /// Sends an APDU command, throwing an exception if that command does not respond with a successful operation value.
@@ -517,7 +504,6 @@ internal class BiometricsApi(
         println("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
 
-        if (useSecureChannel) {
             val processFingerprintCommand = wrapAPDUCommand(
                 apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
                 keyEnc = keyENC,
@@ -530,13 +516,7 @@ internal class BiometricsApi(
                 name = "Reset And Process Fingerprint",
                 tag = tag
             )
-        } else {
-            sendAndConfirm(
-                apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
-                name = "Reset And Process Fingerprint",
-                tag = tag
-            )
-        }
+
 
         println("     Getting enrollment status")
         val enrollmentStatus = getEnrollmentStatus(tag = tag)
@@ -548,7 +528,6 @@ internal class BiometricsApi(
     fun enrollScanFingerprint(tag: Tag): Int {
         println("----- BiometricsAPI Enroll Scan Fingerprint")
 
-        if (useSecureChannel) {
             val processFingerprintCommand = wrapAPDUCommand(
                 apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
                 keyEnc = keyENC,
@@ -561,13 +540,7 @@ internal class BiometricsApi(
                 name = "Process Fingerprint",
                 tag = tag
             )
-        } else {
-            sendAndConfirm(
-                apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
-                name = "Process Fingerprint",
-                tag = tag
-            )
-        }
+
         println("     Getting enrollment status")
 
         val enrollmentStatus = getEnrollmentStatus(tag = tag)
@@ -579,7 +552,6 @@ internal class BiometricsApi(
     fun verifyEnrolledFingerprint(tag: Tag) {
         println("----- BiometricsAPI Verify Enrolled Fingerprint")
 
-        if (useSecureChannel) {
             val verifyEnrollCommand = wrapAPDUCommand(
                 apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
                 keyEnc = keyENC,
@@ -592,13 +564,7 @@ internal class BiometricsApi(
                 name = "Verify Enrolled Fingerprint",
                 tag = tag
             )
-        } else {
-            sendAndConfirm(
-                apduCommand = APDUCommand.VERIFY_FINGERPRINT_ENROLLMENT.value,
-                name = "Verify Enrolled Fingerprint",
-                tag = tag
-            )
-        }
+
 
     }
 
@@ -623,7 +589,9 @@ internal class BiometricsApi(
         return if (result.isSuccess) {
             NfcActionResult.ResetBiometrics.Success
         } else {
-            NfcActionResult.ResetBiometrics.Failed(result.exceptionOrNull()?.message ?: "Not successful")
+            NfcActionResult.ResetBiometrics.Failed(
+                result.exceptionOrNull()?.message ?: "Not successful"
+            )
         }
 
     }

@@ -21,11 +21,9 @@ The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be i
 class SentrySdk(
     private val enrollCode: ByteArray,
     verboseDebugOutput: Boolean = true,
-    useSecureCommunication: Boolean = true,
 ) {
     private val biometricsAPI: BiometricsApi = BiometricsApi(
         isDebugOutputVerbose = verboseDebugOutput,
-        useSecureChannel = useSecureCommunication
     )
 
 
