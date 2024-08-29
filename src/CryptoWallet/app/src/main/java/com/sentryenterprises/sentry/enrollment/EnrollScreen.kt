@@ -93,10 +93,6 @@ fun EnrollScreen(
 
             LottieAnimation(composition)
 
-            Image(
-                contentDescription = "step 1",
-                imageVector = ImageVector.vectorResource(R.drawable.ic_biometric_step_1)
-            )
             if (action == null && actionResult == null) {
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
