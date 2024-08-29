@@ -17,14 +17,15 @@ kotlin {
 }
 
 android {
-    namespace = "com.sentryenterprises.sentry.enrollment"
+//    namespace = "com.sentryenterprises.sentry.enrollment"
+    namespace = "com.secure.jnet.wallet"
 
     compileSdk = 34
 
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-        versionCode = 43
+        versionCode = 44
         versionName = "0.0.${versionCode}"
     }
 
