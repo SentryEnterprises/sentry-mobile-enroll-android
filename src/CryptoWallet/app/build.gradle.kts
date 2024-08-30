@@ -25,7 +25,7 @@ android {
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-        versionCode = 44
+        versionCode = 45
         versionName = "0.0.${versionCode}"
     }
 
@@ -40,9 +40,9 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../deployKey.keystore")
+            storeFile = file("../../../deployKey.keystore")
             storePassword = System.getenv("SENTRY_KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("SENTRY_KEYSTORE_ALIAS")
+            keyAlias = "key0"
             keyPassword = System.getenv("SENTRY_KEYSTORE_ALIAS_PASSWORD")
         }
     }
