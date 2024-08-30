@@ -1,4 +1,4 @@
-package com.secure.jnet.wallet.presentation
+package com.sentryenterprises.sentry.sdk.presentation
 
 
 sealed class SentrySDKError : Exception() {

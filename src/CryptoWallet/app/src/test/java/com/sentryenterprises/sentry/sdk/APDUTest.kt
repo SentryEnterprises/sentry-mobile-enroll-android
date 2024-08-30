@@ -1,11 +1,6 @@
-package com.secure.jnet.wallet.presentation
+package com.sentryenterprises.sentry.sdk
 
-import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
-import com.sentryenterprises.sentry.sdk.utils.formatted
-import kotlin.test.Test
-import kotlin.test.assertEquals
-
-class APDUCommandTest {
+class APDUTest {
     @Test
     fun testAPDU() {
         assertEquals(

@@ -2,7 +2,7 @@ package com.sentryenterprises.sentry.sdk
 
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import com.secure.jnet.wallet.presentation.SentrySDKError
+import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment

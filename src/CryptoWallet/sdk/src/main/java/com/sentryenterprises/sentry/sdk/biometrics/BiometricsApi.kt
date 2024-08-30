@@ -6,7 +6,7 @@ import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import com.secure.jnet.jcwkit.NativeLib
 import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
-import com.secure.jnet.wallet.presentation.SentrySDKError
+import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus

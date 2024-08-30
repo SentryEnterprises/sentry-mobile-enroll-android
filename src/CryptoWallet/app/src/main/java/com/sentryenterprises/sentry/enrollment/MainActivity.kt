@@ -18,7 +18,7 @@ import timber.log.Timber
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.secure.jnet.wallet.presentation.cardState.VerifyScreen
+import com.sentryenterprises.sentry.sdk.presentation.cardState.VerifyScreen
 import com.sentryenterprises.sentry.enrollment.cardState.GetCardStateScreen
 import com.sentryenterprises.sentry.enrollment.reset.ResetScreen
 import com.sentryenterprises.sentry.enrollment.settings.SettingsScreen

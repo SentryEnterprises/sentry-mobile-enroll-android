@@ -1,7 +1,7 @@
 package com.sentryenterprises.sentry.enrollment
 
 import android.nfc.TagLostException
-import com.secure.jnet.wallet.presentation.SentrySDKError
+import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 
 class ErrorMessageHelper(
     val exception: Exception?
