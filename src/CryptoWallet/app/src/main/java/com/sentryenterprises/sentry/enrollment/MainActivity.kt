@@ -18,18 +18,40 @@ import timber.log.Timber
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.sentryenterprises.sentry.sdk.presentation.cardState.VerifyScreen
+import com.sentryenterprises.sentry.enrollment.Screen.Enroll
+import com.sentryenterprises.sentry.enrollment.Screen.GetCardState
+import com.sentryenterprises.sentry.enrollment.Screen.Reset
+import com.sentryenterprises.sentry.enrollment.Screen.Settings
+import com.sentryenterprises.sentry.enrollment.Screen.Verify
+import com.sentryenterprises.sentry.enrollment.Screen.VersionInfo
+import com.sentryenterprises.sentry.enrollment.home.lock.VerifyScreen
 import com.sentryenterprises.sentry.enrollment.cardState.GetCardStateScreen
 import com.sentryenterprises.sentry.enrollment.reset.ResetScreen
 import com.sentryenterprises.sentry.enrollment.settings.SettingsScreen
 import com.sentryenterprises.sentry.enrollment.versioninfo.VersionInfoScreen
+import kotlinx.serialization.Serializable
 
-const val NAV_GET_CARD_STATE = "Main"
-const val NAV_SETTINGS = "Settings"
-const val NAV_VERSION_INFO = "VersionInfo"
-const val NAV_RESET = "Reset"
-const val NAV_ENROLL = "Enroll"
-const val NAV_VERIFY = "Verify"
+sealed class Screen {
+
+    @Serializable
+    data object GetCardState : Screen()
+
+    @Serializable
+    data object Settings : Screen()
+
+    @Serializable
+    data object VersionInfo : Screen()
+
+    @Serializable
+    data object Reset : Screen()
+
+    @Serializable
+    data object Enroll : Screen()
+
+    @Serializable
+    data object Verify : Screen()
+}
+
 
 class MainActivity : ComponentActivity() {
 
@@ -56,39 +78,45 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(
                     navController = navController,
-                    startDestination = NAV_GET_CARD_STATE,
+                    startDestination = GetCardState,
                     enterTransition = { EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                 ) {
-                    composable(NAV_GET_CARD_STATE) {
+                    composable<GetCardState> {
                         GetCardStateScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
-                    composable(NAV_SETTINGS) {
+                    composable<Settings> {
                         SettingsScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
-                    composable(NAV_VERSION_INFO) {
+                    composable<VersionInfo> {
                         VersionInfoScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
-                    composable(NAV_VERIFY) {
+                    composable<Verify> {
                         VerifyScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
-                    composable(NAV_ENROLL) {
+                    composable<Enroll> {
                         EnrollScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
-                    composable(NAV_RESET) {
+                    composable<Reset> {
                         ResetScreen(
                             nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) })
+                            onNavigate = { navController.navigate(it) }
+                        )
                     }
                 }
             }

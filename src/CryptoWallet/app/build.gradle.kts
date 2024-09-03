@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("androidx.navigation.safeargs.kotlin")
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -85,6 +86,7 @@ dependencies {
     implementation (libs.bundles.compose)
     implementation (libs.lottie.compose)
     implementation (libs.lottie)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation (libs.kotlin.test)
     testImplementation (libs.junit)

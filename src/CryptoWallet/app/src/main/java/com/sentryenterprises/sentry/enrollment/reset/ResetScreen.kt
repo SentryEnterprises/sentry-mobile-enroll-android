@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import com.sentryenterprises.sentry.enrollment.NAV_SETTINGS
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
+import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 fun ResetScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
 ) {
 
     val nfcAction = nfcViewModel.nfcAction.collectAsState().value
@@ -73,7 +73,7 @@ fun ResetScreen(
                     IconButton(
                         onClick = {
                             nfcViewModel.resetNfcAction()
-                            onNavigate(NAV_SETTINGS)
+                            onNavigate(Screen.Settings)
                         },
                     ) {
                         Icon(

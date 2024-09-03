@@ -15,7 +15,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 
-import com.sentryenterprises.sentry.enrollment.R
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -41,7 +40,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun EnrollScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
 ) {
 
     val progress = nfcViewModel.fingerProgress.collectAsState().value
@@ -61,7 +60,7 @@ fun EnrollScreen(
                     IconButton(
                         onClick = {
                             nfcViewModel.resetNfcAction()
-                            onNavigate(NAV_GET_CARD_STATE)
+                            onNavigate(Screen.GetCardState)
                         },
                     ) {
                         Icon(

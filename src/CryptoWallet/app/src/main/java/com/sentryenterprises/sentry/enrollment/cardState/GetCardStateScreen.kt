@@ -33,10 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sentryenterprises.sentry.enrollment.NAV_ENROLL
-import com.sentryenterprises.sentry.enrollment.NAV_SETTINGS
-import com.sentryenterprises.sentry.enrollment.NAV_VERIFY
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
+import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.PIN_BIOMETRIC
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
@@ -49,7 +47,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun GetCardStateScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
 ) {
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -77,7 +75,7 @@ fun GetCardStateScreen(
                     Text("Get Enrollment Status")
                 },
                 actions = {
-                    IconButton(onClick = { onNavigate(NAV_SETTINGS) }) {
+                    IconButton(onClick = { onNavigate(Screen.Settings) }) {
                         Icon(
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Settings"
@@ -138,9 +136,9 @@ fun GetCardStateScreen(
 
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                     if (showStatus.result.isStatusEnrollment) {
-                        onNavigate(NAV_ENROLL)
+                        onNavigate(Screen.Enroll)
                     } else {
-                        onNavigate(NAV_VERIFY)
+                        onNavigate(Screen.Verify)
                     }
 
                 } else {

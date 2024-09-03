@@ -1,4 +1,4 @@
-package com.sentryenterprises.sentry.sdk.presentation.cardState
+package com.sentryenterprises.sentry.enrollment.home.lock
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -33,8 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sentryenterprises.sentry.enrollment.NAV_GET_CARD_STATE
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
+import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
 import com.sentryenterprises.sentry.sdk.models.NfcAction
@@ -46,7 +46,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun VerifyScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
 ) {
 
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -73,7 +73,7 @@ fun VerifyScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            onNavigate(NAV_GET_CARD_STATE)
+                            onNavigate(Screen.GetCardState)
                         },
                     ) {
                         Icon(

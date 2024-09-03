@@ -24,17 +24,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.sentryenterprises.sentry.enrollment.NAV_GET_CARD_STATE
-import com.sentryenterprises.sentry.enrollment.NAV_RESET
-import com.sentryenterprises.sentry.enrollment.NAV_VERSION_INFO
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
+import com.sentryenterprises.sentry.enrollment.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     modifier: Modifier = Modifier,
     nfcViewModel: NfcViewModel,
-    onNavigate: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
 ) {
 
     Scaffold(
@@ -46,7 +44,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            onNavigate(NAV_GET_CARD_STATE)
+                            onNavigate(Screen.GetCardState)
                         },
                     ) {
                         Icon(
@@ -75,7 +73,7 @@ fun SettingsScreen(
             HorizontalDivider()
             Row(
                 modifier = Modifier.fillMaxWidth().clickable {
-                    onNavigate(NAV_RESET)
+                    onNavigate(Screen.Reset)
                 }
             ) {
                 Text(
@@ -96,7 +94,7 @@ fun SettingsScreen(
             HorizontalDivider()
             Row(
                 modifier = Modifier.fillMaxWidth().clickable {
-                    onNavigate(NAV_VERSION_INFO)
+                    onNavigate(Screen.VersionInfo)
                 }
             ) {
                 Text(
