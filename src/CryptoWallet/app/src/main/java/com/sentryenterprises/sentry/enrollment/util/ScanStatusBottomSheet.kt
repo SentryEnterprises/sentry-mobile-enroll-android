@@ -1,5 +1,6 @@
 package com.sentryenterprises.sentry.enrollment.util
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
@@ -34,60 +36,63 @@ fun ScanStatusBottomSheet(
             onDismissRequest = onDismiss ?: {},
             sheetState = sheetState,
         ) {
-            if (showStatus is ShowStatus.Scanning) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(start = 17.dp),
-                    color = Color.White
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                if (showStatus is ShowStatus.Scanning) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(start = 17.dp),
+                        color = Color.White
+                    )
+                }
+                val (statusTitle, statusText) = when (showStatus) {
+                    ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
+                    is ShowStatus.Error -> "Scan Error" to showStatus.message
+                    is ShowStatus.Result -> onShowResultText(showStatus.result)
+                    ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
+                    ShowStatus.Hidden -> "" to "" // Nothing
+                }
+
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
+                    text = statusTitle,
+                    fontSize = 23.sp,
+                    color = Color.LightGray,
+                    fontWeight = Bold,
                 )
-            }
-            val (statusTitle, statusText) = when (showStatus) {
-                ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
-                is ShowStatus.Error -> "Scan Error" to showStatus.message
-                is ShowStatus.Result -> onShowResultText(showStatus.result)
-                ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
-                ShowStatus.Hidden -> "" to "" // Nothing
-            }
+                Text(
+                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
+                    text = statusText,
+                    color = Color.White,
+                    fontWeight = Normal,
+                )
 
-            Text(
-                modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
-                text = statusTitle,
-                fontSize = 23.sp,
-                color = Color.LightGray,
-                fontWeight = Bold,
-            )
-            Text(
-                modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
-                text = statusText,
-                color = Color.White,
-                fontWeight = Normal,
-            )
-
-            onButtonClicked?.let {
-                Button(
-                    modifier = Modifier
-                        .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
-                        .fillMaxWidth(),
-                    onClick = onButtonClicked
-                ) {
-                    val okButtonText =
-                        if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
-                            if (showStatus.result.isStatusEnrollment) {
-                                "Enroll"
+                onButtonClicked?.let {
+                    Button(
+                        modifier = Modifier
+                            .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
+                            .fillMaxWidth(),
+                        onClick = onButtonClicked
+                    ) {
+                        val okButtonText =
+                            if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
+                                if (showStatus.result.isStatusEnrollment) {
+                                    "Enroll"
+                                } else {
+                                    "Verify"
+                                }
                             } else {
-                                "Verify"
-                            }
-                        } else {
-                            when (showStatus) {
-                                ShowStatus.Hidden -> "" // Nothing
+                                when (showStatus) {
+                                    ShowStatus.Hidden -> "" // Nothing
 
-                                is ShowStatus.Result,
-                                is ShowStatus.Error -> "Ok"
+                                    is ShowStatus.Result,
+                                    is ShowStatus.Error -> "Ok"
 
-                                ShowStatus.CardFound,
-                                ShowStatus.Scanning -> "Cancel"
+                                    ShowStatus.CardFound,
+                                    ShowStatus.Scanning -> "Cancel"
+                                }
                             }
-                        }
-                    Text(okButtonText)
+                        Text(okButtonText)
+                    }
                 }
             }
 
