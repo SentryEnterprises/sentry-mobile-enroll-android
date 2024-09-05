@@ -172,25 +172,14 @@ class MainActivity : ComponentActivity() {
 
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF008EEC),
-    secondary = Color(0xFFE70EFF),
     background = Color(0xFF000000),
+    onPrimary = Color(0xFFFFFFFF),
 )
-
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF004ED5),
-    secondary = Color(0xFFFF460E),
     background = Color(0xFFFFFBFE),
-    onPrimary = Color(0xFFAF2D8E),
-    surface = Color(0xFFFF5722),
-
-
-    /* Other default colors to override
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onPrimary = Color(0xFF000000),
 )
 
 @Composable

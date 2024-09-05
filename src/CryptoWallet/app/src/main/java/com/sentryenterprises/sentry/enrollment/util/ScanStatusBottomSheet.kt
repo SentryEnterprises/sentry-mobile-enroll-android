@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,6 +70,7 @@ fun ScanStatusBottomSheet(
                         modifier = Modifier
                             .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
                             .fillMaxWidth(),
+                        shape = RoundedCornerShape(5.dp),
                         onClick = onButtonClicked
                     ) {
                         val okButtonText =

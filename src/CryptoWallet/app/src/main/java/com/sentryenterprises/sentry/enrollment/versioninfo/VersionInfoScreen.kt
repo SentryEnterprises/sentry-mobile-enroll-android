@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -143,6 +144,7 @@ fun VersionInfoScreen(
                 modifier = Modifier
                     .padding(start = 17.dp, end = 17.dp, bottom = 30.dp, top = 15.dp)
                     .fillMaxWidth(),
+                shape = RoundedCornerShape(5.dp),
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.GetVersionInformation)
                 }
