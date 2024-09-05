@@ -1,5 +1,10 @@
 package com.sentryenterprises.sentry.sdk
 
+import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
+import com.sentryenterprises.sentry.sdk.utils.formatted
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
 class APDUTest {
     @Test
     fun testAPDU() {

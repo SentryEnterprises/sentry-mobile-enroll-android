@@ -36,9 +36,6 @@ fun SettingsScreen(
 ) {
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
@@ -79,7 +76,6 @@ fun SettingsScreen(
                 Text(
                     modifier = Modifier.padding(17.dp),
                     text = "Reset Biometric Data",
-                    color = Color.White
                 )
             }
             HorizontalDivider()
@@ -100,7 +96,6 @@ fun SettingsScreen(
                 Text(
                     modifier = Modifier.padding(17.dp),
                     text = "Retrieve Card Version Information",
-                    color = Color.White
                 )
             }
         }

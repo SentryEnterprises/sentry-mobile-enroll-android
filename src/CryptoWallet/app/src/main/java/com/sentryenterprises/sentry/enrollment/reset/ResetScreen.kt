@@ -29,13 +29,13 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
@@ -64,9 +64,6 @@ fun ResetScreen(
     }
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
@@ -100,14 +97,12 @@ fun ResetScreen(
 
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                color = Color.White,
                 text = "This resets the biometric fingerprint data on the card. The card will not be enrolled after this action.",
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp
             )
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                color = Color.White,
                 text = "Lay the phone over the top of the card so that just the fingerprint is visible.",
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp
@@ -136,52 +131,52 @@ fun ResetScreen(
             },
             sheetState = sheetState,
         ) {
-            if (nfcActionResult?.getOrNull() != null && nfcActionResult.getOrNull() is NfcActionResult.ResetBiometrics) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                if (nfcActionResult?.getOrNull() != null && nfcActionResult.getOrNull() is NfcActionResult.ResetBiometrics) {
 
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
-                    text = "Reset Result",
-                    color = Color.White,
-                    fontWeight = Bold,
-                )
+                    Text(
+                        modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                        text = "Reset Result",
+                        fontWeight = Bold,
+                    )
 
-                val resultText = when (nfcActionResult.getOrNull()) {
-                    is NfcActionResult.ResetBiometrics.Success -> {
-                        "The reset was successful, this card is no longer enrolled."
+                    val resultText = when (nfcActionResult.getOrNull()) {
+                        is NfcActionResult.ResetBiometrics.Success -> {
+                            "The reset was successful, this card is no longer enrolled."
+                        }
+
+                        is NfcActionResult.ResetBiometrics.Failed -> {
+                            "An error occurred. Please try again. (${nfcActionResult})"
+                        }
+
+                        else -> "Illegal state: $nfcActionResult"
+
                     }
 
-                    is NfcActionResult.ResetBiometrics.Failed -> {
-                        "An error occurred. Please try again. (${nfcActionResult})"
-                    }
-                    else -> "Illegal state: $nfcActionResult"
+                    Text(
+                        modifier = Modifier.padding(bottom = 50.dp),
+                        text = resultText,
+                    )
 
-                }
-
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 50.dp),
-                    text = resultText,
-                    color = Color.White,
-                )
-
-            } else {
-
-                val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.ResetBiometricData) {
-                    "Scanning" to true
-                } else if (progress != null){
-                    "Card found" to true
                 } else {
-                    "Error $nfcActionResult" to false
-                }
-                if (isProgressing) {
-                    CircularProgressIndicator(color = Color.White)
-                }
 
-                Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
-                    text = statusText,
-                    color = Color.White,
-                    fontWeight = Bold,
-                )
+                    val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.ResetBiometricData) {
+                        "Scanning" to true
+                    } else if (progress != null) {
+                        "Card found" to true
+                    } else {
+                        "Error $nfcActionResult" to false
+                    }
+                    if (isProgressing) {
+                        CircularProgressIndicator()
+                    }
+
+                    Text(
+                        modifier = Modifier.padding(bottom = 25.dp),
+                        text = statusText,
+                        fontWeight = Bold,
+                    )
+                }
             }
         }
     }

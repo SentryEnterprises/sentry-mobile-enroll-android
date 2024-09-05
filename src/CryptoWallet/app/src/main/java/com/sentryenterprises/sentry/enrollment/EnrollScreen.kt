@@ -48,9 +48,6 @@ fun EnrollScreen(
     val actionResult = nfcViewModel.nfcActionResult.collectAsState().value
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -90,7 +87,6 @@ fun EnrollScreen(
             if (action == null && actionResult == null) {
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    color = Color.White,
                     text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
@@ -103,7 +99,6 @@ fun EnrollScreen(
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    color = Color.White,
                     text = resultText,
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
@@ -116,7 +111,6 @@ fun EnrollScreen(
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    color = Color.White,
                     text = instructionText,
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp

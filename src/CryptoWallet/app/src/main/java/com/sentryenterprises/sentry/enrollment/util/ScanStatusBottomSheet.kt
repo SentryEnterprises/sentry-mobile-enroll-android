@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sentryenterprises.sentry.enrollment.ShowStatus
@@ -36,13 +37,10 @@ fun ScanStatusBottomSheet(
             onDismissRequest = onDismiss ?: {},
             sheetState = sheetState,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
 
                 if (showStatus is ShowStatus.Scanning) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(start = 17.dp),
-                        color = Color.White
-                    )
+                    CircularProgressIndicator()
                 }
                 val (statusTitle, statusText) = when (showStatus) {
                     ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
@@ -53,16 +51,16 @@ fun ScanStatusBottomSheet(
                 }
 
                 Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 5.dp, top = 17.dp),
+                    modifier = Modifier.padding(bottom = 5.dp, top = 17.dp),
                     text = statusTitle,
                     fontSize = 23.sp,
-                    color = Color.LightGray,
+                    color = Color.Gray,
                     fontWeight = Bold,
                 )
                 Text(
-                    modifier = Modifier.padding(start = 17.dp, bottom = 25.dp, top = 17.dp),
+                    modifier = Modifier.padding(bottom = 25.dp, top = 17.dp),
+                    textAlign = TextAlign.Center,
                     text = statusText,
-                    color = Color.White,
                     fontWeight = Normal,
                 )
 

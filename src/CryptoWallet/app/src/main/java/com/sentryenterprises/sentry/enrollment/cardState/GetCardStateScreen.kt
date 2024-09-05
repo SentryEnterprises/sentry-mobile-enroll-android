@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
+import com.sentryenterprises.sentry.enrollment.SentryTheme
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.PIN_BIOMETRIC
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
@@ -66,9 +68,6 @@ fun GetCardStateScreen(
 
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -77,6 +76,7 @@ fun GetCardStateScreen(
                 actions = {
                     IconButton(onClick = { onNavigate(Screen.Settings) }) {
                         Icon(
+                            tint = MaterialTheme.colorScheme.primary,
                             imageVector = Icons.Filled.Settings,
                             contentDescription = "Settings"
                         )
@@ -97,7 +97,6 @@ fun GetCardStateScreen(
 
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                color = Color.White,
                 text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp

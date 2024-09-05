@@ -65,9 +65,6 @@ fun VerifyScreen(
 
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
@@ -100,7 +97,6 @@ fun VerifyScreen(
 
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                color = Color.White,
                 text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp

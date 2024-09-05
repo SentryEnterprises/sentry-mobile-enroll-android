@@ -64,9 +64,6 @@ fun VersionInfoScreen(
     }
 
     Scaffold(
-        contentColor = Color.Black,
-        containerColor = Color.Black,
-        modifier = Modifier.background(Color.Black),
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
@@ -99,7 +96,6 @@ fun VersionInfoScreen(
 
                 Text(
                     modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                    color = Color.White,
                     text = "Place your card on a flat, non-metallic surface then place the phone on top.",
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
@@ -110,7 +106,7 @@ fun VersionInfoScreen(
 
                 val info =
                     mapOf(
-                        "App Version" to BuildConfig.VERSION_CODE,
+                        "App Version" to BuildConfig.VERSION_NAME,
                         "OS Version" to actionResult.osVersion,
                         "Enroll Version" to actionResult.enrollAppletVersion,
                         "CVM Version" to actionResult.cvmAppletVersion,
@@ -134,7 +130,6 @@ fun VersionInfoScreen(
                                     modifier = Modifier.padding(start = 17.dp, bottom = 5.dp),
                                     text = it.value.toString(),
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White
                                 )
                                 HorizontalDivider()
                             }

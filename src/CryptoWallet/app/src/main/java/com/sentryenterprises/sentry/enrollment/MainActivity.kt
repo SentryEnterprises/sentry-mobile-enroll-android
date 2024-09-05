@@ -1,6 +1,8 @@
 package com.sentryenterprises.sentry.enrollment
 
+import android.app.Activity
 import android.nfc.NfcAdapter
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -8,10 +10,18 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.activity.compose.setContent
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import timber.log.Timber
@@ -68,12 +78,7 @@ class MainActivity : ComponentActivity() {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
 
         setContent {
-            val view = LocalView.current
-            SideEffect {
-                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-            }
-
-            MaterialTheme(darkColorScheme()) {
+            SentryTheme {
 
                 val navController = rememberNavController()
                 NavHost(
@@ -163,4 +168,52 @@ class MainActivity : ComponentActivity() {
         nfcAdapter = null
     }
 
+}
+
+private val DarkColorScheme = darkColorScheme(
+    primary = Color(0xFF008EEC),
+    secondary = Color(0xFFE70EFF),
+    background = Color(0xFF000000),
+)
+
+
+private val LightColorScheme = lightColorScheme(
+    primary = Color(0xFF004ED5),
+    secondary = Color(0xFFFF460E),
+    background = Color(0xFFFFFBFE),
+    onPrimary = Color(0xFFAF2D8E),
+    surface = Color(0xFFFF5722),
+
+
+    /* Other default colors to override
+    onSecondary = Color.White,
+    onTertiary = Color.White,
+    onBackground = Color(0xFF1C1B1F),
+    onSurface = Color(0xFF1C1B1F),
+    */
+)
+
+@Composable
+fun SentryTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    content: @Composable () -> Unit
+) {
+    val colorScheme = when {
+        darkTheme -> DarkColorScheme
+        else -> LightColorScheme
+    }
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.primary.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+        }
+    }
+
+
+    MaterialTheme(
+        colorScheme = colorScheme,
+        content = content
+    )
 }
