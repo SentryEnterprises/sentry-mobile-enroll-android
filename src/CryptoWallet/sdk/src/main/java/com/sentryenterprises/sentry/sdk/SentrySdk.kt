@@ -13,11 +13,11 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollme
 import java.io.IOException
 
 /**
-Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
-
-This class controls and manages an `NFCReaderSession` to communicate with an `Tag` via `APDU` commands.
-
-The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be installed on the SentryCard for full access to all functionality of this SDK.
+ * Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
+ *
+ * This class controls and manages an `NFCReaderSession` to communicate with an `Tag` via `APDU` commands.
+ *
+ * The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be installed on the SentryCard for full access to all functionality of this SDK.
  */
 class SentrySdk(
     private val enrollCode: ByteArray,
@@ -130,16 +130,16 @@ class SentrySdk(
 
 
     /**
-    Validates that the finger on the fingerprint sensor matches (or does not match) a fingerprint recorded during enrollment.
-
-    Opens an `NFCReaderSession`, connects to an `Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
-
-    This process waits up to five (5) seconds for a finger to be pressed against the sensor. This timeout is (currently) not configurable. If a finger is not detected on the sensor within the
-    timeout period, a `SentrySDKError.apduCommandError` is thrown, indicating either a user timeout expiration (0x6748) or a host interface timeout expiration (0x6749).
-
-    - Returns: `True` if the scanned fingerprint matches the one recorded during enrollment, otherwise `false`.
-
-    This method can throw the following exceptions:
+     * Validates that the finger on the fingerprint sensor matches (or does not match) a fingerprint recorded during enrollment.
+     *
+     * Opens an `NFCReaderSession`, connects to an `Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+     *
+     * This process waits up to five (5) seconds for a finger to be pressed against the sensor. This timeout is (currently) not configurable. If a finger is not detected on the sensor within the
+     * timeout period, a `SentrySDKError.apduCommandError` is thrown, indicating either a user timeout expiration (0x6748) or a host interface timeout expiration (0x6749).
+     *
+     * @return scanned fingerprint matches with the enrolled biometric
+     *
+     * This method can throw the following exceptions:
      * `SentrySDKError.enrollCodeLengthOutOfbounds` if `enrollCode` is less than four (4) characters or more than six (6) characters in length.
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
      * `SentrySDKError.enrollCodeDigitOutOfBounds` if an enroll code digit is not in the range 0-9.
@@ -148,7 +148,6 @@ class SentrySdk(
      * `SentrySDKError.cvmAppletBlocked` if the CVM applet on the SentryCard is blocked (likely requiring a full card reset).
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
-
      */
     fun validateFingerprint(tag: Tag): Result<NfcActionResult.VerifyBiometric> {
         return try {
@@ -159,10 +158,11 @@ class SentrySdk(
         }
     }
 
-
     fun getCardSoftwareVersions(tag: Tag): Result<NfcActionResult.VersionInformation> {
         return try {
-            val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
+            val osVersion = biometricsAPI
+                .getCardOSVersion(tag = tag)
+                .getOrElse { return Result.failure(it) }
             log("OS= $osVersion")
 
             val verifyVersion = biometricsAPI
@@ -180,7 +180,6 @@ class SentrySdk(
                 .getOrElse { return Result.failure(it) }
             log("CVM= $cvmVersion")
 
-
             return Result.success(
                 NfcActionResult.VersionInformation(
                     osVersion = osVersion,
@@ -189,12 +188,10 @@ class SentrySdk(
                     verifyAppletVersion = verifyVersion
                 )
             )
-
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
-
 
     fun openConnection(tag: Tag): Boolean {
         val isoDep = IsoDep.get(tag)
@@ -223,7 +220,6 @@ class SentrySdk(
             e.printStackTrace()
         }
     }
-
 
     private fun log(text: String) {
         if (isDebugOutputVerbose) {

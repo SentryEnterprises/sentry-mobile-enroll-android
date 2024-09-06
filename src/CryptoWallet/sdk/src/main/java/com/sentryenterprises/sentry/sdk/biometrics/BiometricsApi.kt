@@ -803,10 +803,10 @@ internal class BiometricsApi(
         throw SentrySDKError.ApduCommandError(returnData.statusWord)
     }
 
-    fun getCardOSVersion(tag: Tag): VersionInfo {
+    fun getCardOSVersion(tag: Tag): Result<VersionInfo> {
         log("----- BiometricsAPI Get Card OS Version")
-
         log("     Getting card OS version")
+
         val returnData = sendAndConfirm(
             apduCommand = APDUCommand.GET_OS_VERSION.value,
             name = "Get Card OS Version",
@@ -816,45 +816,47 @@ internal class BiometricsApi(
         log("     Processing response")
         val dataBuffer = returnData.data
 
+        val cardVersionError = Result.failure<VersionInfo>(SentrySDKError.CardOSVersionError)
+
         if (dataBuffer.size < 8) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
 
         if (dataBuffer[0] != 0xFE.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[1] < 0x40.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[2] != 0x7f.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[3] != 0x00.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[4] < 0x40.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[5] != 0x9f.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         if (dataBuffer[6] != 0x01.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
 
         val n = dataBuffer[7]
         var p: Int = 8 + n
 
         if (dataBuffer[p] != 0x9F.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         p += 1
         if (dataBuffer[p] != 0x02.toByte()) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         p += 1
         if (dataBuffer[p].toInt() != 5) {
-            throw SentrySDKError.CardOSVersionError
+            return cardVersionError
         }
         p += 1
 
@@ -864,16 +866,15 @@ internal class BiometricsApi(
         p += 2
         val hotfix = dataBuffer[p] - 0x30
 
-        val version = VersionInfo(
-            isInstalled = true,
-            majorVersion = major,
-            minorVersion = minor,
-            hotfixVersion = hotfix,
-            text = null
+        return Result.success(
+            VersionInfo(
+                isInstalled = true,
+                majorVersion = major,
+                minorVersion = minor,
+                hotfixVersion = hotfix,
+                text = null
+            )
         )
-
-        log("     Card OS Version: $version")
-        return version
     }
 
     private fun log(text: String) {
