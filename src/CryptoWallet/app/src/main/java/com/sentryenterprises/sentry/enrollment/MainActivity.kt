@@ -2,7 +2,6 @@ package com.sentryenterprises.sentry.enrollment
 
 import android.app.Activity
 import android.nfc.NfcAdapter
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
@@ -14,14 +13,12 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import timber.log.Timber
@@ -39,34 +36,10 @@ import com.sentryenterprises.sentry.enrollment.cardState.GetCardStateScreen
 import com.sentryenterprises.sentry.enrollment.reset.ResetScreen
 import com.sentryenterprises.sentry.enrollment.settings.SettingsScreen
 import com.sentryenterprises.sentry.enrollment.versioninfo.VersionInfoScreen
-import kotlinx.serialization.Serializable
-
-sealed class Screen {
-
-    @Serializable
-    data object GetCardState : Screen()
-
-    @Serializable
-    data object Settings : Screen()
-
-    @Serializable
-    data object VersionInfo : Screen()
-
-    @Serializable
-    data object Reset : Screen()
-
-    @Serializable
-    data object Enroll : Screen()
-
-    @Serializable
-    data object Verify : Screen()
-}
-
 
 class MainActivity : ComponentActivity() {
 
     private val nfcViewModel: NfcViewModel by viewModels()
-
     private var nfcAdapter: NfcAdapter? = null
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -80,54 +53,57 @@ class MainActivity : ComponentActivity() {
         setContent {
             SentryTheme {
 
-                val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = GetCardState,
-                    enterTransition = { EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
-                ) {
-                    composable<GetCardState> {
-                        GetCardStateScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                    composable<Settings> {
-                        SettingsScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                    composable<VersionInfo> {
-                        VersionInfoScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                    composable<Verify> {
-                        VerifyScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                    composable<Enroll> {
-                        EnrollScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                    composable<Reset> {
-                        ResetScreen(
-                            nfcViewModel = nfcViewModel,
-                            onNavigate = { navController.navigate(it) }
-                        )
-                    }
-                }
+                SentryNavigation()
             }
-
         }
+    }
 
+    @Composable
+    fun SentryNavigation() {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = GetCardState,
+            enterTransition = { EnterTransition.None },
+            exitTransition = { ExitTransition.None },
+        ) {
+            composable<GetCardState> {
+                GetCardStateScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<Settings> {
+                SettingsScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<VersionInfo> {
+                VersionInfoScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<Verify> {
+                VerifyScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<Enroll> {
+                EnrollScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<Reset> {
+                ResetScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+        }
     }
 
     override fun onResume() {
@@ -137,7 +113,6 @@ class MainActivity : ComponentActivity() {
             enableReaderMode(it)
         }
         Timber.d("NFC Adapter: $nfcAdapter")
-
     }
 
     override fun onPause() {
@@ -199,7 +174,6 @@ fun SentryTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
 
     MaterialTheme(
         colorScheme = colorScheme,

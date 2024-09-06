@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("androidx.navigation.safeargs.kotlin")
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.kotlin.serialization)
+    id("kotlinx-serialization")
 }
 
 kotlin {
@@ -25,7 +25,7 @@ android {
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-        versionCode = 45
+        versionCode = 46
         versionName = "0.0.${versionCode}"
     }
 
