@@ -165,17 +165,19 @@ class SentrySdk(
             val osVersion = biometricsAPI.getCardOSVersion(tag = tag)
             log("OS= $osVersion")
 
-            val verifyVersion = biometricsAPI.getVerifyAppletVersion(tag = tag)
+            val verifyVersion = biometricsAPI
+                .getVerifyAppletVersion(tag = tag)
+                .getOrElse { return Result.failure(it) }
             log("Verify= $verifyVersion")
 
-            val enrollVersion = biometricsAPI.getEnrollmentAppletVersion(tag = tag)
+            val enrollVersion = biometricsAPI
+                .getEnrollmentAppletVersion(tag = tag)
+                .getOrElse { return Result.failure(it) }
             log("Enroll= $enrollVersion")
 
             val cvmVersion = biometricsAPI
                 .getCVMAppletVersion(tag = tag)
-                .getOrElse {
-                    return Result.failure(it)
-                }
+                .getOrElse { return Result.failure(it) }
             log("CVM= $cvmVersion")
 
 

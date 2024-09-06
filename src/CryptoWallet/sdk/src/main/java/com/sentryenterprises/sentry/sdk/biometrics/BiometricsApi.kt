@@ -591,21 +591,13 @@ internal class BiometricsApi(
      * @throws SentrySDKError.ApduCommandError containing the status word returned by the last failed `APDU` command.
      *
      */
-    internal fun getVerifyAppletVersion(tag: Tag): VersionInfo {
+    internal fun getVerifyAppletVersion(tag: Tag): Result<VersionInfo> {
         // Note: Due to the way Apple implemented APDU communication, it's possible to send a select command and receive a 9000 response
         // even though the applet isn't actually installed on the card. The BioVerify applet has always supported a versioning command,
         // so here we'll simply check if the command was processes, and if we get an 'instruction byte not supported' response, we assume
         // the BioVerify applet isn't installed.
 
-        var version = VersionInfo(
-            isInstalled = false,
-            majorVersion = -1,
-            minorVersion = -1,
-            hotfixVersion = -1,
-            text = null
-        )
         log("----- BiometricsAPI Get Verify Applet Version")
-
         log("     Selecting Verify Applet")
 
         send(
@@ -617,56 +609,56 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_VERIFY_APPLET_VERSION.value,
             name = "Get Verify Applet Version",
             tag = tag
-        ).getOrThrow()
+        ).getOrElse { return Result.failure(it) }
 
-        if (response.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+        return if (response.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             val responseBuffer = response.data
 
             if (responseBuffer.size == 5) {
                 val majorVersion = responseBuffer[3].toInt()
                 val minorVersion = responseBuffer[4].toInt()
-                version = VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = null
+                Result.success(
+                    VersionInfo(
+                        isInstalled = true,
+                        majorVersion = majorVersion,
+                        minorVersion = minorVersion,
+                        hotfixVersion = 0,
+                        text = null
+                    )
                 )
             } else if (responseBuffer.size == 4) {
                 val majorVersion = responseBuffer[2].toInt()
                 val minorVersion = responseBuffer[3].toInt()
-                version = VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = null
+                Result.success(
+                    VersionInfo(
+                        isInstalled = true,
+                        majorVersion = majorVersion,
+                        minorVersion = minorVersion,
+                        hotfixVersion = 0,
+                        text = null
+                    )
                 )
             } else if (responseBuffer.size == 2) {
                 val majorVersion = responseBuffer[0].toInt()
                 val minorVersion = responseBuffer[1].toInt()
-                version = VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = null
+
+                Result.success(
+                    VersionInfo(
+                        isInstalled = true,
+                        majorVersion = majorVersion,
+                        minorVersion = minorVersion,
+                        hotfixVersion = 0,
+                        text = null
+                    )
                 )
+            } else {
+                Result.failure(SentrySDKError.CardOSVersionError)
             }
         } else if (response.statusWord == APDUResponseCode.INSTRUCTION_BYTE_NOT_SUPPORTED.value) {
-            version = VersionInfo(
-                isInstalled = false,
-                majorVersion = -1,
-                minorVersion = -1,
-                hotfixVersion = -1,
-                text = null
-            )
+            Result.failure(SentrySDKError.CardOSVersionError)
         } else {
-            throw SentrySDKError.ApduCommandError(response.statusWord)
+            Result.failure(SentrySDKError.ApduCommandError(response.statusWord))
         }
-
-        log("     Verify Applet Version: $version")
-        return version
     }
 
     /**
@@ -679,57 +671,39 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentAppletVersion(tag: Tag): VersionInfo {
-        var version = VersionInfo(
-            isInstalled = true,
-            majorVersion = -1,
-            minorVersion = -1,
-            hotfixVersion = -1,
-            text = null
-        )
+    fun getEnrollmentAppletVersion(tag: Tag): Result<VersionInfo> {
         log("----- BiometricsAPI Get Enrollment Applet Version")
-
         log("     Selecting Enroll Applet")
 
-        try {
+        return try {
             val response = sendAndConfirm(
                 apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
                 name = "Select Enroll Applet",
                 tag = tag
-            ).getOrThrow()
+            ).getOrElse { return Result.failure(it) }
 
             val responseBuffer = response.data
 
             if (responseBuffer.size < 16) {
-                return VersionInfo(
-                    isInstalled = true,
-                    majorVersion = -1,
-                    minorVersion = -1,
-                    hotfixVersion = -1,
-                    text = null
-                )
+                Result.failure(SentrySDKError.CardOSVersionError)
             } else {
                 val string = responseBuffer.toString(Charsets.US_ASCII)
                 val majorVersion = responseBuffer[13].toInt() - 0x30
                 val minorVersion = responseBuffer[15].toInt() - 0x30
-                version = VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = string
+                Result.success(
+                    VersionInfo(
+                        isInstalled = true,
+                        majorVersion = majorVersion,
+                        minorVersion = minorVersion,
+                        hotfixVersion = 0,
+                        text = string
+                    )
                 )
             }
         } catch (e: Exception) {
-//            if (error as NSError).domain == "NFCError" && (error as NSError).code == 2 {
-//                version = VersionInfo(isInstalled= false, majorVersion= -1, minorVersion= -1, hotfixVersion= -1, text= null)
-//            } else {
-            throw e
-//            }
+            Result.failure(e)
         }
 
-        log("     Enrollment Applet Version: $version")
-        return version
     }
 
 
@@ -765,13 +739,15 @@ internal class BiometricsApi(
                 .toString(Charsets.US_ASCII)
             val majorVersion = responseBuffer[10].toInt() - 0x30
             val minorVersion = responseBuffer[12].toInt() - 0x30
-            Result.success(VersionInfo(
-                isInstalled = true,
-                majorVersion = majorVersion,
-                minorVersion = minorVersion,
-                hotfixVersion = 0,
-                text = string
-            ))
+            Result.success(
+                VersionInfo(
+                    isInstalled = true,
+                    majorVersion = majorVersion,
+                    minorVersion = minorVersion,
+                    hotfixVersion = 0,
+                    text = string
+                )
+            )
         } else {
             Result.failure(SentrySDKError.CvmAppletError(responseBuffer.size))
         }
