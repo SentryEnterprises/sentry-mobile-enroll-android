@@ -709,7 +709,7 @@ internal class BiometricsApi(
                     text = null
                 )
             } else {
-                val string = responseBuffer.toString()
+                val string = responseBuffer.toString(Charsets.US_ASCII)
                 val majorVersion = responseBuffer[13].toInt() - 0x30
                 val minorVersion = responseBuffer[15].toInt() - 0x30
                 version = VersionInfo(
@@ -747,40 +747,34 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getCVMAppletVersion(tag: Tag): VersionInfo {
-        var version = VersionInfo(
-            isInstalled = true,
-            majorVersion = -1,
-            minorVersion = -1,
-            hotfixVersion = -1,
-            text = null
-        )
+    fun getCVMAppletVersion(tag: Tag): Result<VersionInfo> {
         log("----- BiometricsAPI Get CVM Applet Version")
 
         val response = sendAndConfirm(
             apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
             name = "Select CVM Applet",
             tag = tag
-        ).getOrThrow()
+        ).getOrElse {
+            return Result.failure(it)
+        }
 
         val responseBuffer = response.data
 
-        if (responseBuffer.size > 11) {
-            val string = responseBuffer.toString()
+        return if (responseBuffer.size > 11) {
+            val string = responseBuffer
+                .toString(Charsets.US_ASCII)
             val majorVersion = responseBuffer[10].toInt() - 0x30
             val minorVersion = responseBuffer[12].toInt() - 0x30
-            version = VersionInfo(
+            Result.success(VersionInfo(
                 isInstalled = true,
                 majorVersion = majorVersion,
                 minorVersion = minorVersion,
                 hotfixVersion = 0,
                 text = string
-            )
+            ))
+        } else {
+            Result.failure(SentrySDKError.CvmAppletError(responseBuffer.size))
         }
-
-
-        log("     CVM Applet Version: $version")
-        return version
     }
 
 

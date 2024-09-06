@@ -18,7 +18,8 @@ data class VersionInfo (
     val text: String?,
 ) {
     override fun toString(): String = if (isInstalled) {
-        "$majorVersion.$minorVersion.$hotfixVersion"
+        val optionalText = text?.let { " ($it)" } ?: ""
+        "$majorVersion.$minorVersion.$hotfixVersion$optionalText"
     } else {
         "Not installed"
     }
