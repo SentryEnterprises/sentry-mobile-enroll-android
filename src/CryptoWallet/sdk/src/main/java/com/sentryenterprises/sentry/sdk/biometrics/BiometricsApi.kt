@@ -181,7 +181,7 @@ internal class BiometricsApi(
         return Result.success(
             BiometricEnrollmentStatus(
                 maximumFingers = maxNumberOfFingers.toInt(),
-                enrolledTouches = enrolledTouches.toInt(),
+                enrolledTouches = enrolledTouches.toInt().also { println("Enrolled touches: $it") },
                 remainingTouches = remainingTouches.toInt(),
                 mode = biometricMode
             )
@@ -488,9 +488,8 @@ internal class BiometricsApi(
 
     }
 
-    fun resetEnrollAndScanFingerprint(tag: Tag): Result<Int> {
+    fun resetEnrollAndScanFingerprint(tag: Tag): Result<BiometricEnrollmentStatus> {
         log("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
-
 
         val processFingerprintCommand = wrapAPDUCommand(
             apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
@@ -505,15 +504,14 @@ internal class BiometricsApi(
             tag = tag
         )
 
-
         log("     Getting enrollment status")
         val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
         log("     Remaining: ${enrollmentStatus.remainingTouches}")
-        return Result.success(enrollmentStatus.remainingTouches.toInt())
+        return Result.success(enrollmentStatus)
     }
 
-    fun enrollScanFingerprint(tag: Tag): Result<Int> {
+    fun enrollScanFingerprint(tag: Tag): Result<BiometricEnrollmentStatus> {
         log("----- BiometricsAPI Enroll Scan Fingerprint")
 
         val processFingerprintCommand = wrapAPDUCommand(
@@ -530,11 +528,10 @@ internal class BiometricsApi(
         )
 
         log("     Getting enrollment status")
-
         val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
         log("     Remaining: ${enrollmentStatus.remainingTouches}")
-        return Result.success(enrollmentStatus.remainingTouches.toInt())
+        return Result.success(enrollmentStatus)
     }
 
     fun verifyEnrolledFingerprint(tag: Tag) {

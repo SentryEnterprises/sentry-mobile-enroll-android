@@ -137,7 +137,7 @@ fun ResetScreen(
                 if (nfcActionResult?.getOrNull() != null && nfcActionResult.getOrNull() is NfcActionResult.ResetBiometrics) {
 
                     Text(
-                        modifier = Modifier.padding(start = 17.dp, bottom = 25.dp),
+                        modifier = Modifier.padding(bottom = 25.dp),
                         text = "Reset Result",
                         fontWeight = Bold,
                     )
@@ -157,6 +157,7 @@ fun ResetScreen(
 
                     Text(
                         modifier = Modifier.padding(bottom = 50.dp),
+                        textAlign = TextAlign.Center,
                         text = resultText,
                     )
 

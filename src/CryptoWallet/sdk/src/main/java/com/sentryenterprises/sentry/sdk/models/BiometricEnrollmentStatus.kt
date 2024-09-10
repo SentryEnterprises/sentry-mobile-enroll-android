@@ -30,5 +30,8 @@ data class BiometricEnrollmentStatus(
 
 sealed class BiometricProgress {
     data class Feedback(val status: String) : BiometricProgress()
-    data class Progressing(val remainingTouches: Int) : BiometricProgress()
+    data class Progressing(
+        val remainingTouches: Int,
+        val enrolledTouches: Int
+    ) : BiometricProgress()
 }

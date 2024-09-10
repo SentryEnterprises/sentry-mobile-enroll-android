@@ -64,29 +64,25 @@ class SentrySdk(
 
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-        val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+        var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
         if (enrollStatus == Verification) {
             throw SentrySDKError.EnrollModeNotAvailable
         }
 
-        val maximumSteps =
-            enrollStatus.enrolledTouches + enrollStatus.remainingTouches
-
-        // if we're resetting, assume we have not yet enrolled anything
-        var enrollmentsLeft = if (resetOnFirstCall) {
-            maximumSteps
-        } else {
-            enrollStatus.remainingTouches
-        }
-
-        while (enrollmentsLeft > 0) {
+        while (enrollStatus.remainingTouches > 0) {
             try {
-                enrollmentsLeft = if (resetOnFirstCall) {
+                enrollStatus = if (resetOnFirstCall) {
                     biometricsAPI.resetEnrollAndScanFingerprint(tag = tag).getOrThrow()
+
                 } else {
                     biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
                 }
-                onBiometricProgressChanged(BiometricProgress.Progressing(enrollmentsLeft))
+                onBiometricProgressChanged(
+                    BiometricProgress.Progressing(
+                        enrollStatus.remainingTouches,
+                        enrollStatus.enrolledTouches
+                    )
+                )
 
             } catch (e: SentrySDKError.ApduCommandError) {
                 if (e.code == APDUResponseCode.POOR_IMAGE_QUALITY.value) {

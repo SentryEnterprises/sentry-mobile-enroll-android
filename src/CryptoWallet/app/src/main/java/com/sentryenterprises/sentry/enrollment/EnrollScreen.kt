@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -85,6 +86,18 @@ fun EnrollScreen(
 
             LottieAnimation(composition)
 
+            if (progress is BiometricProgress.Progressing) {
+                LaunchedEffect(progress) { println("Progress $progress") }
+
+                val checkboxes = (1..progress.enrolledTouches).map {
+                    "☑"
+                }.joinToString("") +
+                        (1..progress.remainingTouches).map {
+                            "☐"
+                        }.joinToString("")
+                Text(checkboxes, fontSize = 25.sp)
+            }
+
             if (action == null && actionResult == null) {
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -96,7 +109,7 @@ fun EnrollScreen(
                 val resultText = when (actionResult.getOrNull()) {
                     is NfcActionResult.EnrollFingerprint.Complete -> "Enrollment complete!"
                     is NfcActionResult.EnrollFingerprint.Failed -> "Card is reporting: $progress"
-                    else -> error("when do we get here? $actionResult")
+                    else -> error("Unexpected state: $actionResult")
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -118,7 +131,6 @@ fun EnrollScreen(
                 )
             }
 
-
             Spacer(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -136,8 +148,6 @@ fun EnrollScreen(
                 ) {
                     Text("Scan Fingerprint")
                 }
-            } else {
-                Text("Card found")
             }
         }
 
