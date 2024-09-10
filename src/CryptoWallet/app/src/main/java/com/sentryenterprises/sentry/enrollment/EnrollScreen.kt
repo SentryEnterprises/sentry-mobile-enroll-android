@@ -32,6 +32,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -84,11 +86,20 @@ fun EnrollScreen(
                 else -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
             }
 
-            LottieAnimation(composition)
+            val animationState by animateLottieCompositionAsState(
+                iterations = LottieConstants.IterateForever,
+                restartOnPlay = true,
+                composition = composition,
+                isPlaying = true
+            )
 
+
+            LottieAnimation(
+                composition = composition,
+                progress = { animationState },
+                modifier = modifier
+            )
             if (progress is BiometricProgress.Progressing) {
-                LaunchedEffect(progress) { println("Progress $progress") }
-
                 val checkboxes = (1..progress.enrolledTouches).map {
                     "☑"
                 }.joinToString("") +
