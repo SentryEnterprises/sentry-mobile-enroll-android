@@ -20,7 +20,7 @@ fun SentryButton(
         modifier = modifier
             .padding(start = 17.dp, end = 17.dp)
             .fillMaxWidth(),
-        shape = RoundedCornerShape(5.dp),
+        shape = RoundedCornerShape(15.dp),
         onClick = onClick,
     ) {
         Text(text, color = Color.White)
