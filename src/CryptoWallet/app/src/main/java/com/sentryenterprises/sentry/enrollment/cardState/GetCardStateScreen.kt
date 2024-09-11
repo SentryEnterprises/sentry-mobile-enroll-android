@@ -3,17 +3,13 @@ package com.sentryenterprises.sentry.enrollment.cardState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import com.sentryenterprises.sentry.enrollment.R
@@ -31,7 +27,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,10 +34,10 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
-import com.sentryenterprises.sentry.enrollment.SentryTheme
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.PIN_BIOMETRIC
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
+import com.sentryenterprises.sentry.enrollment.util.SentryButton
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
@@ -121,17 +116,13 @@ fun GetCardStateScreen(
                     .fillMaxHeight()
                     .weight(1f)
             )
-            Button(
-                modifier = Modifier
-                    .padding(start = 17.dp, end = 17.dp, bottom = 30.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(5.dp),
+            SentryButton(
+                modifier = Modifier.padding(bottom = 30.dp),
+                text = "Scan Card",
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
                 }
-            ) {
-                Text("Scan Card")
-            }
+            )
         }
 
         ScanStatusBottomSheet(
@@ -147,7 +138,6 @@ fun GetCardStateScreen(
                 } else error("Unexpected state $showStatus")
             },
             onButtonClicked = {
-
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                     if (showStatus.result.isStatusEnrollment) {
                         onNavigate(Screen.Enroll)

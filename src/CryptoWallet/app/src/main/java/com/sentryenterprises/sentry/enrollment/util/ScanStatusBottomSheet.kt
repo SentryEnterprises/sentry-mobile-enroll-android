@@ -7,8 +7,6 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 
@@ -66,33 +64,29 @@ fun ScanStatusBottomSheet(
                 )
 
                 onButtonClicked?.let {
-                    Button(
-                        modifier = Modifier
-                            .padding(start = 17.dp, bottom = 50.dp, end = 17.dp)
-                            .fillMaxWidth(),
-                        shape = RoundedCornerShape(5.dp),
-                        onClick = onButtonClicked
-                    ) {
-                        val okButtonText =
-                            if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
-                                if (showStatus.result.isStatusEnrollment) {
-                                    "Enroll"
-                                } else {
-                                    "Verify"
-                                }
+                    val okButtonText =
+                        if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
+                            if (showStatus.result.isStatusEnrollment) {
+                                "Enroll"
                             } else {
-                                when (showStatus) {
-                                    ShowStatus.Hidden -> "" // Nothing
-
-                                    is ShowStatus.Result,
-                                    is ShowStatus.Error -> "Ok"
-
-                                    ShowStatus.CardFound,
-                                    ShowStatus.Scanning -> "Cancel"
-                                }
+                                "Verify"
                             }
-                        Text(okButtonText)
-                    }
+                        } else {
+                            when (showStatus) {
+                                ShowStatus.Hidden -> "" // Nothing
+
+                                is ShowStatus.Result,
+                                is ShowStatus.Error -> "Ok"
+
+                                ShowStatus.CardFound,
+                                ShowStatus.Scanning -> "Cancel"
+                            }
+                        }
+                    SentryButton(
+                        modifier = Modifier.padding(bottom = 30.dp),
+                        text = okButtonText,
+                        onClick = onButtonClicked
+                    )
                 }
             }
 
