@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.sentryenterprises.sentry.enrollment.BuildConfig
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
@@ -117,11 +118,14 @@ fun GetCardStateScreen(
                     .weight(1f)
             )
             SentryButton(
-                modifier = Modifier.padding(bottom = 30.dp),
                 text = "Scan Card",
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
                 }
+            )
+            Text(
+                modifier = Modifier.padding(bottom = 30.dp),
+                text = "Sentry Enroll ${BuildConfig.VERSION_NAME}",
             )
         }
 
@@ -154,6 +158,5 @@ fun GetCardStateScreen(
                 nfcViewModel.resetNfcAction()
             }
         )
-
     }
 }
