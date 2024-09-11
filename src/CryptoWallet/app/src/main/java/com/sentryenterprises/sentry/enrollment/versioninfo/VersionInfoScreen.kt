@@ -36,6 +36,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
@@ -93,7 +95,18 @@ fun VersionInfoScreen(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
-                LottieAnimation(composition)
+
+                val animationState by animateLottieCompositionAsState(
+                    iterations = LottieConstants.IterateForever,
+                    restartOnPlay = true,
+                    composition = composition,
+                    isPlaying = true
+                )
+                LottieAnimation(
+                    composition = composition,
+                    progress = { animationState },
+                    modifier = modifier
+                )
 
                 Text(
                     modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),

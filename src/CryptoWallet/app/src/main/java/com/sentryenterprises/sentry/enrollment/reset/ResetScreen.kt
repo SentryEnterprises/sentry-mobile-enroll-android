@@ -35,9 +35,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.sdk.models.NfcAction
@@ -94,7 +97,18 @@ fun ResetScreen(
             verticalArrangement = Arrangement.SpaceBetween,
         ) {
             val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
-            LottieAnimation(composition)
+
+            val animationState by animateLottieCompositionAsState(
+                iterations = LottieConstants.IterateForever,
+                restartOnPlay = true,
+                composition = composition,
+                isPlaying = true
+            )
+            LottieAnimation(
+                composition = composition,
+                progress = { animationState },
+                modifier = modifier
+            )
 
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),

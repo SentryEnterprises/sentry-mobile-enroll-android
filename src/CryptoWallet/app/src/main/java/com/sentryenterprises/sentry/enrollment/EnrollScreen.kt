@@ -92,8 +92,6 @@ fun EnrollScreen(
                 composition = composition,
                 isPlaying = true
             )
-
-
             LottieAnimation(
                 composition = composition,
                 progress = { animationState },
