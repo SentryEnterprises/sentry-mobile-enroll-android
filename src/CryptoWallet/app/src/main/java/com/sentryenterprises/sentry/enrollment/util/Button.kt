@@ -8,7 +8,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight.Companion.W600
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun SentryButton(
@@ -23,6 +25,6 @@ fun SentryButton(
         shape = RoundedCornerShape(15.dp),
         onClick = onClick,
     ) {
-        Text(text, color = Color.White)
+        Text(text, color = Color.White, fontWeight = W600, fontSize = 17.sp, modifier = Modifier.padding(vertical = 10.dp))
     }
 }
