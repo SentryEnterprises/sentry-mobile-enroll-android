@@ -42,6 +42,7 @@ import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
+import com.sentryenterprises.sentry.enrollment.util.SentryButton
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
@@ -153,20 +154,14 @@ fun VersionInfoScreen(
 
             }
 
-            Button(
-                modifier = Modifier
-                    .padding(start = 17.dp, end = 17.dp, bottom = 30.dp, top = 15.dp)
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(5.dp),
+            SentryButton(
+                modifier = Modifier.padding(bottom = 30.dp),
+                text = "Scan for card",
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.GetVersionInformation)
                 }
-            ) {
-                Text("Scan for card")
-            }
+            )
         }
-
-
     }
 
 
