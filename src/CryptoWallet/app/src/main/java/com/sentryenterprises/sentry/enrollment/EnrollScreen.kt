@@ -17,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -76,6 +77,16 @@ fun EnrollScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
+            LaunchedEffect(progress) {
+                println("EnrollScreen progress $progress")
+            }
+            LaunchedEffect(action) {
+                println("EnrollScreen progress $action")
+            }
+            LaunchedEffect(actionResult) {
+                println("EnrollScreen actionResult $actionResult")
+            }
+
             val composition by when (action) {
                 null -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
                 else -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
@@ -120,6 +131,19 @@ fun EnrollScreen(
                     text = resultText,
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
+                )
+            } else if (action == null && actionResult?.isFailure == true) {
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    text = actionResult.exceptionOrNull().toString(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 17.sp
+                )
+                SentryButton(
+                    text = "Retry",
+                    onClick = {
+                        nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
+                    }
                 )
             } else {
                 val instructionText = when (progress) {

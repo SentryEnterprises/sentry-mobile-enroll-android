@@ -432,7 +432,6 @@ internal class BiometricsApi(
             encryptionCounter = encryptionCounter
         )
         sendAndConfirm(enrollCodeCommand.wrapped, "Verify Enroll Code", tag = tag)
-
     }
 
     /// Sends an APDU command, throwing an exception if that command does not respond with a successful operation value.
@@ -456,7 +455,6 @@ internal class BiometricsApi(
         name: String? = null,
         tag: Tag
     ): Result<APDUReturnResult> {
-
         log("     >>> Sending $name => ${(apduCommand.formatted())}\n")
 
         val result = tag.transceive(apduCommand)
@@ -481,7 +479,6 @@ internal class BiometricsApi(
                     statusWord = statusWord
                 )
             )
-
         } else {
             Result.failure(result.exceptionOrNull()!!)
         }
@@ -505,7 +502,9 @@ internal class BiometricsApi(
         )
 
         log("     Getting enrollment status")
-        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
+        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrElse {
+            return Result.failure(it)
+        }
 
         log("     Remaining: ${enrollmentStatus.remainingTouches}")
         return Result.success(enrollmentStatus)

@@ -90,6 +90,7 @@ class SentrySdk(
                 } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
                     onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
                 } else {
+                    onBiometricProgressChanged(BiometricProgress.Feedback(e.message ?: "Unknown error occurred"))
                     throw e
                 }
             }
