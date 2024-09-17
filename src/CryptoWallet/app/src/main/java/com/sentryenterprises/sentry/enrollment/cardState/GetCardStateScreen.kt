@@ -1,5 +1,9 @@
 package com.sentryenterprises.sentry.enrollment.cardState
 
+import android.nfc.NfcAdapter
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -7,6 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -26,7 +32,14 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -43,6 +56,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
 
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetCardStateScreen(
@@ -91,6 +105,44 @@ fun GetCardStateScreen(
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val context = LocalContext.current
+
+            val antennaInfo = remember { NfcAdapter.getDefaultAdapter(context).nfcAntennaInfo }
+            val deviceRatio =
+                antennaInfo?.let { it.deviceWidth.toFloat() / it.deviceHeight } ?: .43f
+            val antenna = antennaInfo!!.availableNfcAntennas.first()
+
+            LaunchedEffect(Unit) {
+                println("antennaInfo: $antennaInfo")
+                println("antennaInfo: ${antennaInfo?.deviceWidth}")
+                println("antennaInfo: ${antennaInfo?.deviceHeight}")
+                println("antennaInfo: ${antennaInfo?.availableNfcAntennas}")
+            }
+            val primaryColor = MaterialTheme.colorScheme.primary
+            val secondaryColor = MaterialTheme.colorScheme.secondary
+            val xOffset = 50f
+
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp)
+            ) {
+
+                drawRoundRect(
+                    cornerRadius = CornerRadius(20f, 20f),
+                    color = primaryColor,
+                    style = Stroke(4f),
+                    topLeft = Offset(0f+xOffset, 0f),
+                    size = Size(size.height * deviceRatio, size.height)
+                )
+                drawLine(
+                    strokeWidth = 2f,
+                    color = secondaryColor,
+                    start = Offset.Zero,
+                    end = Offset(antenna.locationX.toFloat() + xOffset, antenna.locationY.toFloat())
+
+                )
+            }
             val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
 
             val animationState by animateLottieCompositionAsState(

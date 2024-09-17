@@ -72,6 +72,11 @@ class NfcViewModel : ViewModel() {
     @Volatile
     private var inProcess = false
 
+    init {
+
+
+    }
+
     fun onTagDiscovered(tag: Tag?) {
         Timber.d("----> onTagDiscovered() $tag")
 
