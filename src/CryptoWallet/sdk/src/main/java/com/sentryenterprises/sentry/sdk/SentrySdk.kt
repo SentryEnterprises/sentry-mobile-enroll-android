@@ -65,6 +65,7 @@ class SentrySdk(
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
         var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+        var resetOnFirstCall = resetOnFirstCall
         if (enrollStatus == Verification) {
             throw SentrySDKError.EnrollModeNotAvailable
         }
@@ -77,6 +78,8 @@ class SentrySdk(
                 } else {
                     biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
                 }
+                resetOnFirstCall = false
+
                 onBiometricProgressChanged(
                     BiometricProgress.Progressing(
                         enrollStatus.remainingTouches,
