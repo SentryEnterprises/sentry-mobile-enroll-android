@@ -87,6 +87,7 @@ class NfcViewModel : ViewModel() {
         _nfcProgress.value = null
         _nfcActionResult.value = null
         _nfcAction.value = null
+        _fingerProgress.value = null
     }
 
     fun startNfcAction(nfcAction: NfcAction?) {
@@ -137,11 +138,12 @@ class NfcViewModel : ViewModel() {
                             ).also {
                                 resetEnrollFingerPrintNeeded.value = false
                             }.let {
-                            Result.success(it)
+                                Result.success(it)
                             }
                         } catch (e: Exception) {
 //                        } catch (e: SentrySDKError.EnrollVerificationError) { TODO should be hitting this
                             resetEnrollFingerPrintNeeded.value = true
+                            _fingerProgress.value = null
                             Timber.e(e)
                             Result.failure(e)
 //                            NfcActionResult.EnrollFingerprint.Failed
