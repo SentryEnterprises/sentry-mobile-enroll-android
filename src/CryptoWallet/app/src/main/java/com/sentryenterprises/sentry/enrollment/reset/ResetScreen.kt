@@ -138,7 +138,10 @@ fun ResetScreen(
             },
             sheetState = sheetState,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 if (nfcActionResult?.getOrNull() != null && nfcActionResult.getOrNull() is NfcActionResult.ResetBiometrics) {
 
                     Text(
@@ -156,8 +159,7 @@ fun ResetScreen(
                             "An error occurred. Please try again. (${nfcActionResult})"
                         }
 
-                        else -> "Illegal state: $nfcActionResult"
-
+                        else -> "Unexpected state: $nfcActionResult"
                     }
 
                     Text(
@@ -184,6 +186,17 @@ fun ResetScreen(
                         text = statusText,
                         fontWeight = Bold,
                     )
+
+                    val coroutine = rememberCoroutineScope()
+                    SentryButton(
+                        modifier = Modifier.padding(bottom = 30.dp),
+                        text = "Cancel"
+                    ) {
+                        coroutine.launch {
+                            sheetState.hide()
+                        }
+                        nfcViewModel.resetNfcAction()
+                    }
                 }
             }
         }

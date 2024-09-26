@@ -27,7 +27,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun ScanStatusBottomSheet(
     sheetState: SheetState,
     showStatus: ShowStatus,
-    onShowResultText: (NfcActionResult) -> Pair<String, String>,
+    onShowResultText: (NfcActionResult) -> Pair<String, String?>,
     onButtonClicked: (() -> Unit)?,
     onDismiss: (() -> Unit)?,
 ) {
@@ -55,12 +55,14 @@ fun ScanStatusBottomSheet(
                     fontSize = 23.sp,
                     fontWeight = Bold,
                 )
-                Text(
-                    modifier = Modifier.padding(bottom = 25.dp, top = 17.dp),
-                    textAlign = TextAlign.Center,
-                    text = statusText,
-                    fontWeight = Normal,
-                )
+                if (statusText != null) {
+                    Text(
+                        modifier = Modifier.padding(bottom = 25.dp, top = 17.dp),
+                        textAlign = TextAlign.Center,
+                        text = statusText,
+                        fontWeight = Normal,
+                    )
+                }
 
                 onButtonClicked?.let {
                     val okButtonText =

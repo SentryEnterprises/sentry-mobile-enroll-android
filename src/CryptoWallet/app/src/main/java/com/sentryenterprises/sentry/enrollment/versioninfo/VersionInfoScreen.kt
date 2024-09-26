@@ -3,16 +3,12 @@ package com.sentryenterprises.sentry.enrollment.versioninfo
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import com.sentryenterprises.sentry.enrollment.BuildConfig
@@ -30,6 +26,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -45,6 +42,7 @@ import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,30 +92,9 @@ fun VersionInfoScreen(
                 .padding(paddingInsets)
                 .fillMaxSize(),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
 
-                val animationState by animateLottieCompositionAsState(
-                    iterations = LottieConstants.IterateForever,
-                    restartOnPlay = true,
-                    composition = composition,
-                    isPlaying = true
-                )
-                LottieAnimation(
-                    composition = composition,
-                    progress = { animationState },
-                    modifier = modifier
-                )
-
-                Text(
-                    modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                    text = "Place your card on a flat, non-metallic surface then place the phone on top.",
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp
-                )
-            }
             val actionResult = nfcActionResult?.getOrNull()
-            if (actionResult is NfcActionResult.VersionInformation){
+            if (actionResult is NfcActionResult.VersionInformation) {
 
                 val info =
                     mapOf(
@@ -151,7 +128,29 @@ fun VersionInfoScreen(
                         }
                     }
                 }
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
 
+                    val animationState by animateLottieCompositionAsState(
+                        iterations = LottieConstants.IterateForever,
+                        restartOnPlay = true,
+                        composition = composition,
+                        isPlaying = true
+                    )
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { animationState },
+                        modifier = modifier
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
+                        text = "Place your card on a flat, non-metallic surface then place the phone on top.",
+                        textAlign = TextAlign.Center,
+                        fontSize = 17.sp
+                    )
+                }
             }
 
             SentryButton(
@@ -164,17 +163,28 @@ fun VersionInfoScreen(
         }
     }
 
-
+    val coroutine = rememberCoroutineScope()
     ScanStatusBottomSheet(
         sheetState = sheetState,
         showStatus = showStatus,
         onShowResultText = { result ->
             if (result is NfcActionResult.VersionInformation) {
-                "Version check complete" to "Click above to dismiss"
+                "Version check complete" to null
             } else error("Unexpected state $showStatus")
         },
-        onButtonClicked = null,
-        onDismiss = null,
+        onButtonClicked = {
+            if (nfcActionResult?.getOrNull() !is NfcActionResult.VersionInformation) {
+                nfcViewModel.resetNfcAction()
+            }
+            coroutine.launch {
+                sheetState.hide()
+            }
+        },
+        onDismiss = {
+            if (nfcActionResult?.getOrNull() !is NfcActionResult.VersionInformation) {
+                nfcViewModel.resetNfcAction()
+            }
+        },
     )
 
 }

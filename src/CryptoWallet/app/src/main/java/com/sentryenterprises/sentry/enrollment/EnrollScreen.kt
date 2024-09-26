@@ -133,9 +133,18 @@ fun EnrollScreen(
                     fontSize = 17.sp
                 )
             } else if (action == null && actionResult?.isFailure == true) {
+
+                val errorText = actionResult.exceptionOrNull()?.message ?: "Unknown error occurred."
+
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    text = actionResult.exceptionOrNull().toString(),
+                    text = errorText,
+                    textAlign = TextAlign.Center,
+                    fontSize = 17.sp
+                )
+                Text(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                    text = "Please move the phone away from the card and try again.",
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
                 )
