@@ -24,6 +24,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -121,17 +122,49 @@ fun EnrollScreen(
                     fontSize = 17.sp
                 )
             } else if (action == null && actionResult?.getOrNull() is NfcActionResult.EnrollFingerprint) {
-                val resultText = when (actionResult.getOrNull()) {
-                    is NfcActionResult.EnrollFingerprint.Complete -> "Enrollment complete!"
-                    is NfcActionResult.EnrollFingerprint.Failed -> "Card is reporting: $progress"
+                when (actionResult.getOrNull()) {
+                    is NfcActionResult.EnrollFingerprint.Complete -> {
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                            text = "Enrollment Finished",
+                            textAlign = TextAlign.Center,
+                            fontWeight = Bold,
+                            fontSize = 23.sp,
+                        )
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                            text = "Your fingerprint is now enrolled. Click Ok to continue.",
+                            textAlign = TextAlign.Center,
+                            fontSize = 17.sp
+                        )
+                        SentryButton(text = "Ok") { onNavigate(Screen.GetCardState) }
+                    }
+
+                    is NfcActionResult.EnrollFingerprint.Failed -> {
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                            text = "Unexpected error occurred",
+                            textAlign = TextAlign.Center,
+                            fontWeight = Bold,
+                            fontSize = 23.sp,
+                        )
+                        val errorText = if (BuildConfig.DEBUG) {
+                            "Please try again."
+                        } else {
+                            "$progress"
+                        }
+                        Text(
+                            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
+                            text = errorText,
+                            textAlign = TextAlign.Center,
+                            fontSize = 17.sp
+                        )
+                        SentryButton(text = "Retry") { nfcViewModel.resetNfcAction() }
+                    }
+
                     else -> error("Unexpected state: $actionResult")
                 }
-                Text(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    text = resultText,
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp
-                )
+
             } else if (action == null && actionResult?.isFailure == true) {
 
                 val errorText = actionResult.exceptionOrNull()?.message ?: "Unknown error occurred."
