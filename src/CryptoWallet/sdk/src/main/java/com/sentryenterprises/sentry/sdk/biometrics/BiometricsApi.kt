@@ -732,6 +732,8 @@ internal class BiometricsApi(
 
         return if (responseBuffer.size > 11) {
             val string = responseBuffer
+                .filter { it in 0x20..0x7E }
+                .toByteArray()
                 .toString(Charsets.US_ASCII)
             val majorVersion = responseBuffer[10].toInt() - 0x30
             val minorVersion = responseBuffer[12].toInt() - 0x30
