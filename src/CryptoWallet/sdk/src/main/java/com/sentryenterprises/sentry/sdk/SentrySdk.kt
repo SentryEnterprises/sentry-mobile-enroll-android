@@ -27,6 +27,8 @@ class SentrySdk(
         isDebugOutputVerbose = isDebugOutputVerbose,
     )
 
+    val sdkVersion = "0.0.1"
+
     /**
      * Retrieves the biometric fingerprint enrollment status.
      *

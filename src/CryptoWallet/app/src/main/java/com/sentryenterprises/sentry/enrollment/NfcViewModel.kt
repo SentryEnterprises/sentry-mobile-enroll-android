@@ -3,6 +3,7 @@ package com.sentryenterprises.sentry.enrollment
 import android.nfc.Tag
 import androidx.lifecycle.ViewModel
 import com.sentryenterprises.sentry.sdk.SentrySdk
+import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -36,9 +37,8 @@ class NfcViewModel : ViewModel() {
     private val _nfcAction = MutableStateFlow<NfcAction?>(null)
     val nfcAction = _nfcAction.asStateFlow()
 
-    val showStatus = nfcAction.combine(nfcActionResult) { action, result ->
-        action to result
-    }.combine(nfcProgress) { (action, result), progress ->
+
+    val showStatus = combine(nfcAction, nfcActionResult, nfcProgress) { action, result, progress ->
         if (action == null && result == null && progress == null) {
             ShowStatus.Hidden
         } else if (action != null) {
@@ -53,7 +53,7 @@ class NfcViewModel : ViewModel() {
             if (result.isSuccess) {
                 ShowStatus.Result(result.getOrThrow())
             } else {
-                ShowStatus.Error(result.exceptionOrNull()?.message ?: "Unknown error $result")
+                ShowStatus.Error(result.exceptionOrNull()?.getDecodedMessage() ?: "Unknown error $result")
             }
         } else {
             ShowStatus.Error("Unknown error, likely due to incorrect placement.")
@@ -62,12 +62,11 @@ class NfcViewModel : ViewModel() {
 
     private var tag: Tag? = null
 
-    private val sentrySdk by lazy {
-        SentrySdk(
-            enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
-        )
-    }
+    private val sentrySdk = SentrySdk(
+        enrollCode = byteArrayOf(1, 1, 1, 1, 1, 1),
+    )
 
+    val sdkVersion = sentrySdk.sdkVersion
 
     @Volatile
     private var inProcess = false

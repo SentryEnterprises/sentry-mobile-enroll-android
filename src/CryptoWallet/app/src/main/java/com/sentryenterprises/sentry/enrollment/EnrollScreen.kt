@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
+import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
@@ -137,7 +138,10 @@ fun EnrollScreen(
                             textAlign = TextAlign.Center,
                             fontSize = 17.sp
                         )
-                        SentryButton(text = "Ok") { onNavigate(Screen.GetCardState) }
+                        SentryButton(text = "Ok") {
+                            nfcViewModel.resetNfcAction()
+                            onNavigate(Screen.GetCardState)
+                        }
                     }
 
                     is NfcActionResult.EnrollFingerprint.Failed -> {
@@ -167,7 +171,7 @@ fun EnrollScreen(
 
             } else if (action == null && actionResult?.isFailure == true) {
 
-                val errorText = actionResult.exceptionOrNull()?.message ?: "Unknown error occurred."
+                val errorText = actionResult.exceptionOrNull().getDecodedMessage()
 
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),

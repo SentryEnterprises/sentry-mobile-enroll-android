@@ -27,6 +27,8 @@ sealed class SentrySDKError : Exception() {
 
     //  The CVM applet on the SentryCard is blocked, and the SentryCard will need a reset.
     data object CvmAppletBlocked : SentrySDKError()
+
+    // Indicates that the CVM applet return an unexpected code.
     data class CvmAppletError(val code: Int) : SentrySDKError()
 
     //  The BioVerify applet is not installed on the SentryCard.

@@ -6,16 +6,17 @@ enum class APDUResponseCode(val value: Int) {
 
     /// Warning processing - state of non-volatile memory may have changed
     NO_MATCH_FOUND(0x6300),
-    PIN_INCORRECT_THREE_REMAIN(0x63C3),
-    PIN_INCORRECT_TWO_REMAIN(0x63C2),
-    PIN_INCORRECT_ONE_REMAIN(0x63C1),
-    PIN_INCORRECT_ZERO_REMAIN(0x63C0),
+    ENROLL_CODE_INCORRECT_THREE_TRIES_REMAIN(0x63C3),
+    ENROLL_CODE_INCORRECT_TWO_TRIES_REMAIN(0x63C2),
+    ENROLL_CODE_INCORRECT_ONE_TRIES_REMAIN(0x63C1),
+    ENROLL_CODE_INCORRECT_ZERO_TRIES_REMAIN(0x63C0),
 
     /// Checking errors - wrong length
     WRONG_LENGTH(0x6700),
     FORMAT_NOT_COMPLIANT(0x6701),
-    LENGTH_VALUE_NOT_ONE_EXPECTED(0x6702),
+    LENGTH_VALUE_NOT_THE_ONE_EXPECTED(0x6702),
     COMMUNICATION_FAILURE(0x6741),              // IDEX Enroll applet specific
+    CALIBRATION_ERROR(0x6744),
     FINGER_REMOVED(0x6745),                     // IDEX Enroll applet specific
     POOR_IMAGE_QUALITY(0x6747),                  // IDEX Enroll applet specific
     USER_TIMEOUT_EXPIRED(0x6748),                // IDEX Enroll applet specific

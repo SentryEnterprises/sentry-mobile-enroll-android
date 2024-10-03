@@ -98,7 +98,8 @@ fun VersionInfoScreen(
 
                 val info =
                     mapOf(
-                        "App Version" to BuildConfig.VERSION_NAME,
+                        "Mobile App Version" to BuildConfig.VERSION_NAME,
+                        "SDK Version" to nfcViewModel.sdkVersion,
                         "OS Version" to actionResult.osVersion,
                         "Enroll Version" to actionResult.enrollAppletVersion,
                         "CVM Version" to actionResult.cvmAppletVersion,

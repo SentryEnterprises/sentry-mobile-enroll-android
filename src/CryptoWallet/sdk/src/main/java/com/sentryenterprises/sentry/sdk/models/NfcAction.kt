@@ -12,10 +12,6 @@ sealed class NfcAction {
 
 sealed class NfcActionResult {
 
-    data class Error(
-        val error: String,
-    ) : NfcActionResult()
-
     data class BiometricEnrollment(
         val isStatusEnrollment: Boolean,
     ) : NfcActionResult()

@@ -8,6 +8,7 @@ import com.secure.jnet.jcwkit.NativeLib
 import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
+import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
@@ -574,7 +575,7 @@ internal class BiometricsApi(
             NfcActionResult.ResetBiometrics.Success
         } else {
             NfcActionResult.ResetBiometrics.Failed(
-                result.exceptionOrNull()?.message ?: "Not successful"
+                result.exceptionOrNull().getDecodedMessage()
             )
         }
 
