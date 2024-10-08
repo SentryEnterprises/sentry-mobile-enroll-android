@@ -36,6 +36,7 @@ import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
@@ -132,10 +133,12 @@ fun VerifyScreen(
             showStatus = showStatus,
             onShowResultText = { result ->
                 if (result is NfcActionResult.VerifyBiometric) {
-                    "Verification Status" to if (result.isBiometricCorrect) {
+                    "Verification Status" to if (result.fingerprintValidation == FingerprintValidation.MatchValid) {
                         "Fingerprint successfully verified!"
+                    } else if (result.fingerprintValidation == FingerprintValidation.MatchFailed) {
+                        "Fingerprint did not match."
                     } else {
-                        "Fingerprint did not match"
+                        "This card is not enrolled."
                     }
                 } else error("Unexpected state $showStatus")
             },

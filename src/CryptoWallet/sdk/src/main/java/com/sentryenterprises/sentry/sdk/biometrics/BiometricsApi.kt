@@ -767,7 +767,7 @@ internal class BiometricsApi(
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
      *
      */
-    fun getFingerprintVerification(tag: Tag): NfcActionResult.VerifyBiometric {
+    fun getFingerprintVerification(tag: Tag): Result<Boolean> {
         log("----- BiometricsAPI Get Fingerprint Verification")
 
 
@@ -788,18 +788,18 @@ internal class BiometricsApi(
 
             if (returnData.data[4] == 0xA5.toByte()) {
                 log("     Match")
-                return NfcActionResult.VerifyBiometric(true)
+                return Result.success(true)
             }
 
             if (returnData.data[4] == 0x5A.toByte()) {
                 log("     No match found")
-                return NfcActionResult.VerifyBiometric(false)
+                return Result.success(false)
             }
 
-            throw SentrySDKError.CvmAppletError(returnData.data[4].toInt())
+            return Result.failure(SentrySDKError.CvmAppletError(returnData.data[4].toInt()))
         }
 
-        throw SentrySDKError.ApduCommandError(returnData.statusWord)
+        return Result.failure(SentrySDKError.ApduCommandError(returnData.statusWord))
     }
 
     fun getCardOSVersion(tag: Tag): Result<VersionInfo> {

@@ -22,7 +22,7 @@ sealed class NfcActionResult {
     }
 
     data class VerifyBiometric(
-        val isBiometricCorrect: Boolean,
+        val fingerprintValidation: FingerprintValidation,
     ) : NfcActionResult()
 
     data class VersionInformation(
@@ -37,4 +37,18 @@ sealed class NfcActionResult {
         data object Failed : EnrollFingerprint()
     }
 
+}
+
+/**
+ * Indicates the results of a fingerprint validation.
+ */
+enum class FingerprintValidation {
+    // The finger on the sensor matches the fingerprints recorded during enrollment.
+    MatchValid,
+
+    // The finger on the sensor does not match the fingerprints recorded during enrollment.
+    MatchFailed,
+
+    // The card is not enrolled and fingerprint verification cannot be performed.
+    NotEnrolled
 }

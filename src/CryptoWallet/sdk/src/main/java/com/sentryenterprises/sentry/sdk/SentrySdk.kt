@@ -5,9 +5,11 @@ import android.nfc.tech.IsoDep
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
+import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollment
 import java.io.IOException
@@ -95,7 +97,11 @@ class SentrySdk(
                 } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
                     onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
                 } else {
-                    onBiometricProgressChanged(BiometricProgress.Feedback(e.message ?: "Unknown error occurred"))
+                    onBiometricProgressChanged(
+                        BiometricProgress.Feedback(
+                            e.message ?: "Unknown error occurred"
+                        )
+                    )
                     throw e
                 }
             }
@@ -153,10 +159,27 @@ class SentrySdk(
      */
     fun validateFingerprint(tag: Tag): Result<NfcActionResult.VerifyBiometric> {
         return try {
+            biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+            val status = biometricsAPI.getEnrollmentStatus(tag).getOrElse {
+                return Result.failure(it)
+            }
+
             biometricsAPI.initializeVerify(tag = tag)
-            Result.success(biometricsAPI.getFingerprintVerification(tag = tag))
+            if (status.mode == Verification) {
+                val isVerified = biometricsAPI.getFingerprintVerification(tag = tag)
+                    .getOrElse { return Result.failure(it) }
+                if (isVerified) {
+                    Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.MatchValid))
+                } else {
+                    Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.MatchFailed))
+                }
+
+            } else {
+                Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.NotEnrolled))
+            }
+
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure<NfcActionResult.VerifyBiometric>(e)
         }
     }
 
