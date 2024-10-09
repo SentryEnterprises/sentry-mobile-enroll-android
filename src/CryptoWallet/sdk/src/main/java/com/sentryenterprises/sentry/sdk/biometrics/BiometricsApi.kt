@@ -446,10 +446,9 @@ internal class BiometricsApi(
         return if (returnData.isSuccess && returnData.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             returnData
         } else if (returnData.isSuccess) {
-            Result.failure(SentrySDKError.ApduCommandError(returnData.getOrThrow().statusWord))
+            throw SentrySDKError.ApduCommandError(returnData.getOrThrow().statusWord)
         } else returnData
     }
-
 
     private fun send(
         apduCommand: ByteArray,
