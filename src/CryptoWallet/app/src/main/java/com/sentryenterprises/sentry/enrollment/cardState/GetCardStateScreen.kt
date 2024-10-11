@@ -1,5 +1,7 @@
 package com.sentryenterprises.sentry.enrollment.cardState
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -7,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -27,6 +31,12 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,49 +94,74 @@ fun GetCardStateScreen(
             )
         }
     ) { paddingInsets ->
-        Column(
-            modifier = Modifier
-                .padding(paddingInsets)
-                .padding(top = 150.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
-
-            val animationState by animateLottieCompositionAsState(
-                iterations = LottieConstants.IterateForever,
-                restartOnPlay = true,
-                composition = composition,
-                isPlaying = true
-            )
-            LottieAnimation(
-                composition = composition,
-                progress = { animationState },
-                modifier = modifier
-            )
-
-            Text(
-                modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
-                textAlign = TextAlign.Center,
-                fontSize = 17.sp
-            )
-
-            Spacer(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-            )
-            SentryButton(
-                text = "Scan Card",
-                onClick = {
-                    nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+        Box {
+            if (sheetState.isVisible) {
+                Box() {
+                    Image(
+                        painter = painterResource(R.drawable.card_white),
+                        contentDescription = "Place card here",
+                        modifier = Modifier
+                            .offset((100).dp, (120).dp)
+                            .scale(1.4f)
+                            .alpha(.5f)
+                    )
+                    Text(
+                        text = "Place Card Under Phone Here",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = (100).dp, (120).dp)
+                    )
                 }
-            )
-            Text(
-                modifier = Modifier.padding(bottom = 30.dp),
-                text = "Sentry Enroll ${BuildConfig.VERSION_NAME}",
-            )
+            }
+            Column(
+                modifier = Modifier
+                    .padding(paddingInsets)
+                    .padding(top = 150.dp)
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (sheetState.isVisible) {
+                    Spacer(Modifier.height(200.dp))
+                }
+                val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
+
+                val animationState by animateLottieCompositionAsState(
+                    iterations = LottieConstants.IterateForever,
+                    restartOnPlay = true,
+                    composition = composition,
+                    isPlaying = true
+                )
+                LottieAnimation(
+                    composition = composition,
+                    progress = { animationState },
+                    modifier = modifier
+                )
+
+                Text(
+                    modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
+                    text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                    textAlign = TextAlign.Center,
+                    fontSize = 17.sp
+                )
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                )
+                SentryButton(
+                    text = "Scan Card",
+                    onClick = {
+                        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+                    }
+                )
+                Text(
+                    modifier = Modifier.padding(bottom = 30.dp),
+                    text = "Sentry Enroll ${BuildConfig.VERSION_NAME}",
+                )
+            }
         }
 
         ScanStatusBottomSheet(
