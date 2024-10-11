@@ -5,11 +5,14 @@ import android.nfc.tech.IsoDep
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
+import com.sentryenterprises.sentry.sdk.biometrics.DataSlot
+import com.sentryenterprises.sentry.sdk.configuration.SentrySDKConstants
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidationAndData
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollment
 import java.io.IOException
@@ -59,6 +62,123 @@ class SentrySdk(
         }
     }
 
+    /**
+     * Writes data to the indicated data slot on the SentryCard. A biometric verification is performed first before writing the data. The `.small` data slot holds up to 255 bytes of data, and the `.huge` data slot holds up to 2048 bytes of data.
+     *
+     * Opens an `NFCReaderSession`, connects to an `NFCISO7816Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+     *
+     * - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
+     *
+     * - Parameters:
+     * - dataToStore: An array of `UInt8`bytes to write to the indicated data slot.
+     * - dataSlot: The data slot to which the data is written.
+     * - connected: A callback method that receives an `NFCReaderSession` and a boolean value. The `NFCReaderSession` allows the caller to update the NFC UI to indicate state. The boolean value is `true` when an NFC connection is made and an ISO7816 tag is detected, and `false` when the connection is dropped.
+     *
+     * - Returns: `FingerprintValidation.matchValid` if the scanned fingerprint matches the one recorded during enrollment. If there is a successful match, the indicated data is written to the indicated data slot. Otherwise, returns  `FingerprintValidation.matchFailed` if the scanned fingeprrint does not match, and `FingerprintValidation.notEnrolled` if the card is in verification mode (i.e. the card is not enrolled and thus a fingerprint validation could not be performed).
+     *
+     * This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.dataSizeNotSupported` if the `data` parameter is larger than 255 bytes in size for the `.small` data slot, or 2048 bytes for the `.huge` data slot.
+     * `SentrySDKError.bioVerifyAppletNotInstalled` if the BioVerify applet is not installed on the scanned SentryCard.
+     * `SentrySDKError.bioVerifyAppletWrongVersion` if the BioVerify applet installed on the SentryCard does not support data storage.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+     * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
+
+     */
+    fun storeDataSecure(
+        dataToStore: ByteArray,
+        dataSlot: DataSlot,
+        tag: Tag
+    ): FingerprintValidation {
+        // throw an error if the caller is passing more than the allowed maximum size of stored data
+        when (dataSlot) {
+            DataSlot.Small -> {
+                if (dataToStore.size > SentrySDKConstants.SMALL_MAX_DATA_SIZE) {
+                    throw SentrySDKError.DataSizeNotSupported
+                }
+            }
+
+            DataSlot.Huge -> {
+                if (dataToStore.size > SentrySDKConstants.HUGE_MAX_DATA_SIZE) {
+                    throw SentrySDKError.DataSizeNotSupported
+                }
+            }
+        }
+
+
+        // initialize the Enroll applet
+        biometricsAPI.initializeEnroll(tag, enrollCode)
+        val status = biometricsAPI.getEnrollmentStatus(tag)
+
+        // if we are in verification mode...
+        if (status.getOrNull()?.mode is Verification) {
+            // initialize the BioVerify applet
+            biometricsAPI.initializeVerify(tag)
+
+            // store the data
+            val result = biometricsAPI.setVerifyStoredDataSecure(tag, dataToStore, dataSlot)
+
+            return if (result) FingerprintValidation.MatchValid else FingerprintValidation.MatchFailed
+        } else {
+            // otherwise, this card isn't enrolled and a validation cannot be performed
+            return FingerprintValidation.NotEnrolled
+        }
+
+    }
+
+
+    /**
+    Retrieves the data stored in the indicated data slot on the SentryCard. A biometric verification is performed first before retrieving the data.
+
+    Opens an `NFCReaderSession`, connects to an `NFCISO7816Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+
+    - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
+
+    - Parameters:
+    - dataSlot: The data slot from which data is retrieved.
+    - connected: A callback method that receives an `NFCReaderSession` and a boolean value. The `NFCReaderSession` allows the caller to update the NFC UI to indicate state. The boolean value is `true` when an NFC connection is made and an ISO7816 tag is detected, and `false` when the connection is dropped.
+
+    - Returns: A `FingerprintValidationAndData` structure indicating if the finger on the sensor matches the fingerprint recorded during enrollment. If there is a successful match, this structure also contains the data stored in the indicated data slot. The `.small` data slot returns up to 255 bytes of data. The `.huge` data slot returns up to 2048 bytes of data.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.bioVerifyAppletNotInstalled` if the BioVerify applet is not installed on the scanned SentryCard.
+     * `SentrySDKError.bioVerifyAppletWrongVersion` if the BioVerify applet installed on the SentryCard does not support data storage.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+     * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
+
+     */
+    fun retrieveDataSecure(
+        dataSlot: DataSlot,
+        tag: Tag
+    ): FingerprintValidationAndData {
+        var errorDuringSession = false
+
+        // initialize the Enroll applet
+        biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+
+        val status = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+
+        // if we are in verification mode...
+        if (status.mode == BiometricMode.Verification) {
+            // initialize the BioVerify applet
+            biometricsAPI.initializeVerify(tag = tag)
+
+            // store the data
+            return biometricsAPI.getVerifyStoredDataSecure(tag = tag, dataSlot = dataSlot)
+        } else {
+            // otherwise, this card isn't enrolled and a validation cannot be performed
+            return FingerprintValidationAndData(
+                doesFingerprintMatch = FingerprintValidation.NotEnrolled,
+                storedData = byteArrayOf()
+            )
+        }
+
+    }
 
     fun enrollFinger(
         tag: Tag,

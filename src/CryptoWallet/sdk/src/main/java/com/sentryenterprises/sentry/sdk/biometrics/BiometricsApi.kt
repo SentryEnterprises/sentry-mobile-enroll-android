@@ -12,6 +12,8 @@ import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidationAndData
 import com.sentryenterprises.sentry.sdk.models.Keys
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.VersionInfo
@@ -29,6 +31,11 @@ private const val SUCCESS = 0
 
 private const val ERROR_KEYGENERATION = -100
 private const val ERROR_SHAREDSECRETEXTRACTION = -101
+
+enum class DataSlot {
+    Small,
+    Huge
+}
 
 /**
 Communicates with the IDEX Enroll applet by sending various `APDU` commands in the appropriate order.
@@ -189,6 +196,151 @@ internal class BiometricsApi(
         )
     }
 
+    /**
+    Writes data to the indicated data slot on the SentryCard. A biometric verification is performed first before writing the data. The `.small` data slot holds up to 255 bytes of data, and the `.huge` data slot holds up to 2048 bytes of data.
+
+    - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
+
+    - Parameters:
+    - tag: The tag supplied by an NFC connection to which `APDU` commands are sent.
+    - data: An array of bytes to write to the indicated data slot.
+    - dataSlot: The data slot to which the data is written.
+
+    - Returns: `True`if the finger on the sensor matches the fingerprint recorded during enrollment. If there is a successful match, the indicated data is written to the indicated data slot. Otherwise, returns `false`.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.dataSizeNotSupported` if the `data` parameter is larger than 255 bytes in size for the `.small` data slot, or 2048 bytes for the `.huge` data slot.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+
+     */
+    fun setVerifyStoredDataSecure(tag: Tag, data: ByteArray, dataSlot: DataSlot): Boolean {
+        println("----- BiometricsAPI Set Verify Stored Data Secure, slot: $dataSlot\n")
+
+
+        println("     Setting verify stored data Secure\n")
+        var command: ByteArray
+
+        when (dataSlot) {
+            DataSlot.Small -> command =
+                APDUCommand.setVerifyAppletStoredDataSmallSecure(data = data)
+
+            DataSlot.Huge -> command = APDUCommand.setVerifyAppletStoredDataHugeSecure(data = data)
+        }
+
+        //let command = try wrapAPDUCommand(apduCommand: APDUCommand.setVerifyAppletStoredData, keyENC: keyENC, keyCMAC: keyCMAC, chainingValue: &chainingValue, encryptionCounter: &encryptionCounter)
+        val returnData = sendAndConfirm(
+            apduCommand = command,
+            name = "Set Verify Stored Data Secure",
+            tag = tag
+        ).getOrThrow()
+
+//        if returnData.statusWord != APDUResponseCode.operationSuccessful.rawValue {
+//            throw SentrySDKError.apduCommandError(returnData.statusWord)
+//        }
+//
+//        let dataArray = try unwrapAPDUResponse(response: returnData.data.toArrayOfBytes(), statusWord: returnData.statusWord, keyENC: keyENC, keyRMAC: keyRMAC, chainingValue: chainingValue, encryptionCounter: encryptionCounter)
+
+        return if (returnData.data.size == 1) {
+            if (returnData.data[0] == 0x00.toByte()) {
+                throw SentrySDKError.CvmAppletNotAvailable
+            }
+
+            if (returnData.data[0] == 0x01.toByte()) {
+                throw SentrySDKError.CvmAppletBlocked
+            }
+
+            if (returnData.data[0] == 0xA5.toByte()) {
+                println("     Match\n------------------------------\n")
+                true
+            }
+
+            if (returnData.data[0] == 0x5A.toByte()) {
+                println("     No match found\n------------------------------\n")
+                false
+            }
+
+            throw SentrySDKError.CvmAppletError(returnData.data[0].toInt())
+        } else {
+            true
+        }
+    }
+
+    /**
+    Retrieves the data stored in the indicated data slot on the SentryCard. A biometric verification is performed first before retrieving the data.
+
+    - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
+
+    - Parameters:
+    - tag: The `NFCISO7816` tag supplied by an NFC connection to which `APDU` commands are sent.
+    - dataSlot: The data slot from which data is retrieved.
+
+    - Returns: A `FingerprintValidationAndData` structure indicating if the finger on the sensor matches the fingerprint recorded during enrollment. If there is a successful match, this structure also contains the data stored in the indicated data slot. The `.small` data slot returns up to 255 bytes of data. The `.huge` data slot returns up to 2048 bytes of data.
+
+    This method can throw the following exceptions:
+     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+
+     */
+    fun getVerifyStoredDataSecure(tag: Tag, dataSlot: DataSlot): FingerprintValidationAndData {
+        println("----- BiometricsAPI Get Verify Stored Data Secure, slot: $dataSlot\n")
+
+        println("     Getting verify stored data Secure\n")
+        val command = when (dataSlot) {
+            DataSlot.Small -> APDUCommand.GET_VERIFY_APPLET_STORED_DATA_SMALL_SECURED
+            DataSlot.Huge -> APDUCommand.GET_VERIFY_APPLET_STORED_DATA_HUGE_SECURED
+        }.value
+
+        //let command = try wrapAPDUCommand(apduCommand: APDUCommand.getVerifyAppletStoredData, keyENC: keyENC, keyCMAC: keyCMAC, chainingValue: &chainingValue, encryptionCounter: &encryptionCounter)
+
+        val returnData =
+            sendAndConfirm(
+                apduCommand = command,
+                name = "Get Verify Stored Data Secure",
+                tag = tag
+            ).getOrThrow()
+
+//        let dataArray = try unwrapAPDUResponse(response: returnData.data.toArrayOfBytes(), statusWord: returnData.statusWord, keyENC: keyENC, keyRMAC: keyRMAC, chainingValue: chainingValue, encryptionCounter: encryptionCounter)
+
+
+        if (returnData.data.size == 1) {
+            if (returnData.data[0] == 0x00.toByte()) {
+                throw SentrySDKError.CvmAppletNotAvailable
+            }
+
+            if (returnData.data[0] == 0x01.toByte()) {
+                throw SentrySDKError.CvmAppletBlocked
+            }
+
+            if (returnData.data[0] == 0xA5.toByte()) {
+                println("     Match\n------------------------------\n")
+                return FingerprintValidationAndData(
+                    doesFingerprintMatch = FingerprintValidation.MatchValid,
+                    storedData = returnData.data
+                )
+            }
+
+            if (returnData.data[0] == 0x5A.toByte()) {
+                println("     No match found\n------------------------------\n")
+                return FingerprintValidationAndData(
+                    doesFingerprintMatch = FingerprintValidation.MatchFailed,
+                    storedData = byteArrayOf()
+                )
+            }
+
+            throw SentrySDKError.CvmAppletError(returnData.data[0].toInt())
+        } else {
+            println("     Match\n------------------------------\n")
+            return FingerprintValidationAndData(
+                doesFingerprintMatch = FingerprintValidation.MatchValid,
+                storedData = returnData.data
+            )
+        }
+    }
 
     /**
      * Decodes an APDU command response.
