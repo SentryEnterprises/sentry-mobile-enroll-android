@@ -1,17 +1,28 @@
 package com.sentryenterprises.sentry.enrollment.cardState
 
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,18 +41,28 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.model.animatable.AnimatableColorValue
 import com.sentryenterprises.sentry.enrollment.BuildConfig
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
@@ -96,24 +117,7 @@ fun GetCardStateScreen(
     ) { paddingInsets ->
         Box {
             if (sheetState.isVisible) {
-                Box() {
-                    Image(
-                        painter = painterResource(R.drawable.card_white),
-                        contentDescription = "Place card here",
-                        modifier = Modifier
-                            .offset((100).dp, (120).dp)
-                            .scale(1.4f)
-                            .alpha(.5f)
-                    )
-                    Text(
-                        text = "Place Card Under Phone Here",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .offset(x = (100).dp, (120).dp)
-                    )
-                }
+                PlaceCardHere()
             }
             Column(
                 modifier = Modifier
@@ -193,5 +197,63 @@ fun GetCardStateScreen(
                 nfcViewModel.resetNfcAction()
             }
         )
+    }
+}
+
+@Composable
+private fun PlaceCardHere() {
+    val borderColor = remember { Animatable(Color.Black) }
+    LaunchedEffect(Unit) {
+        borderColor.animateTo(
+            Color.White,
+            animationSpec = infiniteRepeatable(tween(500), repeatMode = RepeatMode.Reverse)
+        )
+    }
+    Box(
+        Modifier
+    ) {
+        Image(
+            painter = painterResource(
+                if (isSystemInDarkTheme()) {
+                    R.drawable.card_white
+                } else {
+                    R.drawable.card_black
+                }
+            ),
+            contentDescription = "Place card here",
+            modifier = Modifier
+                .offset((100).dp, (120).dp)
+                .scale(1.4f)
+                .alpha(.5f)
+        )
+
+        val textMeasurer = rememberTextMeasurer()
+        val textStyle = TextStyle(
+            fontSize = 20.sp,
+            fontWeight = FontWeight.W400,
+        )
+        val textLayout = textMeasurer.measure(
+            text = "Place Card Under Phone Here",
+            maxLines = 1,
+            style = textStyle,
+        )
+        Canvas(
+            Modifier
+                .width(500.dp)
+                .height(335.dp)
+                .offset(26.dp, 75.dp)
+        ) {
+
+            drawRoundRect(
+                color = borderColor.value,
+                cornerRadius = CornerRadius(50f, 50f),
+                style = Stroke(5f)
+            )
+            drawText(
+                topLeft = Offset(80f,size.height-textLayout.size.height-30f),
+                textLayoutResult = textLayout
+            )
+
+        }
     }
 }
