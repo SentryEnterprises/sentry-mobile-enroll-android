@@ -163,7 +163,10 @@ fun EnrollScreen(
                             textAlign = TextAlign.Center,
                             fontSize = 17.sp
                         )
-                        SentryButton(text = "Retry") { nfcViewModel.resetNfcAction() }
+                        SentryButton(text = "Retry") {
+                            nfcViewModel.resetNfcAction()
+                            nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
+                        }
                     }
 
                     else -> error("Unexpected state: $actionResult")
@@ -188,13 +191,14 @@ fun EnrollScreen(
                 SentryButton(
                     text = "Retry",
                     onClick = {
+                        nfcViewModel.resetNfcAction()
                         nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
                     }
                 )
             } else {
                 val instructionText = when (progress) {
                     is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
-                    is BiometricProgress.Feedback -> "Connecting to card ${progress.status}"
+                    is BiometricProgress.Feedback -> "Connecting to card ${progress.status}, try again with your finger."
                     null -> "Press your finger to the card to get started."
                 }
                 Text(

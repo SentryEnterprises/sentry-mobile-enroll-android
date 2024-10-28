@@ -27,6 +27,7 @@ import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 fun ScanStatusBottomSheet(
     sheetState: SheetState,
     showStatus: ShowStatus,
+    cardFoundText: String = "Please do not move the phone or card.",
     onShowResultText: (NfcActionResult) -> Pair<String, String?>,
     onButtonClicked: (() -> Unit)?,
     onDismiss: (() -> Unit)?,
@@ -42,7 +43,7 @@ fun ScanStatusBottomSheet(
                     CircularProgressIndicator()
                 }
                 val (statusTitle, statusText) = when (showStatus) {
-                    ShowStatus.CardFound -> "Card Found" to "Please do not move the phone or card."
+                    ShowStatus.CardFound -> "Card Found" to cardFoundText
                     is ShowStatus.Error -> "Scan Error" to showStatus.message
                     is ShowStatus.Result -> onShowResultText(showStatus.result)
                     ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
