@@ -1,15 +1,19 @@
 package com.sentryenterprises.sentry.enrollment
 
 import android.nfc.Tag
+import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sentryenterprises.sentry.sdk.SentrySdk
 import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import kotlin.concurrent.thread
 
@@ -36,6 +40,8 @@ class NfcViewModel : ViewModel() {
 
     private val _nfcAction = MutableStateFlow<NfcAction?>(null)
     val nfcAction = _nfcAction.asStateFlow()
+    val resetReaderEvents = Channel<Boolean>()
+
 
 
     val showStatus = combine(nfcAction, nfcActionResult, nfcProgress) { action, result, progress ->
@@ -83,10 +89,27 @@ class NfcViewModel : ViewModel() {
     }
 
     fun resetNfcAction() {
+        Timber.d("----> resetNfcAction()")
         _nfcProgress.value = null
         _nfcActionResult.value = null
         _nfcAction.value = null
         _fingerProgress.value = null
+
+        viewModelScope.launch {
+            resetReaderEvents.send(true)
+        }
+//        tag?.let {
+////            https://stackoverflow.com/a/69615803/247325
+//            val halt = byteArrayOf(0x35, 0x30, 0x30,0x30, 0x00)
+//            val isoDep = IsoDep.get(it)
+//            if (isoDep.isConnected) {
+//                Timber.d("----> resetNfcAction() halt sent")
+//                isoDep.transceive(halt)
+//            } else {
+//                Timber.d("----> resetNfcAction()tag not connected")
+//            }
+//
+//        } ?: run { Timber.d("----> resetNfcAction()tag null") }
     }
 
     fun startNfcAction(nfcAction: NfcAction?) {

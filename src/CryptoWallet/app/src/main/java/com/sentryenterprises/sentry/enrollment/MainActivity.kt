@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
 import timber.log.Timber
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,6 +40,8 @@ import com.sentryenterprises.sentry.enrollment.cardState.GetCardStateScreen
 import com.sentryenterprises.sentry.enrollment.reset.ResetScreen
 import com.sentryenterprises.sentry.enrollment.settings.SettingsScreen
 import com.sentryenterprises.sentry.enrollment.versioninfo.VersionInfoScreen
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -57,6 +60,17 @@ class MainActivity : ComponentActivity() {
             SentryTheme {
 
                 SentryNavigation()
+            }
+        }
+
+        lifecycleScope.launch {
+
+            nfcViewModel.resetReaderEvents.consumeEach {
+                if (it) {
+                    nfcAdapter?.disableReaderMode(this@MainActivity)
+                    enableReaderMode(nfcAdapter!!)
+                    nfcViewModel.resetReaderEvents.send(false)
+                }
             }
         }
     }
@@ -119,7 +133,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onPause() {
-        disableReaderMode()
+        nfcAdapter?.disableReaderMode(this)
         super.onPause()
     }
 
@@ -131,19 +145,14 @@ class MainActivity : ComponentActivity() {
 
         // Enable ReaderMode for all types of card and disable platform sounds
         nfcAdapter.enableReaderMode(
-            this,
-            { tag -> nfcViewModel.onTagDiscovered(tag) },
-            NfcAdapter.FLAG_READER_NFC_A or
+            /* activity = */ this,
+            /* callback = */ nfcViewModel::onTagDiscovered,
+            /* flags = */ NfcAdapter.FLAG_READER_NFC_A or
                     NfcAdapter.FLAG_READER_NFC_B or
                     NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK or
                     NfcAdapter.FLAG_READER_NO_PLATFORM_SOUNDS,
-            options
+            /* extras = */ options
         )
-    }
-
-    private fun disableReaderMode() {
-        nfcAdapter?.disableReaderMode(this)
-        nfcAdapter = null
     }
 
 }
