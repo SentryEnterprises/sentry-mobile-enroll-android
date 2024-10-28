@@ -198,7 +198,7 @@ fun EnrollScreen(
             } else {
                 val instructionText = when (progress) {
                     is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
-                    is BiometricProgress.Feedback -> "Connecting to card ${progress.status}, try again with your finger."
+                    is BiometricProgress.Feedback -> "Card status:${progress.status}. Try again with your finger."
                     null -> "Press your finger to the card to get started."
                 }
                 Text(
