@@ -25,6 +25,12 @@ sealed class SentrySDKError : Exception() {
     //  The CVM applet on the SentryCard was unavailable.
     data object CvmAppletNotAvailable : SentrySDKError()
 
+    // Indicates that the Enroll applet on the scanned card is not currently supported.
+    data class UnsupportedEnrollAppletVersion(val version: Int) : SentrySDKError()
+
+    // The valid finger index values are currently 1 and 2.
+    data object InvalidFingerIndex : SentrySDKError()
+
     //  The CVM applet on the SentryCard is blocked, and the SentryCard will need a reset.
     data object CvmAppletBlocked : SentrySDKError()
 

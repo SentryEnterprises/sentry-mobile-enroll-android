@@ -1,7 +1,6 @@
 package com.sentryenterprises.sentry.enrollment
 
 import android.nfc.Tag
-import android.nfc.tech.IsoDep
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sentryenterprises.sentry.sdk.SentrySdk
@@ -151,7 +150,7 @@ class NfcViewModel : ViewModel() {
 
                     is NfcAction.EnrollFingerprint -> {
                         try {
-                            sentrySdk.enrollFinger(
+                            sentrySdk.enrollFingerprint(
                                 tag = tag,
                                 resetOnFirstCall = resetEnrollFingerPrintNeeded.value,
                                 onBiometricProgressChanged = { progress ->

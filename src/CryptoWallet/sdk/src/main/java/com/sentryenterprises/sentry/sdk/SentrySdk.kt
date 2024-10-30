@@ -180,13 +180,19 @@ class SentrySdk(
 
     }
 
-    fun enrollFinger(
+    fun enrollFingerprint(
         tag: Tag,
         resetOnFirstCall: Boolean = false,
         onBiometricProgressChanged: (BiometricProgress) -> Unit
     ): NfcActionResult.EnrollFingerprint {
+        var errorDuringSession = false
+        var isFinished = false
+        var isReconnect = false
+        var currentFinger: Int = 1           // this counts from 1 in the IDEX Eroll applet
+
 
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+
 
         var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
         var resetOnFirstCall = resetOnFirstCall
@@ -194,48 +200,77 @@ class SentrySdk(
             throw SentrySDKError.EnrollModeNotAvailable
         }
 
-        while (enrollStatus.remainingTouches > 0) {
-            try {
-                enrollStatus = if (resetOnFirstCall) {
-                    biometricsAPI.resetEnrollAndScanFingerprint(tag = tag).getOrThrow()
+        // the next finger index
+        currentFinger = enrollStatus.nextFingerToEnroll
 
+        while ((currentFinger - 1) < enrollStatus.maximumFingers) {
+            val maxStepsForFinger = enrollStatus.enrollmentByFinger[currentFinger - 1].enrolledTouches + enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+
+            // if we're resetting, assume we have not yet enrolled anything
+            var enrollmentsLeft = if (resetOnFirstCall) maxStepsForFinger else enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+
+            while (enrollmentsLeft > 0) {
+                // inform listeners about the current state of enrollment for this finger
+                onBiometricProgressChanged(BiometricProgress.Progressing(currentFinger = currentFinger, currentStep = maxStepsForFinger - enrollmentsLeft, totalSteps = maxStepsForFinger))
+
+                // scan the finger currently on the sensor
+                if (resetOnFirstCall) {
+                    enrollmentsLeft = biometricsAPI.resetEnrollAndScanFingerprint(tag= tag, fingerIndex= currentFinger).getOrThrow().enrollmentByFinger.first().remainingTouches
                 } else {
-                    biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
+                    enrollmentsLeft = biometricsAPI.enrollScanFingerprint(tag= tag, fingerIndex= currentFinger).getOrThrow().enrollmentByFinger.first().remainingTouches
                 }
-                resetOnFirstCall = false
 
-                onBiometricProgressChanged(
-                    BiometricProgress.Progressing(
-                        enrollStatus.remainingTouches,
-                        enrollStatus.enrolledTouches
-                    )
-                )
+                    resetOnFirstCall = false
 
-            } catch (e: SentrySDKError.ApduCommandError) {
-                if (e.code == APDUResponseCode.POOR_IMAGE_QUALITY.value) {
-                    onBiometricProgressChanged(BiometricProgress.Feedback("Poor image quality"))
-                } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
-                    onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
-                } else {
-                    onBiometricProgressChanged(
-                        BiometricProgress.Feedback(
-                            e.message ?: "Unknown error occurred"
-                        )
-                    )
-                    throw e
+                    // inform listeners of the step that just finished
+                onBiometricProgressChanged(BiometricProgress.Feedback("Completed"))
+//                    enrollmentDelegate?.enrollmentStatus(session: session, currentFingerIndex: currentFinger, currentStep: maxStepsForFinger - enrollmentsLeft, totalSteps: maxStepsForFinger)
                 }
-            }
+
         }
 
-        try {
-            biometricsAPI.verifyEnrolledFingerprint(tag = tag)
-        } catch (error: SentrySDKError.ApduCommandError) {
-            if (error.code == (APDUResponseCode.NO_MATCH_FOUND.value)) {
-                throw SentrySDKError.EnrollVerificationError
-            } else {
-                throw SentrySDKError.ApduCommandError(error.code)
-            }
-        }
+//        while (enrollStatus.remainingTouches > 0) {
+//            try {
+//                enrollStatus = if (resetOnFirstCall) {
+//                    biometricsAPI.resetEnrollAndScanFingerprint(tag = tag).getOrThrow().enrollmentByFinger.firstOrNull().remainingTouches
+//
+//                } else {
+//                    biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
+//                }
+//                resetOnFirstCall = false
+//
+//                onBiometricProgressChanged(
+//                    BiometricProgress.Progressing(
+//                        enrollStatus.remainingTouches,
+//                        enrollStatus.enrolledTouches
+//                    )
+//                )
+//
+//            } catch (e: SentrySDKError.ApduCommandError) {
+//                if (e.code == APDUResponseCode.POOR_IMAGE_QUALITY.value) {
+//                    onBiometricProgressChanged(BiometricProgress.Feedback("Poor image quality"))
+//                } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
+//                    onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
+//                } else {
+//                    onBiometricProgressChanged(
+//                        BiometricProgress.Feedback(
+//                            e.message ?: "Unknown error occurred"
+//                        )
+//                    )
+//                    throw e
+//                }
+//            }
+//        }
+//
+//        try {
+//            biometricsAPI.verifyEnrolledFingerprint(tag = tag)
+//        } catch (error: SentrySDKError.ApduCommandError) {
+//            if (error.code == (APDUResponseCode.NO_MATCH_FOUND.value)) {
+//                throw SentrySDKError.EnrollVerificationError
+//            } else {
+//                throw SentrySDKError.ApduCommandError(error.code)
+//            }
+//        }
 
         return NfcActionResult.EnrollFingerprint.Complete
     }

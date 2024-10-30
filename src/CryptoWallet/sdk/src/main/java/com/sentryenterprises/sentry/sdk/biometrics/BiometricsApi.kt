@@ -12,6 +12,7 @@ import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.AuthInitData
 import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
+import com.sentryenterprises.sentry.sdk.models.FingerTouches
 import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
 import com.sentryenterprises.sentry.sdk.models.FingerprintValidationAndData
 import com.sentryenterprises.sentry.sdk.models.Keys
@@ -165,35 +166,112 @@ internal class BiometricsApi(
             throw SentrySDKError.EnrollmentStatusBufferTooSmall
         }
 
-        // extract values from specific index in the array
-        val maxNumberOfFingers = dataArray[31]
-        val enrolledTouches = dataArray[32]
-        val remainingTouches = dataArray[33]
-        val mode = dataArray[39]
+        // if we're dealing with Enroll app prior to 2.1
+        if (dataArray[0] == 0x00.toByte()) {
+            // extract values from specific index in the array
+            val maxNumberOfFingers = dataArray[31].toInt()
+            val enrolledTouches = dataArray[32].toInt()
+            val remainingTouches = dataArray[33].toInt()
+            val mode = dataArray[39]
 
-        log(
-            "     # Fingers: $maxNumberOfFingers\n" +
-                    "     Enrolled Touches: $enrolledTouches\n" +
-                    "     Remaining Touches: $remainingTouches\n" +
-                    "     Mode: $mode\n"
-        )
-        val biometricMode: BiometricMode = if (mode == 0.toByte()) {
-            BiometricMode.Enrollment
+            log("     # Fingers: $maxNumberOfFingers)\n     Enrolled Touches: $enrolledTouches\n     Remaining Touches: $remainingTouches\n     Mode: $mode")
+
+            val biometricMode: BiometricMode =
+                if (mode == 0x00.toByte()) BiometricMode.Enrollment else BiometricMode.Verification
+
+            log("------------------------------\n")
+
+            return Result.success(
+                BiometricEnrollmentStatus(
+                    version = 0,
+                    maximumFingers = maxNumberOfFingers,
+                    enrollmentByFinger = listOf(
+                        FingerTouches(
+                            enrolledTouches = enrolledTouches,
+                            remainingTouches = remainingTouches,
+                            biometricMode = null
+                        )
+                    ),
+                    nextFingerToEnroll = 1,
+                    mode = biometricMode
+                )
+            )
+        } else if (dataArray[0] == 0x01.toByte()) {
+            val maxNumberOfFingers = dataArray[31].toInt()
+            val finger1EnrolledTouches = dataArray[32].toInt()
+            val finger1RemainingTouches = dataArray[33].toInt()
+            val finger1TopupTouches = dataArray[34].toInt()
+            val finger1QualTouches = dataArray[35].toInt()
+            val finger1QualPasses = dataArray[36].toInt()
+            val finger1BioMode = dataArray[37].toInt()
+            val finger1TopupRemaining = dataArray[38].toInt()
+            val finger1TopupAttempts = dataArray[39].toInt()
+            val finger2EnrolledTouches = dataArray[40].toInt()
+            val finger2RemainingTouches = dataArray[41].toInt()
+            val finger2TopupTouches = dataArray[42].toInt()
+            val finger2QualTouches = dataArray[43].toInt()
+            val finger2QualPasses = dataArray[44].toInt()
+            val finger2BioMode = dataArray[45].toInt()
+            val finger2TopupRemaining = dataArray[46].toInt()
+            val finger2TopupAttempts = dataArray[47].toInt()
+            val reenrollAttempts = dataArray[48].toInt()
+            val nextFingerToEnroll = dataArray[49].toInt()
+            val mode = dataArray[50]
+
+            log(
+                "     # Fingers: $maxNumberOfFingers\n" +
+                        "     F1 Enrolled Touches: $finger1EnrolledTouches\n" +
+                        "     F1 Remaining Touches: $finger1RemainingTouches\n" +
+                        "     F1 Topup Touches: $finger1TopupTouches\n" +
+                        "     F1 Qual Touches: $finger1QualTouches\n" +
+                        "     F1 Qual Passed: $finger1QualPasses\n" +
+                        "     F1 Biometric Mode: $finger1BioMode\n" +
+                        "     F1 Topup Remaining: $finger1TopupRemaining\n" +
+                        "     F1 Topup Attempts: $finger1TopupAttempts\n" +
+                        "     F2 Enrolled Touches: $finger2EnrolledTouches\n" +
+                        "     F2 Remaining Touches: $finger2RemainingTouches\n" +
+                        "     F2 Topup Touches: $finger2TopupTouches\n" +
+                        "     F2 Qual Touches: $finger2QualTouches\n" +
+                        "     F2 Qual Passed: $finger2QualPasses\n" +
+                        "     F2 Biometric Mode: $finger2BioMode\n" +
+                        "     F2 Topup Remaining: $finger2TopupRemaining\n" +
+                        "     F2 Topup Attempts: $finger2TopupAttempts\n" +
+                        "     Reenroll Attempts: $reenrollAttempts\n" +
+                        "     Next Finger: $nextFingerToEnroll\n" +
+                        "     Mode: $mode\n"
+            )
+
+            // need to check all fingers
+            var biometricMode: BiometricMode = BiometricMode.Enrollment
+            if (finger1BioMode > 1 && finger2BioMode > 1) {
+                biometricMode = BiometricMode.Verification
+            }
+
+            log("------------------------------\n")
+
+            return Result.success(
+                BiometricEnrollmentStatus(
+                    version = 1,
+                    maximumFingers = maxNumberOfFingers,
+                    enrollmentByFinger = listOf(FingerTouches(
+                        enrolledTouches = finger1EnrolledTouches,
+                        remainingTouches = finger1RemainingTouches,
+                        biometricMode = finger1BioMode
+                    ),
+                        FingerTouches(
+                            enrolledTouches = finger2EnrolledTouches,
+                            remainingTouches = finger2RemainingTouches,
+                            biometricMode = finger2BioMode
+                        )),
+                    nextFingerToEnroll = nextFingerToEnroll,
+                    mode = biometricMode
+                )
+            )
         } else {
-            BiometricMode.Verification
+            // throw unsupported Enroll applet version exception
+            return Result.failure(SentrySDKError.UnsupportedEnrollAppletVersion(dataArray[0].toInt()))
         }
 
-
-        log("-----------------------------")
-
-        return Result.success(
-            BiometricEnrollmentStatus(
-                maximumFingers = maxNumberOfFingers.toInt(),
-                enrolledTouches = enrolledTouches.toInt().also { println("Enrolled touches: $it") },
-                remainingTouches = remainingTouches.toInt(),
-                mode = biometricMode
-            )
-        )
     }
 
     /**
@@ -217,10 +295,10 @@ internal class BiometricsApi(
 
      */
     fun setVerifyStoredDataSecure(tag: Tag, data: ByteArray, dataSlot: DataSlot): Boolean {
-        println("----- BiometricsAPI Set Verify Stored Data Secure, slot: $dataSlot\n")
+        log("----- BiometricsAPI Set Verify Stored Data Secure, slot: $dataSlot\n")
 
 
-        println("     Setting verify stored data Secure\n")
+        log("     Setting verify stored data Secure\n")
         var command: ByteArray
 
         when (dataSlot) {
@@ -253,12 +331,12 @@ internal class BiometricsApi(
             }
 
             if (returnData.data[0] == 0xA5.toByte()) {
-                println("     Match\n------------------------------\n")
+                log("     Match\n------------------------------\n")
                 true
             }
 
             if (returnData.data[0] == 0x5A.toByte()) {
-                println("     No match found\n------------------------------\n")
+                log("     No match found\n------------------------------\n")
                 false
             }
 
@@ -287,9 +365,9 @@ internal class BiometricsApi(
 
      */
     fun getVerifyStoredDataSecure(tag: Tag, dataSlot: DataSlot): FingerprintValidationAndData {
-        println("----- BiometricsAPI Get Verify Stored Data Secure, slot: $dataSlot\n")
+        log("----- BiometricsAPI Get Verify Stored Data Secure, slot: $dataSlot\n")
 
-        println("     Getting verify stored data Secure\n")
+        log("     Getting verify stored data Secure\n")
         val command = when (dataSlot) {
             DataSlot.Small -> APDUCommand.GET_VERIFY_APPLET_STORED_DATA_SMALL_SECURED
             DataSlot.Huge -> APDUCommand.GET_VERIFY_APPLET_STORED_DATA_HUGE_SECURED
@@ -317,7 +395,7 @@ internal class BiometricsApi(
             }
 
             if (returnData.data[0] == 0xA5.toByte()) {
-                println("     Match\n------------------------------\n")
+                log("     Match\n------------------------------\n")
                 return FingerprintValidationAndData(
                     doesFingerprintMatch = FingerprintValidation.MatchValid,
                     storedData = returnData.data
@@ -325,7 +403,7 @@ internal class BiometricsApi(
             }
 
             if (returnData.data[0] == 0x5A.toByte()) {
-                println("     No match found\n------------------------------\n")
+                log("     No match found\n------------------------------\n")
                 return FingerprintValidationAndData(
                     doesFingerprintMatch = FingerprintValidation.MatchFailed,
                     storedData = byteArrayOf()
@@ -334,7 +412,7 @@ internal class BiometricsApi(
 
             throw SentrySDKError.CvmAppletError(returnData.data[0].toInt())
         } else {
-            println("     Match\n------------------------------\n")
+            log("     Match\n------------------------------\n")
             return FingerprintValidationAndData(
                 doesFingerprintMatch = FingerprintValidation.MatchValid,
                 storedData = returnData.data
@@ -637,7 +715,10 @@ internal class BiometricsApi(
 
     }
 
-    fun resetEnrollAndScanFingerprint(tag: Tag): Result<BiometricEnrollmentStatus> {
+    fun resetEnrollAndScanFingerprint(tag: Tag, fingerIndex: Int): Result<BiometricEnrollmentStatus> {
+        if (!(1..2).contains(fingerIndex)) {
+            return Result.failure(SentrySDKError.InvalidFingerIndex)
+        }
         log("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
         val processFingerprintCommand = wrapAPDUCommand(
@@ -658,11 +739,11 @@ internal class BiometricsApi(
             return Result.failure(it)
         }
 
-        log("     Remaining: ${enrollmentStatus.remainingTouches}")
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger.firstOrNull()?.remainingTouches}")
         return Result.success(enrollmentStatus)
     }
 
-    fun enrollScanFingerprint(tag: Tag): Result<BiometricEnrollmentStatus> {
+    fun enrollScanFingerprint(tag: Tag, fingerIndex: Int): Result<BiometricEnrollmentStatus> {
         log("----- BiometricsAPI Enroll Scan Fingerprint")
 
         val processFingerprintCommand = wrapAPDUCommand(
@@ -681,8 +762,8 @@ internal class BiometricsApi(
         log("     Getting enrollment status")
         val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
-        log("     Remaining: ${enrollmentStatus.remainingTouches}")
-        return Result.success(enrollmentStatus)
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger.get(fingerIndex).remainingTouches}")
+        return getEnrollmentStatus(tag = tag)
     }
 
     fun verifyEnrolledFingerprint(tag: Tag) {

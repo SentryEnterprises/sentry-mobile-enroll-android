@@ -13,7 +13,7 @@
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_sentinel_launcher"
-        android:label="Sentry Enroll"
+        android:label="SentryCard Enroll"
         android:roundIcon="@mipmap/ic_sentinel_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.CryptoWallet">

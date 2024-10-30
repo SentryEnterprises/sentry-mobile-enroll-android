@@ -106,10 +106,10 @@ fun EnrollScreen(
                 modifier = modifier
             )
             if (progress is BiometricProgress.Progressing) {
-                val checkboxes = (1..progress.enrolledTouches).map {
+                val checkboxes = (1..progress.currentStep).map {
                     "✅"
                 }.joinToString("") +
-                        (1..progress.remainingTouches).map {
+                        (1..(progress.remainingTouches)).map {
                             "◼️"
                         }.joinToString("")
                 Text(checkboxes, fontSize = 25.sp)

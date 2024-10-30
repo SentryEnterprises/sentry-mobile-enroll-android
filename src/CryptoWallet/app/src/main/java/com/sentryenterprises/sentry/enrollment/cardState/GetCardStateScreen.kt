@@ -163,7 +163,7 @@ fun GetCardStateScreen(
                 )
                 Text(
                     modifier = Modifier.padding(bottom = 30.dp),
-                    text = "Sentry Enroll ${BuildConfig.VERSION_NAME}",
+                    text = "SentryCard Enroll ${BuildConfig.VERSION_NAME}",
                 )
             }
         }

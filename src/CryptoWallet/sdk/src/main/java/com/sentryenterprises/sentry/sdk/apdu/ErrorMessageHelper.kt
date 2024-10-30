@@ -124,4 +124,8 @@ fun SentrySDKError.localizedErrorMessage() = when (this) {
     is CardOSVersionError -> "Unexpected return value from querying card for OS version."
     is KeyGenerationError -> "Key generation error."
     is SharedSecretExtractionError -> "Shared secret extract error."
+    SentrySDKError.InvalidFingerIndex -> "Unexpected finger index"
+    is SentrySDKError.UnsupportedEnrollAppletVersion -> {
+        "Unsupported enrollment version $version"
+    }
 }

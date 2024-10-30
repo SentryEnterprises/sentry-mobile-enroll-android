@@ -64,7 +64,6 @@ class MainActivity : ComponentActivity() {
         }
 
         lifecycleScope.launch {
-
             nfcViewModel.resetReaderEvents.consumeEach {
                 if (it) {
                     nfcAdapter?.disableReaderMode(this@MainActivity)
