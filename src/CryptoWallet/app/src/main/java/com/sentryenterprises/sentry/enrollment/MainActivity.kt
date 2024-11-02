@@ -63,15 +63,15 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        lifecycleScope.launch {
-            nfcViewModel.resetReaderEvents.consumeEach {
-                if (it) {
-                    nfcAdapter?.disableReaderMode(this@MainActivity)
-                    enableReaderMode(nfcAdapter!!)
-                    nfcViewModel.resetReaderEvents.send(false)
-                }
-            }
-        }
+//        lifecycleScope.launch {
+//            nfcViewModel.resetReaderEvents.consumeEach {
+//                if (it) {
+//                    nfcAdapter?.disableReaderMode(this@MainActivity)
+//                    enableReaderMode(nfcAdapter!!)
+//                    nfcViewModel.resetReaderEvents.send(false)
+//                }
+//            }
+//        }
     }
 
     @Composable

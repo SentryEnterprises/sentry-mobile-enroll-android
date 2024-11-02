@@ -15,7 +15,9 @@ import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
 import com.sentryenterprises.sentry.sdk.models.FingerprintValidationAndData
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult.BiometricEnrollment
+import kotlinx.coroutines.delay
 import java.io.IOException
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
@@ -185,16 +187,13 @@ class SentrySdk(
         resetOnFirstCall: Boolean = false,
         onBiometricProgressChanged: (BiometricProgress) -> Unit
     ): NfcActionResult.EnrollFingerprint {
-        var errorDuringSession = false
-        var isFinished = false
-        var isReconnect = false
+        log("SentrySdk enrollFingerprint")
         var currentFinger: Int = 1           // this counts from 1 in the IDEX Eroll applet
-
 
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-
         var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+        log("SentrySdk enrollFingerprint enrollStatus $enrollStatus")
         var resetOnFirstCall = resetOnFirstCall
         if (enrollStatus == Verification) {
             throw SentrySDKError.EnrollModeNotAvailable
@@ -203,31 +202,63 @@ class SentrySdk(
         // the next finger index
         currentFinger = enrollStatus.nextFingerToEnroll
 
+        log("SentrySdk enrollFingerprint currentFinger $currentFinger")
+
         while ((currentFinger - 1) < enrollStatus.maximumFingers) {
-            val maxStepsForFinger = enrollStatus.enrollmentByFinger[currentFinger - 1].enrolledTouches + enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+            val maxStepsForFinger =
+                enrollStatus.enrollmentByFinger[currentFinger - 1].enrolledTouches + enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
 
             // if we're resetting, assume we have not yet enrolled anything
-            var enrollmentsLeft = if (resetOnFirstCall) maxStepsForFinger else enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+            var enrollmentsLeft =
+                if (resetOnFirstCall) maxStepsForFinger else enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
 
             while (enrollmentsLeft > 0) {
                 // inform listeners about the current state of enrollment for this finger
-                onBiometricProgressChanged(BiometricProgress.Progressing(currentFinger = currentFinger, currentStep = maxStepsForFinger - enrollmentsLeft, totalSteps = maxStepsForFinger))
+                onBiometricProgressChanged(
+                    BiometricProgress.Progressing(
+                        currentFinger = currentFinger,
+                        currentStep = maxStepsForFinger - enrollmentsLeft,
+                        totalSteps = maxStepsForFinger
+                    )
+                )
 
                 // scan the finger currently on the sensor
                 if (resetOnFirstCall) {
-                    enrollmentsLeft = biometricsAPI.resetEnrollAndScanFingerprint(tag= tag, fingerIndex= currentFinger).getOrThrow().enrollmentByFinger.first().remainingTouches
+                    enrollmentsLeft = biometricsAPI.resetEnrollAndScanFingerprint(
+                        tag = tag,
+                        fingerIndex = currentFinger
+                    ).getOrThrow().enrollmentByFinger.first().remainingTouches
                 } else {
-                    enrollmentsLeft = biometricsAPI.enrollScanFingerprint(tag= tag, fingerIndex= currentFinger).getOrThrow().enrollmentByFinger.first().remainingTouches
+                    enrollmentsLeft =
+                        biometricsAPI.enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
+                            .getOrThrow().enrollmentByFinger.first().remainingTouches
                 }
 
-                    resetOnFirstCall = false
+                resetOnFirstCall = false
 
-                    // inform listeners of the step that just finished
+                // inform listeners of the step that just finished
                 onBiometricProgressChanged(BiometricProgress.Feedback("Completed"))
 //                    enrollmentDelegate?.enrollmentStatus(session: session, currentFingerIndex: currentFinger, currentStep: maxStepsForFinger - enrollmentsLeft, totalSteps: maxStepsForFinger)
-                }
+            }
+
+//            enrollmentDelegate?.enrollmentStatus(session: session, currentFingerIndex: currentFinger, currentStep: maxStepsForFinger, totalSteps: maxStepsForFinger)
+            log("SentrySdk verifyEnrolled")
+
+            biometricsAPI.verifyEnrolledFingerprint(tag = tag)
+
+            if (currentFinger < enrollStatus.maximumFingers) {
+                onBiometricProgressChanged(BiometricProgress.FingerTransition(currentFinger + 1))
+
+                Thread.sleep(2.seconds.inWholeMilliseconds)
+//                delay(2.seconds)
+            }
+
+            currentFinger += 1
+
+            log("SentrySdk enrollFingerprint currentFinger $currentFinger")
 
         }
+
 
 //        while (enrollStatus.remainingTouches > 0) {
 //            try {

@@ -8,6 +8,8 @@ import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -142,6 +144,8 @@ class NfcViewModel : ViewModel() {
         _nfcProgress.value = 1
 
         thread {
+//        viewModelScope.launch(Dispatchers.IO) {
+            println("inside launch")
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {

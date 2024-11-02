@@ -47,6 +47,7 @@ data class BiometricEnrollmentStatus(
 )
 
 sealed class BiometricProgress {
+    data class FingerTransition(val nextFingerIndex: Int) : BiometricProgress()
     data class Feedback(val status: String) : BiometricProgress()
     data class Progressing(
         val currentFinger: Int,
