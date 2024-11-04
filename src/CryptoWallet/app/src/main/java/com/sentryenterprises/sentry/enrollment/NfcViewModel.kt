@@ -143,9 +143,7 @@ class NfcViewModel : ViewModel() {
 
         _nfcProgress.value = 1
 
-        thread {
-//        viewModelScope.launch(Dispatchers.IO) {
-            println("inside launch")
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {

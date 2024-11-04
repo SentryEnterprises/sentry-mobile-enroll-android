@@ -722,7 +722,7 @@ internal class BiometricsApi(
         log("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
         val processFingerprintCommand = wrapAPDUCommand(
-            apduCommand = APDUCommand.RESTART_ENROLL_AND_PROCESS_FINGERPRINT.value,
+            apduCommand = APDUCommand.restartEnrollAndProcessFingerprint(fingerIndex.toByte()),
             keyEnc = keyENC,
             keyCmac = keyCMAC,
             chainingValue = chainingValue,
@@ -739,15 +739,15 @@ internal class BiometricsApi(
             return Result.failure(it)
         }
 
-        log("     Remaining: ${enrollmentStatus.enrollmentByFinger.firstOrNull()?.remainingTouches}")
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex-1].remainingTouches}")
         return Result.success(enrollmentStatus)
     }
 
     fun enrollScanFingerprint(tag: Tag, fingerIndex: Int): Result<BiometricEnrollmentStatus> {
-        log("----- BiometricsAPI Enroll Scan Fingerprint")
+        log("----- BiometricsAPI Enroll Scan Fingerprint fingerIndex:$fingerIndex")
 
         val processFingerprintCommand = wrapAPDUCommand(
-            apduCommand = APDUCommand.PROCESS_FINGERPRINT.value,
+            apduCommand = APDUCommand.processFingerprint(fingerIndex.toByte()),
             keyEnc = keyENC,
             keyCmac = keyCMAC,
             chainingValue = chainingValue,
@@ -762,7 +762,7 @@ internal class BiometricsApi(
         log("     Getting enrollment status")
         val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
 
-        log("     Remaining: ${enrollmentStatus.enrollmentByFinger.get(fingerIndex).remainingTouches}")
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex-1].remainingTouches}")
         return getEnrollmentStatus(tag = tag)
     }
 

@@ -22,7 +22,7 @@ import kotlin.time.Duration.Companion.seconds
 /**
  * Entry point for the `SentrySDK` functionality. Provides methods exposing all available functionality.
  *
- * This class controls and manages an `NFCReaderSession` to communicate with an `Tag` via `APDU` commands.
+ * This class controls and manages an actively connected `Tag` via `APDU` commands.
  *
  * The bioverify.cap, com.idex.enroll.cap, and com.jnet.CDCVM.cap applets must be installed on the SentryCard for full access to all functionality of this SDK.
  */
@@ -39,7 +39,7 @@ class SentrySdk(
     /**
      * Retrieves the biometric fingerprint enrollment status.
      *
-     * Opens an `NFCReaderSession`, connects to an `Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
+     * Sends `APDU` commands to a java applet running on the connected SentryCard.
      *
      * @return BiometricEnrollment fingerprint enrollment status
      *
@@ -132,27 +132,26 @@ class SentrySdk(
 
 
     /**
-    Retrieves the data stored in the indicated data slot on the SentryCard. A biometric verification is performed first before retrieving the data.
-
-    Opens an `NFCReaderSession`, connects to an `NFCISO7816Tag` through this session, and sends `APDU` commands to a java applet running on the connected SentryCard.
-
-    - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
-
-    - Parameters:
-    - dataSlot: The data slot from which data is retrieved.
-    - connected: A callback method that receives an `NFCReaderSession` and a boolean value. The `NFCReaderSession` allows the caller to update the NFC UI to indicate state. The boolean value is `true` when an NFC connection is made and an ISO7816 tag is detected, and `false` when the connection is dropped.
-
-    - Returns: A `FingerprintValidationAndData` structure indicating if the finger on the sensor matches the fingerprint recorded during enrollment. If there is a successful match, this structure also contains the data stored in the indicated data slot. The `.small` data slot returns up to 255 bytes of data. The `.huge` data slot returns up to 2048 bytes of data.
-
-    This method can throw the following exceptions:
-     * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
-     * `SentrySDKError.bioVerifyAppletNotInstalled` if the BioVerify applet is not installed on the scanned SentryCard.
-     * `SentrySDKError.bioVerifyAppletWrongVersion` if the BioVerify applet installed on the SentryCard does not support data storage.
-     * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
-     * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
-     * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
-     * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
-
+     * Retrieves the data stored in the indicated data slot on the SentryCard. A biometric verification is performed first before retrieving the data.
+     *
+     * Sends `APDU` commands to a java applet running on the connected SentryCard.
+     *
+     * - Note: The BioVerify applet does not currently support secure communication, so a secure channel is not used.
+     *
+     *  - Parameters:
+     *  - dataSlot: The data slot from which data is retrieved.
+     *  - connected: A callback method that receives an `NFCReaderSession` and a boolean value. The `NFCReaderSession` allows the caller to update the NFC UI to indicate state. The boolean value is `true` when an NFC connection is made and an ISO7816 tag is detected, and `false` when the connection is dropped.
+     *
+     *  - Returns: A `FingerprintValidationAndData` structure indicating if the finger on the sensor matches the fingerprint recorded during enrollment. If there is a successful match, this structure also contains the data stored in the indicated data slot. The `.small` data slot returns up to 255 bytes of data. The `.huge` data slot returns up to 2048 bytes of data.
+     *
+     *  This method can throw the following exceptions:
+     *   * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
+     *   * `SentrySDKError.bioVerifyAppletNotInstalled` if the BioVerify applet is not installed on the scanned SentryCard.
+     *   * `SentrySDKError.bioVerifyAppletWrongVersion` if the BioVerify applet installed on the SentryCard does not support data storage.
+     *   * `SentrySDKError.cvmAppletNotAvailable` if the CVM applet was unavailable for some reason.
+     *   * `SentrySDKError.cvmAppletBlocked` if the CVM applet is in a blocked state and can no longer be used.
+     *   * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
+     *   * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
      */
     fun retrieveDataSecure(
         dataSlot: DataSlot,
@@ -182,126 +181,130 @@ class SentrySdk(
 
     }
 
-    fun enrollFingerprint(
+    suspend fun enrollFingerprint(
         tag: Tag,
         resetOnFirstCall: Boolean = false,
         onBiometricProgressChanged: (BiometricProgress) -> Unit
     ): NfcActionResult.EnrollFingerprint {
         log("SentrySdk enrollFingerprint")
         var currentFinger: Int = 1           // this counts from 1 in the IDEX Eroll applet
+        var isFinished = false
 
-        biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+        while (!isFinished) {
+            try {
+                biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-        var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
-        log("SentrySdk enrollFingerprint enrollStatus $enrollStatus")
-        var resetOnFirstCall = resetOnFirstCall
-        if (enrollStatus == Verification) {
-            throw SentrySDKError.EnrollModeNotAvailable
-        }
-
-        // the next finger index
-        currentFinger = enrollStatus.nextFingerToEnroll
-
-        log("SentrySdk enrollFingerprint currentFinger $currentFinger")
-
-        while ((currentFinger - 1) < enrollStatus.maximumFingers) {
-            val maxStepsForFinger =
-                enrollStatus.enrollmentByFinger[currentFinger - 1].enrolledTouches + enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
-
-            // if we're resetting, assume we have not yet enrolled anything
-            var enrollmentsLeft =
-                if (resetOnFirstCall) maxStepsForFinger else enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
-
-            while (enrollmentsLeft > 0) {
-                // inform listeners about the current state of enrollment for this finger
-                onBiometricProgressChanged(
-                    BiometricProgress.Progressing(
-                        currentFinger = currentFinger,
-                        currentStep = maxStepsForFinger - enrollmentsLeft,
-                        totalSteps = maxStepsForFinger
-                    )
-                )
-
-                // scan the finger currently on the sensor
-                if (resetOnFirstCall) {
-                    enrollmentsLeft = biometricsAPI.resetEnrollAndScanFingerprint(
-                        tag = tag,
-                        fingerIndex = currentFinger
-                    ).getOrThrow().enrollmentByFinger.first().remainingTouches
-                } else {
-                    enrollmentsLeft =
-                        biometricsAPI.enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
-                            .getOrThrow().enrollmentByFinger.first().remainingTouches
+                var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+                log("SentrySdk enrollFingerprint enrollStatus $enrollStatus")
+                var resetOnFirstCall = resetOnFirstCall
+                if (enrollStatus == Verification) {
+                    throw SentrySDKError.EnrollModeNotAvailable
                 }
 
-                resetOnFirstCall = false
+                // the next finger index
+                currentFinger = enrollStatus.nextFingerToEnroll
 
-                // inform listeners of the step that just finished
-                onBiometricProgressChanged(BiometricProgress.Feedback("Completed"))
-//                    enrollmentDelegate?.enrollmentStatus(session: session, currentFingerIndex: currentFinger, currentStep: maxStepsForFinger - enrollmentsLeft, totalSteps: maxStepsForFinger)
+                log("SentrySdk enrollFingerprint currentFinger $currentFinger")
+
+                while ((currentFinger - 1) < enrollStatus.maximumFingers) {
+                    val maxStepsForFinger =
+                        enrollStatus.enrollmentByFinger[currentFinger - 1].enrolledTouches +
+                                enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+
+                    // if we're resetting, assume we have not yet enrolled anything
+                    var enrollmentsLeft =
+                        if (resetOnFirstCall) {
+                            maxStepsForFinger
+                        } else {
+                            enrollStatus.enrollmentByFinger[currentFinger - 1].remainingTouches
+                        }
+
+                    while (enrollmentsLeft > 0) {
+
+                        log("SentrySdk enrollFingerprint enrollmentsLeft $enrollmentsLeft")
+
+                        // inform listeners about the current state of enrollment for this finger
+                        onBiometricProgressChanged(
+                            BiometricProgress.Progressing(
+                                currentFinger = currentFinger,
+                                currentStep = maxStepsForFinger - enrollmentsLeft,
+                                totalSteps = maxStepsForFinger
+                            )
+                        )
+
+                        // scan the finger currently on the sensor
+                        if (resetOnFirstCall) {
+                            enrollmentsLeft = biometricsAPI
+                                .resetEnrollAndScanFingerprint(
+                                    tag = tag,
+                                    fingerIndex = currentFinger
+                                ).getOrThrow()
+                                .enrollmentByFinger[currentFinger - 1]
+                                .remainingTouches
+                        } else {
+                            enrollmentsLeft =
+                                biometricsAPI
+                                    .enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
+                                    .getOrThrow()
+                                    .enrollmentByFinger[currentFinger - 1]
+                                    .remainingTouches
+                        }
+
+                        resetOnFirstCall = false
+
+                        // inform listeners of the step that just finished
+                        onBiometricProgressChanged(
+                            BiometricProgress.Progressing(
+                                currentFinger = currentFinger,
+                                currentStep = maxStepsForFinger - enrollmentsLeft,
+                                totalSteps = maxStepsForFinger
+                            )
+                        )
+                    }
+
+                    onBiometricProgressChanged(
+                        BiometricProgress.Progressing(
+                            currentFinger = currentFinger,
+                            currentStep = maxStepsForFinger,
+                            totalSteps = maxStepsForFinger
+                        )
+                    )
+                    log("SentrySdk verifyEnrolled")
+
+                    biometricsAPI.verifyEnrolledFingerprint(tag = tag)
+
+                    if (currentFinger < enrollStatus.maximumFingers) {
+                        onBiometricProgressChanged(BiometricProgress.FingerTransition(currentFinger + 1))
+                        log("SentrySdk enrollFingerprint sleeping for 2 seconds")
+                        delay(2.seconds)
+                    }
+
+                    currentFinger += 1
+
+                    log("SentrySdk enrollFingerprint currentFinger $currentFinger")
+
+                }
+                isFinished = true
+            } catch (e: Exception) {
+                if (e is SentrySDKError.ApduCommandError) {
+                    when (e.code) {
+                        APDUResponseCode.POOR_IMAGE_QUALITY.value,
+                        APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value,
+                        APDUResponseCode.NO_PRECISE_DIAGNOSIS.value,
+                        100,
+                        102 -> {
+                            // ignore these errors
+                        }
+                        else -> {
+                            throw e
+                        }
+                    }
+                } else {
+                    throw e
+                }
             }
-
-//            enrollmentDelegate?.enrollmentStatus(session: session, currentFingerIndex: currentFinger, currentStep: maxStepsForFinger, totalSteps: maxStepsForFinger)
-            log("SentrySdk verifyEnrolled")
-
-            biometricsAPI.verifyEnrolledFingerprint(tag = tag)
-
-            if (currentFinger < enrollStatus.maximumFingers) {
-                onBiometricProgressChanged(BiometricProgress.FingerTransition(currentFinger + 1))
-
-                Thread.sleep(2.seconds.inWholeMilliseconds)
-//                delay(2.seconds)
-            }
-
-            currentFinger += 1
-
-            log("SentrySdk enrollFingerprint currentFinger $currentFinger")
-
         }
 
-
-//        while (enrollStatus.remainingTouches > 0) {
-//            try {
-//                enrollStatus = if (resetOnFirstCall) {
-//                    biometricsAPI.resetEnrollAndScanFingerprint(tag = tag).getOrThrow().enrollmentByFinger.firstOrNull().remainingTouches
-//
-//                } else {
-//                    biometricsAPI.enrollScanFingerprint(tag = tag).getOrThrow()
-//                }
-//                resetOnFirstCall = false
-//
-//                onBiometricProgressChanged(
-//                    BiometricProgress.Progressing(
-//                        enrollStatus.remainingTouches,
-//                        enrollStatus.enrolledTouches
-//                    )
-//                )
-//
-//            } catch (e: SentrySDKError.ApduCommandError) {
-//                if (e.code == APDUResponseCode.POOR_IMAGE_QUALITY.value) {
-//                    onBiometricProgressChanged(BiometricProgress.Feedback("Poor image quality"))
-//                } else if (e.code == APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value) {
-//                    onBiometricProgressChanged(BiometricProgress.Feedback("Timeout limit exceeded"))
-//                } else {
-//                    onBiometricProgressChanged(
-//                        BiometricProgress.Feedback(
-//                            e.message ?: "Unknown error occurred"
-//                        )
-//                    )
-//                    throw e
-//                }
-//            }
-//        }
-//
-//        try {
-//            biometricsAPI.verifyEnrolledFingerprint(tag = tag)
-//        } catch (error: SentrySDKError.ApduCommandError) {
-//            if (error.code == (APDUResponseCode.NO_MATCH_FOUND.value)) {
-//                throw SentrySDKError.EnrollVerificationError
-//            } else {
-//                throw SentrySDKError.ApduCommandError(error.code)
-//            }
-//        }
 
         return NfcActionResult.EnrollFingerprint.Complete
     }
