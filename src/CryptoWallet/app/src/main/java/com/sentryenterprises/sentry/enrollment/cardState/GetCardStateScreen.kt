@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -142,18 +143,21 @@ fun GetCardStateScreen(
                     progress = { animationState },
                     modifier = modifier
                 )
-
-                Text(
-                    modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                    text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
-                    textAlign = TextAlign.Center,
-                    fontSize = 17.sp
-                )
+                LazyColumn(Modifier.weight(1f)) {
+                    item {
+                        Text(
+                            modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
+                            text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                            textAlign = TextAlign.Center,
+                            fontSize = 17.sp
+                        )
+                    }
+                }
 
                 Spacer(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .weight(1f)
+                        .weight(.1f)
                 )
                 SentryButton(
                     text = "Scan Card",
