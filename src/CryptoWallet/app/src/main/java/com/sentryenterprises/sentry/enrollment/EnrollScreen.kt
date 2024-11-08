@@ -113,16 +113,17 @@ fun EnrollScreen(
                     if (progress.currentStep > 0) {
                         val mediaPlayer = MediaPlayer.create(
                             context,
-                            R.raw.ding)
+                            R.raw.ding
+                        )
                         mediaPlayer.start()
                     }
                 }
-                val checkboxes = (1..progress.currentStep).map {
+                val checkboxes = (1..progress.currentStep).joinToString("") {
                     "✅"
-                }.joinToString("") +
-                        (1..(progress.remainingTouches)).map {
+                } +
+                        (1..(progress.remainingTouches)).joinToString("") {
                             "◼️"
-                        }.joinToString("")
+                        }
                 Text(checkboxes, fontSize = 25.sp)
             }
 
