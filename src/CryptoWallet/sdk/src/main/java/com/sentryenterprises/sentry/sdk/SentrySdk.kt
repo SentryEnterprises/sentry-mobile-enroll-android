@@ -7,6 +7,7 @@ import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.biometrics.BiometricsApi
 import com.sentryenterprises.sentry.sdk.biometrics.DataSlot
 import com.sentryenterprises.sentry.sdk.configuration.SentrySDKConstants
+import com.sentryenterprises.sentry.sdk.models.BiometricEnrollmentStatus
 import com.sentryenterprises.sentry.sdk.models.BiometricMode
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Enrollment
 import com.sentryenterprises.sentry.sdk.models.BiometricMode.Verification
@@ -50,18 +51,12 @@ class SentrySdk(
      * `SentrySDKError.IncorrectTagFormat` if an NFC session scanned a tag, but it is not an ISO7816 tag.
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
      */
-    fun getEnrollmentStatus(tag: Tag): Result<BiometricEnrollment> {
-        var errorDuringSession = false
+    fun getEnrollmentStatus(tag: Tag): BiometricEnrollment {
+        biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-        return try {
-            biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+        val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag)
+        return BiometricEnrollment(enrollStatus.mode == Enrollment)
 
-            val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
-            Result.success(BiometricEnrollment(enrollStatus.mode == Enrollment))
-        } catch (e: Exception) {
-            errorDuringSession = true
-            Result.failure(e)
-        }
     }
 
     /**
@@ -115,7 +110,7 @@ class SentrySdk(
         val status = biometricsAPI.getEnrollmentStatus(tag)
 
         // if we are in verification mode...
-        if (status.getOrNull()?.mode is Verification) {
+        if (status.mode is Verification) {
             // initialize the BioVerify applet
             biometricsAPI.initializeVerify(tag)
 
@@ -157,12 +152,11 @@ class SentrySdk(
         dataSlot: DataSlot,
         tag: Tag
     ): FingerprintValidationAndData {
-        var errorDuringSession = false
 
         // initialize the Enroll applet
         biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-        val status = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+        val status = biometricsAPI.getEnrollmentStatus(tag = tag)
 
         // if we are in verification mode...
         if (status.mode == BiometricMode.Verification) {
@@ -189,15 +183,16 @@ class SentrySdk(
         log("SentrySdk enrollFingerprint")
         var currentFinger: Int = 1           // this counts from 1 in the IDEX Eroll applet
         var isFinished = false
+        var resetOnFirstCall = resetOnFirstCall
 
         while (!isFinished) {
             try {
                 biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
 
-                var enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag).getOrThrow()
+                val enrollStatus = biometricsAPI.getEnrollmentStatus(tag = tag)
                 log("SentrySdk enrollFingerprint enrollStatus $enrollStatus")
-                var resetOnFirstCall = resetOnFirstCall
-                if (enrollStatus == Verification) {
+                // if this card is in verification mode, we cannot enroll fingerprints
+                if (enrollStatus.mode is BiometricMode.Verification) {
                     throw SentrySDKError.EnrollModeNotAvailable
                 }
 
@@ -233,21 +228,19 @@ class SentrySdk(
                         )
 
                         // scan the finger currently on the sensor
-                        if (resetOnFirstCall) {
-                            enrollmentsLeft = biometricsAPI
+                        enrollmentsLeft = if (resetOnFirstCall) {
+                            biometricsAPI
                                 .resetEnrollAndScanFingerprint(
                                     tag = tag,
                                     fingerIndex = currentFinger
-                                ).getOrThrow()
+                                )
                                 .enrollmentByFinger[currentFinger - 1]
                                 .remainingTouches
                         } else {
-                            enrollmentsLeft =
-                                biometricsAPI
-                                    .enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
-                                    .getOrThrow()
-                                    .enrollmentByFinger[currentFinger - 1]
-                                    .remainingTouches
+                            biometricsAPI
+                                .enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
+                                .enrollmentByFinger[currentFinger - 1]
+                                .remainingTouches
                         }
 
                         resetOnFirstCall = false
@@ -295,6 +288,7 @@ class SentrySdk(
                         102 -> {
                             // ignore these errors
                         }
+
                         else -> {
                             throw e
                         }
@@ -316,13 +310,10 @@ class SentrySdk(
      *
      * - Warning: This is for development purposes only! This command only works on development cards, and fails when used on production cards.
      */
-    fun resetCard(tag: Tag): Result<NfcActionResult.ResetBiometrics> {
-        return try {
+    fun resetCard(tag: Tag): NfcActionResult.ResetBiometrics {
             // reset the biometric data, setting the card into an unenrolled state
-            Result.success(biometricsAPI.resetBiometricData(tag = tag))
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return biometricsAPI.resetBiometricData(tag = tag)
+
     }
 
 
@@ -346,65 +337,50 @@ class SentrySdk(
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
      * `NFCReaderError` if an error occurred during the NFC session (includes user cancellation of the NFC session).
      */
-    fun validateFingerprint(tag: Tag): Result<NfcActionResult.VerifyBiometric> {
-        return try {
-            biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
-            val status = biometricsAPI.getEnrollmentStatus(tag).getOrElse {
-                return Result.failure(it)
-            }
+    fun validateFingerprint(tag: Tag): NfcActionResult.VerifyBiometric {
 
-            biometricsAPI.initializeVerify(tag = tag)
-            if (status.mode == Verification) {
-                val isVerified = biometricsAPI.getFingerprintVerification(tag = tag)
-                    .getOrElse { return Result.failure(it) }
-                if (isVerified) {
-                    Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.MatchValid))
-                } else {
-                    Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.MatchFailed))
-                }
+        biometricsAPI.initializeEnroll(tag = tag, enrollCode = enrollCode)
+        val status = biometricsAPI.getEnrollmentStatus(tag)
 
+        biometricsAPI.initializeVerify(tag = tag)
+        return if (status.mode == Verification) {
+            val isVerified = biometricsAPI.getFingerprintVerification(tag = tag)
+
+            if (isVerified) {
+                NfcActionResult.VerifyBiometric(FingerprintValidation.MatchValid)
             } else {
-                Result.success(NfcActionResult.VerifyBiometric(FingerprintValidation.NotEnrolled))
+                NfcActionResult.VerifyBiometric(FingerprintValidation.MatchFailed)
             }
 
-        } catch (e: Exception) {
-            Result.failure<NfcActionResult.VerifyBiometric>(e)
+        } else {
+            NfcActionResult.VerifyBiometric(FingerprintValidation.NotEnrolled)
         }
+
     }
 
-    fun getCardSoftwareVersions(tag: Tag): Result<NfcActionResult.VersionInformation> {
-        return try {
-            val osVersion = biometricsAPI
-                .getCardOSVersion(tag = tag)
-                .getOrElse { return Result.failure(it) }
-            log("OS= $osVersion")
+    fun getCardSoftwareVersions(tag: Tag): NfcActionResult.VersionInformation {
+        val osVersion = biometricsAPI
+            .getCardOSVersion(tag = tag)
+        log("OS= $osVersion")
 
-            val verifyVersion = biometricsAPI
-                .getVerifyAppletVersion(tag = tag)
-                .getOrElse { return Result.failure(it) }
-            log("Verify= $verifyVersion")
+        val verifyVersion = biometricsAPI
+            .getVerifyAppletVersion(tag = tag)
+        log("Verify= $verifyVersion")
 
-            val enrollVersion = biometricsAPI
-                .getEnrollmentAppletVersion(tag = tag)
-                .getOrElse { return Result.failure(it) }
-            log("Enroll= $enrollVersion")
+        val enrollVersion = biometricsAPI
+            .getEnrollmentAppletVersion(tag = tag)
+        log("Enroll= $enrollVersion")
 
-            val cvmVersion = biometricsAPI
-                .getCVMAppletVersion(tag = tag)
-                .getOrElse { return Result.failure(it) }
-            log("CVM= $cvmVersion")
+        val cvmVersion = biometricsAPI
+            .getCVMAppletVersion(tag = tag)
+        log("CVM= $cvmVersion")
 
-            return Result.success(
-                NfcActionResult.VersionInformation(
-                    osVersion = osVersion,
-                    enrollAppletVersion = enrollVersion,
-                    cvmAppletVersion = cvmVersion,
-                    verifyAppletVersion = verifyVersion
-                )
-            )
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        return NfcActionResult.VersionInformation(
+            osVersion = osVersion,
+            enrollAppletVersion = enrollVersion,
+            cvmAppletVersion = cvmVersion,
+            verifyAppletVersion = verifyVersion
+        )
     }
 
     fun openConnection(tag: Tag): Boolean {

@@ -44,7 +44,6 @@ class NfcViewModel : ViewModel() {
     val resetReaderEvents = Channel<Boolean>()
 
 
-
     val showStatus = combine(nfcAction, nfcActionResult, nfcProgress) { action, result, progress ->
         if (action == null && result == null && progress == null) {
             ShowStatus.Hidden
@@ -60,7 +59,9 @@ class NfcViewModel : ViewModel() {
             if (result.isSuccess) {
                 ShowStatus.Result(result.getOrThrow())
             } else {
-                ShowStatus.Error(result.exceptionOrNull()?.getDecodedMessage() ?: "Unknown error $result")
+                ShowStatus.Error(
+                    result.exceptionOrNull()?.getDecodedMessage() ?: "Unknown error $result"
+                )
             }
         } else {
             ShowStatus.Error("Unknown error, likely due to incorrect placement.")
@@ -147,7 +148,11 @@ class NfcViewModel : ViewModel() {
             try {
                 when (nfcAction) {
                     is NfcAction.GetEnrollmentStatus -> {
-                        sentrySdk.getEnrollmentStatus(tag)
+                        try {
+                            Result.success(sentrySdk.getEnrollmentStatus(tag))
+                        } catch (e: Exception) {
+                            Result.failure(e)
+                        }
                     }
 
                     is NfcAction.EnrollFingerprint -> {
@@ -172,15 +177,28 @@ class NfcViewModel : ViewModel() {
                     }
 
                     is NfcAction.VerifyBiometric -> {
-                        sentrySdk.validateFingerprint(tag)
+                        try {
+                            Result.success(sentrySdk.validateFingerprint(tag))
+                        } catch (e: Exception) {
+                            Result.failure(e)
+                        }
                     }
 
                     is NfcAction.ResetBiometricData -> {
-                        sentrySdk.resetCard(tag)
+                        try {
+                            Result.success(sentrySdk.resetCard(tag))
+                        } catch (e: Exception) {
+                            Result.failure(e)
+                        }
+
                     }
 
                     is NfcAction.GetVersionInformation -> {
-                        sentrySdk.getCardSoftwareVersions(tag)
+                        try {
+                            Result.success(sentrySdk.getCardSoftwareVersions(tag))
+                        } catch (e: Exception) {
+                            Result.failure(e)
+                        }
                     }
                 }.let { nfcActionResult: Result<NfcActionResult> ->
                     Timber.d("-----> $nfcAction = $nfcActionResult")

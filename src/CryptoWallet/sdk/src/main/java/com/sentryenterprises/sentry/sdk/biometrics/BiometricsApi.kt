@@ -2,7 +2,6 @@ package com.sentryenterprises.sentry.sdk.biometrics
 
 
 import android.nfc.Tag
-import android.nfc.TagLostException
 import android.nfc.tech.IsoDep
 import com.secure.jnet.jcwkit.NativeLib
 import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
@@ -129,7 +128,7 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentStatus(tag: Tag): Result<BiometricEnrollmentStatus> {
+    fun getEnrollmentStatus(tag: Tag): BiometricEnrollmentStatus {
         log("----- BiometricsAPI Get Enrollment Status")
         var dataArray: ByteArray = byteArrayOf()
 
@@ -147,10 +146,10 @@ internal class BiometricsApi(
                 apduCommand = enrollStatusCommand.wrapped,
                 name = "Get Enroll Status",
                 tag = tag
-            ).getOrThrow()
+            )
 
         if (returnData.statusWord != APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-            return Result.failure(SentrySDKError.ApduCommandError(returnData.statusWord))
+            throw SentrySDKError.ApduCommandError(returnData.statusWord)
         }
 
         dataArray = unwrapAPDUResponse(
@@ -181,20 +180,18 @@ internal class BiometricsApi(
 
             log("------------------------------\n")
 
-            return Result.success(
-                BiometricEnrollmentStatus(
-                    version = 0,
-                    maximumFingers = maxNumberOfFingers,
-                    enrollmentByFinger = listOf(
-                        FingerTouches(
-                            enrolledTouches = enrolledTouches,
-                            remainingTouches = remainingTouches,
-                            biometricMode = null
-                        )
-                    ),
-                    nextFingerToEnroll = 1,
-                    mode = biometricMode
-                )
+            return BiometricEnrollmentStatus(
+                version = 0,
+                maximumFingers = maxNumberOfFingers,
+                enrollmentByFinger = listOf(
+                    FingerTouches(
+                        enrolledTouches = enrolledTouches,
+                        remainingTouches = remainingTouches,
+                        biometricMode = null
+                    )
+                ),
+                nextFingerToEnroll = 1,
+                mode = biometricMode
             )
         } else if (dataArray[0] == 0x01.toByte()) {
             val maxNumberOfFingers = dataArray[31].toInt()
@@ -249,27 +246,27 @@ internal class BiometricsApi(
 
             log("------------------------------\n")
 
-            return Result.success(
-                BiometricEnrollmentStatus(
-                    version = 1,
-                    maximumFingers = maxNumberOfFingers,
-                    enrollmentByFinger = listOf(FingerTouches(
+            return BiometricEnrollmentStatus(
+                version = 1,
+                maximumFingers = maxNumberOfFingers,
+                enrollmentByFinger = listOf(
+                    FingerTouches(
                         enrolledTouches = finger1EnrolledTouches,
                         remainingTouches = finger1RemainingTouches,
                         biometricMode = finger1BioMode
                     ),
-                        FingerTouches(
-                            enrolledTouches = finger2EnrolledTouches,
-                            remainingTouches = finger2RemainingTouches,
-                            biometricMode = finger2BioMode
-                        )),
-                    nextFingerToEnroll = nextFingerToEnroll,
-                    mode = biometricMode
-                )
+                    FingerTouches(
+                        enrolledTouches = finger2EnrolledTouches,
+                        remainingTouches = finger2RemainingTouches,
+                        biometricMode = finger2BioMode
+                    )
+                ),
+                nextFingerToEnroll = nextFingerToEnroll,
+                mode = biometricMode
             )
+
         } else {
-            // throw unsupported Enroll applet version exception
-            return Result.failure(SentrySDKError.UnsupportedEnrollAppletVersion(dataArray[0].toInt()))
+            throw SentrySDKError.UnsupportedEnrollAppletVersion(dataArray[0].toInt())
         }
 
     }
@@ -313,7 +310,7 @@ internal class BiometricsApi(
             apduCommand = command,
             name = "Set Verify Stored Data Secure",
             tag = tag
-        ).getOrThrow()
+        )
 
 //        if returnData.statusWord != APDUResponseCode.operationSuccessful.rawValue {
 //            throw SentrySDKError.apduCommandError(returnData.statusWord)
@@ -380,10 +377,9 @@ internal class BiometricsApi(
                 apduCommand = command,
                 name = "Get Verify Stored Data Secure",
                 tag = tag
-            ).getOrThrow()
+            )
 
 //        let dataArray = try unwrapAPDUResponse(response: returnData.data.toArrayOfBytes(), statusWord: returnData.statusWord, keyENC: keyENC, keyRMAC: keyRMAC, chainingValue: chainingValue, encryptionCounter: encryptionCounter)
-
 
         if (returnData.data.size == 1) {
             if (returnData.data[0] == 0x00.toByte()) {
@@ -497,7 +493,6 @@ internal class BiometricsApi(
             tag = tag
         )
     }
-
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun getAuthInitCommand(): AuthInitData {
@@ -634,21 +629,12 @@ internal class BiometricsApi(
         val securityInitResponse =
             sendAndConfirm(apduCommand = authInfo.apduCommand, name = "Auth Init", tag = tag)
 
-        if (securityInitResponse.isFailure) {
-            securityInitResponse.exceptionOrNull()?.printStackTrace()
-            throw SentrySDKError.SecureChannelInitializationError
-        }
+        val secretKeys = calcSecretKeys(
+            receivedPubKey = securityInitResponse.data,
+            sharedSecret = sharedSecret,
+            privateKey = privateKey
+        )
 
-        val secretKeys =
-            if (securityInitResponse.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
-                calcSecretKeys(
-                    receivedPubKey = securityInitResponse.getOrThrow().data,
-                    sharedSecret = sharedSecret,
-                    privateKey = privateKey
-                )
-            } else {
-                throw SentrySDKError.SecureChannelInitializationError
-            }
         keyRespt = secretKeys.keyRespt
         keyENC = secretKeys.keyENC
         keyCMAC = secretKeys.keyCMAC
@@ -670,54 +656,51 @@ internal class BiometricsApi(
         apduCommand: ByteArray,
         name: String? = null,
         tag: Tag,
-    ): Result<APDUReturnResult> {
+    ): APDUReturnResult {
         val returnData = send(apduCommand = apduCommand, name = name, tag = tag)
 
-        return if (returnData.isSuccess && returnData.getOrThrow().statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
+        return if (returnData.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             returnData
-        } else if (returnData.isSuccess) {
-            throw SentrySDKError.ApduCommandError(returnData.getOrThrow().statusWord)
-        } else returnData
+        } else {
+            throw SentrySDKError.ApduCommandError(returnData.statusWord)
+        }
     }
 
     private fun send(
         apduCommand: ByteArray,
         name: String? = null,
         tag: Tag
-    ): Result<APDUReturnResult> {
+    ): APDUReturnResult {
         log("     >>> Sending $name => ${(apduCommand.formatted())}\n")
 
         val result = tag.transceive(apduCommand)
 
-        return if (result.isSuccess) {
-            log("     >>> Received $name => ${(result.getOrNull()?.formatted())}\n")
+        log("     >>> Received $name => ${(result.formatted())}\n")
 
-            val resultArray = result.getOrThrow()
-            val statusWord =
-                ByteBuffer.wrap(
-                    byteArrayOf(
-                        0x00,
-                        0x00,
-                        resultArray[resultArray.size - 2],
-                        resultArray.last()
-                    )
-                ).int
-
-            Result.success(
-                APDUReturnResult(
-                    data = result.getOrThrow().copyOf(resultArray.size - 2),
-                    statusWord = statusWord
+        val statusWord =
+            ByteBuffer.wrap(
+                byteArrayOf(
+                    0x00,
+                    0x00,
+                    result[result.size - 2],
+                    result.last()
                 )
-            )
-        } else {
-            Result.failure(result.exceptionOrNull()!!)
-        }
+            ).int
+
+        return APDUReturnResult(
+            data = result.copyOf(result.size - 2),
+            statusWord = statusWord
+        )
+
 
     }
 
-    fun resetEnrollAndScanFingerprint(tag: Tag, fingerIndex: Int): Result<BiometricEnrollmentStatus> {
+    fun resetEnrollAndScanFingerprint(
+        tag: Tag,
+        fingerIndex: Int
+    ): BiometricEnrollmentStatus {
         if (!(1..2).contains(fingerIndex)) {
-            return Result.failure(SentrySDKError.InvalidFingerIndex)
+            throw SentrySDKError.InvalidFingerIndex
         }
         log("----- BiometricsAPI Reset Enroll and Scan Fingerprint")
 
@@ -735,15 +718,12 @@ internal class BiometricsApi(
         )
 
         log("     Getting enrollment status")
-        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrElse {
-            return Result.failure(it)
-        }
-
-        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex-1].remainingTouches}")
-        return Result.success(enrollmentStatus)
+        val enrollmentStatus = getEnrollmentStatus(tag = tag)
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex - 1].remainingTouches}")
+        return enrollmentStatus
     }
 
-    fun enrollScanFingerprint(tag: Tag, fingerIndex: Int): Result<BiometricEnrollmentStatus> {
+    fun enrollScanFingerprint(tag: Tag, fingerIndex: Int): BiometricEnrollmentStatus {
         log("----- BiometricsAPI Enroll Scan Fingerprint fingerIndex:$fingerIndex")
 
         val processFingerprintCommand = wrapAPDUCommand(
@@ -760,9 +740,9 @@ internal class BiometricsApi(
         )
 
         log("     Getting enrollment status")
-        val enrollmentStatus = getEnrollmentStatus(tag = tag).getOrThrow()
+        val enrollmentStatus = getEnrollmentStatus(tag = tag)
 
-        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex-1].remainingTouches}")
+        log("     Remaining: ${enrollmentStatus.enrollmentByFinger[fingerIndex - 1].remainingTouches}")
         return getEnrollmentStatus(tag = tag)
     }
 
@@ -803,14 +783,7 @@ internal class BiometricsApi(
             }
         }
 
-        return if (result.isSuccess) {
-            NfcActionResult.ResetBiometrics.Success
-        } else {
-            NfcActionResult.ResetBiometrics.Failed(
-                result.exceptionOrNull().getDecodedMessage()
-            )
-        }
-
+        return NfcActionResult.ResetBiometrics.Success
     }
 
 
@@ -820,7 +793,7 @@ internal class BiometricsApi(
      * @throws SentrySDKError.ApduCommandError containing the status word returned by the last failed `APDU` command.
      *
      */
-    internal fun getVerifyAppletVersion(tag: Tag): Result<VersionInfo> {
+    internal fun getVerifyAppletVersion(tag: Tag): VersionInfo {
         // Note: Due to the way Apple implemented APDU communication, it's possible to send a select command and receive a 9000 response
         // even though the applet isn't actually installed on the card. The BioVerify applet has always supported a versioning command,
         // so here we'll simply check if the command was processes, and if we get an 'instruction byte not supported' response, we assume
@@ -838,15 +811,15 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_VERIFY_APPLET_VERSION.value,
             name = "Get Verify Applet Version",
             tag = tag
-        ).getOrElse { return Result.failure(it) }
+        )
 
         return if (response.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             val responseBuffer = response.data
 
-            if (responseBuffer.size == 5) {
-                val majorVersion = responseBuffer[3].toInt()
-                val minorVersion = responseBuffer[4].toInt()
-                Result.success(
+            when (responseBuffer.size) {
+                5 -> {
+                    val majorVersion = responseBuffer[3].toInt()
+                    val minorVersion = responseBuffer[4].toInt()
                     VersionInfo(
                         isInstalled = true,
                         majorVersion = majorVersion,
@@ -854,24 +827,11 @@ internal class BiometricsApi(
                         hotfixVersion = 0,
                         text = null
                     )
-                )
-            } else if (responseBuffer.size == 4) {
-                val majorVersion = responseBuffer[2].toInt()
-                val minorVersion = responseBuffer[3].toInt()
-                Result.success(
-                    VersionInfo(
-                        isInstalled = true,
-                        majorVersion = majorVersion,
-                        minorVersion = minorVersion,
-                        hotfixVersion = 0,
-                        text = null
-                    )
-                )
-            } else if (responseBuffer.size == 2) {
-                val majorVersion = responseBuffer[0].toInt()
-                val minorVersion = responseBuffer[1].toInt()
+                }
 
-                Result.success(
+                4 -> {
+                    val majorVersion = responseBuffer[2].toInt()
+                    val minorVersion = responseBuffer[3].toInt()
                     VersionInfo(
                         isInstalled = true,
                         majorVersion = majorVersion,
@@ -879,14 +839,30 @@ internal class BiometricsApi(
                         hotfixVersion = 0,
                         text = null
                     )
-                )
-            } else {
-                Result.failure(SentrySDKError.CardOSVersionError)
+                }
+
+                2 -> {
+                    val majorVersion = responseBuffer[0].toInt()
+                    val minorVersion = responseBuffer[1].toInt()
+
+                    VersionInfo(
+                        isInstalled = true,
+                        majorVersion = majorVersion,
+                        minorVersion = minorVersion,
+                        hotfixVersion = 0,
+                        text = null
+                    )
+
+                }
+
+                else -> {
+                    throw SentrySDKError.CardOSVersionError
+                }
             }
         } else if (response.statusWord == APDUResponseCode.INSTRUCTION_BYTE_NOT_SUPPORTED.value) {
-            Result.failure(SentrySDKError.CardOSVersionError)
+            throw SentrySDKError.CardOSVersionError
         } else {
-            Result.failure(SentrySDKError.ApduCommandError(response.statusWord))
+            throw SentrySDKError.ApduCommandError(response.statusWord)
         }
     }
 
@@ -900,41 +876,33 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getEnrollmentAppletVersion(tag: Tag): Result<VersionInfo> {
+    fun getEnrollmentAppletVersion(tag: Tag): VersionInfo {
         log("----- BiometricsAPI Get Enrollment Applet Version")
         log("     Selecting Enroll Applet")
 
-        return try {
-            val response = sendAndConfirm(
-                apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
-                name = "Select Enroll Applet",
-                tag = tag
-            ).getOrElse { return Result.failure(it) }
+        val response = sendAndConfirm(
+            apduCommand = APDUCommand.SELECT_ENROLL_APPLET.value,
+            name = "Select Enroll Applet",
+            tag = tag
+        )
 
-            val responseBuffer = response.data
+        val responseBuffer = response.data
 
-            if (responseBuffer.size < 16) {
-                Result.failure(SentrySDKError.CardOSVersionError)
-            } else {
-                val string = responseBuffer.toString(Charsets.US_ASCII)
-                val majorVersion = responseBuffer[13].toInt() - 0x30
-                val minorVersion = responseBuffer[15].toInt() - 0x30
-                Result.success(
-                    VersionInfo(
-                        isInstalled = true,
-                        majorVersion = majorVersion,
-                        minorVersion = minorVersion,
-                        hotfixVersion = 0,
-                        text = string
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            Result.failure(e)
+        if (responseBuffer.size < 16) {
+            throw SentrySDKError.CardOSVersionError
+        } else {
+            val string = responseBuffer.toString(Charsets.US_ASCII)
+            val majorVersion = responseBuffer[13].toInt() - 0x30
+            val minorVersion = responseBuffer[15].toInt() - 0x30
+            return VersionInfo(
+                isInstalled = true,
+                majorVersion = majorVersion,
+                minorVersion = minorVersion,
+                hotfixVersion = 0,
+                text = string
+            )
         }
-
     }
-
 
     /**
     Retrieves the version of the CDCVM applet installed on the scanned card (only available on version 2.0 or greater).
@@ -950,16 +918,14 @@ internal class BiometricsApi(
      * `SentrySDKError.apduCommandError` that contains the status word returned by the last failed `APDU` command.
 
      */
-    fun getCVMAppletVersion(tag: Tag): Result<VersionInfo> {
+    fun getCVMAppletVersion(tag: Tag): VersionInfo {
         log("----- BiometricsAPI Get CVM Applet Version")
 
         val response = sendAndConfirm(
             apduCommand = APDUCommand.SELECT_CVM_APPLET.value,
             name = "Select CVM Applet",
             tag = tag
-        ).getOrElse {
-            return Result.failure(it)
-        }
+        )
 
         val responseBuffer = response.data
 
@@ -970,17 +936,15 @@ internal class BiometricsApi(
                 .toString(Charsets.US_ASCII)
             val majorVersion = responseBuffer[10].toInt() - 0x30
             val minorVersion = responseBuffer[12].toInt() - 0x30
-            Result.success(
-                VersionInfo(
-                    isInstalled = true,
-                    majorVersion = majorVersion,
-                    minorVersion = minorVersion,
-                    hotfixVersion = 0,
-                    text = string
-                )
+            VersionInfo(
+                isInstalled = true,
+                majorVersion = majorVersion,
+                minorVersion = minorVersion,
+                hotfixVersion = 0,
+                text = string
             )
         } else {
-            Result.failure(SentrySDKError.CvmAppletError(responseBuffer.size))
+            throw SentrySDKError.CvmAppletError(responseBuffer.size)
         }
     }
 
@@ -999,7 +963,7 @@ internal class BiometricsApi(
      * `SentrySDKError.cvmAppletError` if the CVM applet returned an unexpected error code.
      *
      */
-    fun getFingerprintVerification(tag: Tag): Result<Boolean> {
+    fun getFingerprintVerification(tag: Tag): Boolean {
         log("----- BiometricsAPI Get Fingerprint Verification")
 
 
@@ -1007,7 +971,7 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_FINGERPRINT_VERIFY.value,
             name = "Fingerprint Verification",
             tag = tag
-        ).getOrThrow()
+        )
 
         if (returnData.statusWord == APDUResponseCode.OPERATION_SUCCESSFUL.value) {
             if (returnData.data[3] == 0x00.toByte()) {
@@ -1020,21 +984,21 @@ internal class BiometricsApi(
 
             if (returnData.data[4] == 0xA5.toByte()) {
                 log("     Match")
-                return Result.success(true)
+                return true
             }
 
             if (returnData.data[4] == 0x5A.toByte()) {
                 log("     No match found")
-                return Result.success(false)
+                return false
             }
 
-            return Result.failure(SentrySDKError.CvmAppletError(returnData.data[4].toInt()))
+            throw SentrySDKError.CvmAppletError(returnData.data[4].toInt())
         }
 
-        return Result.failure(SentrySDKError.ApduCommandError(returnData.statusWord))
+        throw SentrySDKError.ApduCommandError(returnData.statusWord)
     }
 
-    fun getCardOSVersion(tag: Tag): Result<VersionInfo> {
+    fun getCardOSVersion(tag: Tag): VersionInfo {
         log("----- BiometricsAPI Get Card OS Version")
         log("     Getting card OS version")
 
@@ -1042,52 +1006,51 @@ internal class BiometricsApi(
             apduCommand = APDUCommand.GET_OS_VERSION.value,
             name = "Get Card OS Version",
             tag = tag
-        ).getOrThrow()
+        )
 
         log("     Processing response")
         val dataBuffer = returnData.data
 
-        val cardVersionError = Result.failure<VersionInfo>(SentrySDKError.CardOSVersionError)
 
         if (dataBuffer.size < 8) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
 
         if (dataBuffer[0] != 0xFE.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[1] < 0x40.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[2] != 0x7f.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[3] != 0x00.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[4] < 0x40.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[5] != 0x9f.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         if (dataBuffer[6] != 0x01.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
 
         val n = dataBuffer[7]
         var p: Int = 8 + n
 
         if (dataBuffer[p] != 0x9F.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         p += 1
         if (dataBuffer[p] != 0x02.toByte()) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         p += 1
         if (dataBuffer[p].toInt() != 5) {
-            return cardVersionError
+            throw SentrySDKError.CardOSVersionError
         }
         p += 1
 
@@ -1097,15 +1060,14 @@ internal class BiometricsApi(
         p += 2
         val hotfix = dataBuffer[p] - 0x30
 
-        return Result.success(
-            VersionInfo(
-                isInstalled = true,
-                majorVersion = major,
-                minorVersion = minor,
-                hotfixVersion = hotfix,
-                text = null
-            )
+        return VersionInfo(
+            isInstalled = true,
+            majorVersion = major,
+            minorVersion = minor,
+            hotfixVersion = hotfix,
+            text = null
         )
+
     }
 
     private fun log(text: String) {
@@ -1116,8 +1078,4 @@ internal class BiometricsApi(
 
 }
 
-private fun Tag.transceive(bytes: ByteArray): Result<ByteArray> = try {
-    Result.success(IsoDep.get(this).transceive(bytes))
-} catch (e: TagLostException) {
-    Result.failure(e)
-}
+private fun Tag.transceive(bytes: ByteArray): ByteArray = IsoDep.get(this).transceive(bytes)
