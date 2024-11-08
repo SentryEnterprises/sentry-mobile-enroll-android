@@ -1,5 +1,6 @@
 package com.sentryenterprises.sentry.enrollment
 
+import android.media.MediaPlayer
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -24,6 +25,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -106,6 +108,15 @@ fun EnrollScreen(
                 modifier = modifier
             )
             if (progress is BiometricProgress.Progressing) {
+                val context = LocalContext.current
+                LaunchedEffect(progress.currentStep) {
+                    if (progress.currentStep > 0) {
+                        val mediaPlayer = MediaPlayer.create(
+                            context,
+                            R.raw.ding)
+                        mediaPlayer.start()
+                    }
+                }
                 val checkboxes = (1..progress.currentStep).map {
                     "✅"
                 }.joinToString("") +
