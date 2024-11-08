@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -102,7 +103,7 @@ fun GetCardStateScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Get Enrollment Status")
+                    Text("Get Card Status")
                 },
                 actions = {
                     IconButton(onClick = { onNavigate(Screen.Settings) }) {
@@ -123,13 +124,13 @@ fun GetCardStateScreen(
             Column(
                 modifier = Modifier
                     .padding(paddingInsets)
-                    .padding(top = 150.dp)
+                    .padding(top = 80.dp)
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (sheetState.isVisible) {
-                    Spacer(Modifier.height(200.dp))
-                }
+//                if (sheetState.isVisible) {
+//                    Spacer(Modifier.height(200.dp))
+//                }
                 val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
 
                 val animationState by animateLottieCompositionAsState(
@@ -146,10 +147,17 @@ fun GetCardStateScreen(
                 LazyColumn(Modifier.weight(1f)) {
                     item {
                         Text(
-                            modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                            text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                            modifier = Modifier.padding(top = 32.dp, bottom = 10.dp, ).fillMaxWidth(),
+                            text = "Getting Started:",
+//                            text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                             textAlign = TextAlign.Center,
-                            fontSize = 17.sp
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        )
+                        Text(
+                            modifier = Modifier.padding(bottom = 22.dp),
+                            text = "• Place card on a flat, non-metallic surface\n• Place phone on top of card as shown\n• Click \"Scan Card\" button below",
+                            fontSize = 17.sp,
                         )
                     }
                 }

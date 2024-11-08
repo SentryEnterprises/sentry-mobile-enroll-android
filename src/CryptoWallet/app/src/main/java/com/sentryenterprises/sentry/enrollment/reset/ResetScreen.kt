@@ -147,6 +147,7 @@ fun ResetScreen(
                     Text(
                         modifier = Modifier.padding(bottom = 25.dp),
                         text = "Reset Result",
+                        fontSize = 23.sp,
                         fontWeight = Bold,
                     )
 
@@ -184,6 +185,7 @@ fun ResetScreen(
                     Text(
                         modifier = Modifier.padding(bottom = 25.dp),
                         text = statusText,
+                        fontSize = 23.sp,
                         fontWeight = Bold,
                     )
 
