@@ -203,7 +203,7 @@ fun GetCardStateScreenContents(
                     modifier = Modifier.padding(bottom = 30.dp),
                     text = "SentryCard Enroll \uD83D\uDD12 ${BuildConfig.VERSION_NAME}",
                     fontSize = 11.sp,
-                    color = Color.Unspecified.copy(alpha = .7f)
+                    color = (if (isSystemInDarkTheme()) Color.White else Color.Black).copy(alpha = .7f)
                 )
             }
         }
@@ -315,6 +315,18 @@ private fun PreviewGetCardState() {
 @Composable
 private fun PreviewGetCardState2() {
     SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Hidden,
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+@Preview
+@Composable
+private fun PreviewGetCardState2Dark() {
+    SentryTheme(darkTheme = true) {
         GetCardStateScreenContents(
             showStatus = ShowStatus.Hidden,
             onReset = {},
