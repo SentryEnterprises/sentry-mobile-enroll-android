@@ -1,5 +1,6 @@
 package com.sentryenterprises.sentry.enrollment.cardState
 
+import android.content.res.Configuration
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieConstants
@@ -68,10 +70,12 @@ import com.airbnb.lottie.model.animatable.AnimatableColorValue
 import com.sentryenterprises.sentry.enrollment.BuildConfig
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
+import com.sentryenterprises.sentry.enrollment.SentryTheme
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.enrollment.util.PIN_BIOMETRIC
 import com.sentryenterprises.sentry.enrollment.util.ScanStatusBottomSheet
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
+import com.sentryenterprises.sentry.sdk.models.FingerprintValidation
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
@@ -84,8 +88,30 @@ fun GetCardStateScreen(
     onNavigate: (Screen) -> Unit,
 ) {
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
+    GetCardStateScreenContents(
+        modifier = modifier,
+        showStatus = showStatus,
+        onScanClicked = {
+            nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
+        },
+        onReset = {
+            nfcViewModel.resetNfcAction()
+        },
+        onNavigate = onNavigate,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GetCardStateScreenContents(
+    modifier: Modifier = Modifier,
+    showStatus: ShowStatus,
+    onReset: () -> Unit,
+    onScanClicked: () -> Unit,
+    onNavigate: (Screen) -> Unit,
+) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     LaunchedEffect(showStatus) {
         when (showStatus) {
@@ -147,7 +173,9 @@ fun GetCardStateScreen(
                 LazyColumn(Modifier.weight(1f)) {
                     item {
                         Text(
-                            modifier = Modifier.padding(top = 32.dp, bottom = 10.dp, ).fillMaxWidth(),
+                            modifier = Modifier
+                                .padding(top = 32.dp, bottom = 10.dp)
+                                .fillMaxWidth(),
                             text = "Getting Started:",
 //                            text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
                             textAlign = TextAlign.Center,
@@ -169,13 +197,13 @@ fun GetCardStateScreen(
                 )
                 SentryButton(
                     text = "Scan Card",
-                    onClick = {
-                        nfcViewModel.startNfcAction(NfcAction.GetEnrollmentStatus(PIN_BIOMETRIC))
-                    }
+                    onClick = onScanClicked
                 )
                 Text(
                     modifier = Modifier.padding(bottom = 30.dp),
-                    text = "SentryCard Enroll ${BuildConfig.VERSION_NAME}",
+                    text = "SentryCard Enroll \uD83D\uDD12 ${BuildConfig.VERSION_NAME}",
+                    fontSize = 11.sp,
+                    color = Color.Unspecified.copy(alpha = .7f)
                 )
             }
         }
@@ -195,7 +223,7 @@ fun GetCardStateScreen(
             onButtonClicked = {
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                     if (showStatus.result.isStatusEnrollment) {
-                        onNavigate(Screen.Enroll)
+                        onNavigate(Screen.EnrollIntro)
                     } else {
                         onNavigate(Screen.Verify)
                     }
@@ -203,10 +231,10 @@ fun GetCardStateScreen(
                 } else {
                     println("unexpected: showStatus $showStatus")
                 }
-                nfcViewModel.resetNfcAction()
+                onReset()
             },
             onDismiss = {
-                nfcViewModel.resetNfcAction()
+                onReset()
             }
         )
     }
@@ -262,10 +290,93 @@ private fun PlaceCardHere() {
                 style = Stroke(5f)
             )
             drawText(
-                topLeft = Offset(80f,size.height-textLayout.size.height-30f),
+                topLeft = Offset(80f, size.height - textLayout.size.height - 30f),
                 textLayoutResult = textLayout
             )
 
         }
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewGetCardState() {
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.CardFound,
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewGetCardState2() {
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Hidden,
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewGetCardState3() {
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Scanning,
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewGetCardState4() {
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Error("Error"),
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+
+
+@Preview
+@Composable
+private fun PreviewGetCardState5() {
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Result(NfcActionResult.BiometricEnrollment(true)),
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
+    }
+}
+
+
+@Preview(name = "Light Mode",)
+@Preview(name = "Full Preview", showSystemUi = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_UNDEFINED, showBackground = true)
+@Composable
+private fun PreviewGetCardState6() {
+
+    SentryTheme {
+        GetCardStateScreenContents(
+            showStatus = ShowStatus.Result(NfcActionResult.BiometricEnrollment(false)),
+            onReset = {},
+            onScanClicked = {},
+            onNavigate = {},
+        )
     }
 }

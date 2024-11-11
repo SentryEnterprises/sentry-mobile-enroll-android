@@ -1,4 +1,4 @@
-package com.sentryenterprises.sentry.enrollment
+package com.sentryenterprises.sentry.enrollment.enroll
 
 import android.media.MediaPlayer
 import androidx.compose.runtime.Composable
@@ -32,6 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.sentryenterprises.sentry.enrollment.BuildConfig
+import com.sentryenterprises.sentry.enrollment.NfcViewModel
+import com.sentryenterprises.sentry.enrollment.R
+import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
 import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
@@ -61,7 +65,7 @@ fun EnrollScreen(
                     IconButton(
                         onClick = {
                             nfcViewModel.resetNfcAction()
-                            onNavigate(Screen.GetCardState)
+                            onNavigate(Screen.EnrollIntro)
                         },
                     ) {
                         Icon(

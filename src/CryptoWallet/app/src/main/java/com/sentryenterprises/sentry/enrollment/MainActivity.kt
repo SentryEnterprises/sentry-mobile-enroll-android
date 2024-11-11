@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.lifecycleScope
 import timber.log.Timber
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,11 +36,11 @@ import com.sentryenterprises.sentry.enrollment.Screen.Verify
 import com.sentryenterprises.sentry.enrollment.Screen.VersionInfo
 import com.sentryenterprises.sentry.enrollment.home.lock.VerifyScreen
 import com.sentryenterprises.sentry.enrollment.cardState.GetCardStateScreen
+import com.sentryenterprises.sentry.enrollment.enroll.EnrollIntroScreen
+import com.sentryenterprises.sentry.enrollment.enroll.EnrollScreen
 import com.sentryenterprises.sentry.enrollment.reset.ResetScreen
 import com.sentryenterprises.sentry.enrollment.settings.SettingsScreen
 import com.sentryenterprises.sentry.enrollment.versioninfo.VersionInfoScreen
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
@@ -109,6 +108,12 @@ class MainActivity : ComponentActivity() {
             }
             composable<Enroll> {
                 EnrollScreen(
+                    nfcViewModel = nfcViewModel,
+                    onNavigate = { navController.navigate(it) }
+                )
+            }
+            composable<Screen.EnrollIntro> {
+                EnrollIntroScreen(
                     nfcViewModel = nfcViewModel,
                     onNavigate = { navController.navigate(it) }
                 )

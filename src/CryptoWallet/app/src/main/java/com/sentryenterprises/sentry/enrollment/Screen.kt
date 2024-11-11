@@ -20,5 +20,8 @@ sealed class Screen {
     data object Enroll : Screen()
 
     @Serializable
+    data object EnrollIntro : Screen()
+
+    @Serializable
     data object Verify : Screen()
 }
