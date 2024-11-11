@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -95,22 +96,65 @@ fun EnrollScreen(
                 println("EnrollScreen actionResult $actionResult")
             }
 
-            val composition by when (action) {
-                null -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
-                else -> rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
+            when {
+                actionResult?.getOrNull() is NfcActionResult.EnrollFingerprint.Complete -> {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.checkmark_animation))
+
+                    val animationState by animateLottieCompositionAsState(
+                        iterations = 1,
+                        composition = composition,
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { animationState },
+                        modifier = Modifier.size(300.dp)
+                    )
+                }
+                progress is BiometricProgress.FingerTransition -> {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.checkmark_animation))
+
+                    val animationState by animateLottieCompositionAsState(
+                        iterations = 1,
+                        composition = composition,
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { animationState },
+                        modifier = Modifier.size(300.dp)
+                    )
+                }
+                action == null -> {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
+
+                    val animationState by animateLottieCompositionAsState(
+                        iterations = LottieConstants.IterateForever,
+                        composition = composition,
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { animationState },
+                        modifier = Modifier
+                    )
+                }
+                else -> {
+                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
+
+                    val animationState by animateLottieCompositionAsState(
+                        iterations = LottieConstants.IterateForever,
+                        composition = composition,
+                    )
+
+                    LottieAnimation(
+                        composition = composition,
+                        progress = { animationState },
+                        modifier = Modifier
+                    )
+                }
             }
 
-            val animationState by animateLottieCompositionAsState(
-                iterations = LottieConstants.IterateForever,
-                restartOnPlay = true,
-                composition = composition,
-                isPlaying = true
-            )
-            LottieAnimation(
-                composition = composition,
-                progress = { animationState },
-                modifier = modifier
-            )
             if (progress is BiometricProgress.Progressing) {
                 val context = LocalContext.current
                 LaunchedEffect(progress.currentStep) {
