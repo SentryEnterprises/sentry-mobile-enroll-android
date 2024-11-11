@@ -365,13 +365,12 @@ private fun PreviewGetCardState5() {
 }
 
 
-@Preview(name = "Light Mode",)
 @Preview(name = "Full Preview", showSystemUi = true)
-@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_UNDEFINED, showBackground = true)
+@Preview(name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_UNDEFINED)
 @Composable
 private fun PreviewGetCardState6() {
 
-    SentryTheme {
+    SentryTheme(darkTheme = true) {
         GetCardStateScreenContents(
             showStatus = ShowStatus.Result(NfcActionResult.BiometricEnrollment(false)),
             onReset = {},
