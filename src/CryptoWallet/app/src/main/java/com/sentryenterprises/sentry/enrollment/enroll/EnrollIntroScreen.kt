@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -65,9 +66,8 @@ fun EnrollIntroScreen(
         }
     ) { paddingInsets ->
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .padding(paddingInsets)
-                .padding(top = 30.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -83,12 +83,12 @@ fun EnrollIntroScreen(
             LottieAnimation(
                 composition = composition,
                 progress = { animationState },
-                modifier = modifier
+                modifier = Modifier.height(400.dp)
             )
             Spacer(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(1f)
+                    .weight(.1f)
             )
             SentryButton(text = "Continue") {
                 onNavigate(Screen.Enroll)

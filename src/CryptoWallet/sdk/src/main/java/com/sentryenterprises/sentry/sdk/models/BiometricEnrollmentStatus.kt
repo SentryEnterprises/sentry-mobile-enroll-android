@@ -50,7 +50,7 @@ sealed class BiometricProgress {
     data class FingerTransition(val nextFingerIndex: Int) : BiometricProgress()
     data class Feedback(val status: String) : BiometricProgress()
     data class Progressing(
-        val currentFinger: Int,
+        val currentFinger: Int, // this counts from 1
         val currentStep: Int,
         val totalSteps: Int,
     ) : BiometricProgress() {

@@ -128,7 +128,7 @@ fun EnrollScreen(
                     } + (1..(progress.remainingTouches)).joinToString("") {
                         "◼️"
                     }
-                Text(checkboxes, fontSize = 25.sp)
+                Text("Finger #${progress.currentFinger}: $checkboxes", fontSize = 25.sp)
             }
 
             if (action == null && actionResult == null) {
