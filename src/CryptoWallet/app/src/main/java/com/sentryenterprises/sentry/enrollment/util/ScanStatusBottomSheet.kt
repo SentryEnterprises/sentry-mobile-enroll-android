@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.sp
 import com.sentryenterprises.sentry.enrollment.ShowStatus
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 
+// TODO: Localize all these strings
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScanStatusBottomSheet(
@@ -44,7 +46,7 @@ fun ScanStatusBottomSheet(
                 }
                 val (statusTitle, statusText) = when (showStatus) {
                     ShowStatus.CardFound -> "Card Found" to cardFoundText
-                    is ShowStatus.Error -> "Scan Error" to showStatus.message
+                    is ShowStatus.Error -> "Communication Failure" to showStatus.message
                     is ShowStatus.Result -> onShowResultText(showStatus.result)
                     ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
                     ShowStatus.Hidden -> "" to "" // Nothing
