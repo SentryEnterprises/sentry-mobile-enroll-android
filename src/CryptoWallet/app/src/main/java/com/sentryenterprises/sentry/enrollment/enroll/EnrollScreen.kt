@@ -172,7 +172,7 @@ fun EnrollScreen(
                     } + (1..(progress.remainingTouches)).joinToString("") {
                         "◼️"
                     }
-                Text("Finger #${progress.currentFinger}: $checkboxes", fontSize = 25.sp)
+                Text("Finger ${progress.currentFinger} of 2\n$checkboxes", fontSize = 25.sp)
             }
 
             if (action == null && actionResult == null) {
@@ -257,7 +257,7 @@ fun EnrollScreen(
                 )
             } else {
                 val instructionText = when (progress) {
-                    is BiometricProgress.Progressing -> "Remaining touches: ${progress.remainingTouches}. Lift your finger and press a slightly different part of the same finger."
+                    is BiometricProgress.Progressing -> "Lift your finger and press a slightly different part of the same finger."
                     is BiometricProgress.Feedback -> "Card status:${progress.status}. Try again with your finger."
                     is BiometricProgress.FingerTransition -> "Please use your second finger"
                     null -> "Press your finger to the card to get started."
