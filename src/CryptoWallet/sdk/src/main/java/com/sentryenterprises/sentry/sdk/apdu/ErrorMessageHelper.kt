@@ -27,7 +27,6 @@ import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SharedSecret
 // TODO: Localize all of these strings
 
 fun Throwable?.getDecodedMessage() = when (this) {
-    is TagLostException -> "Lost connection to card."
     is SentrySDKError -> this.localizedErrorMessage()
     is TagLostException -> "Communication with the card has failed. Please move the phone away from the card briefly to reset the card, then try again."
     else -> this?.localizedMessage ?: "Unknown error $this"
