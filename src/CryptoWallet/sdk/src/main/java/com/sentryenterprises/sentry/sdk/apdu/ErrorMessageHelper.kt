@@ -1,5 +1,6 @@
 package com.sentryenterprises.sentry.sdk.apdu
 
+import android.nfc.TagLostException
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.ApduCommandError
@@ -23,8 +24,11 @@ import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SecureChanne
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SecureCommunicationNotSupported
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SharedSecretExtractionError
 
+// TODO: Localize all of these strings
+
 fun Throwable?.getDecodedMessage() = when (this) {
     is SentrySDKError -> this.localizedErrorMessage()
+    is TagLostException -> "Communication with the card has failed. Please move the phone away from the card briefly to reset the card, then try again."
     else -> this?.localizedMessage ?: "Unknown error $this"
 }
 
@@ -35,73 +39,102 @@ fun SentrySDKError.localizedErrorMessage() = when (this) {
     is ApduCommandError -> {
         when (code) {
             APDUResponseCode.NO_MATCH_FOUND.value ->
-                "(6300) No match found."
+                "No match found."
 
             APDUResponseCode.ENROLL_CODE_INCORRECT_THREE_TRIES_REMAIN.value ->
-                "The enroll code on the scanned card does not match the enroll code set in the application. Open the phone Settings app, navigate to Sentry Enroll, and set the enroll code to match the enroll code on the card." +
-                        "\n\n(0x63C3) Enroll code incorrect, three tries remaining."
+                "The enroll code on the scanned card does not match the enroll code set in the application (three tries remaining)."
 
             APDUResponseCode.ENROLL_CODE_INCORRECT_TWO_TRIES_REMAIN.value ->
-                "The enroll code on the scanned card does not match the enroll code set in the application. Open the phone Settings app, navigate to Sentry Enroll, and set the enroll code to match the enroll code on the card." +
-                        "\n\n(0x63C2) Enroll code incorrect, two tries remaining."
+                "The enroll code on the scanned card does not match the enroll code set in the application (two tries remaining)."
 
             APDUResponseCode.ENROLL_CODE_INCORRECT_ONE_TRIES_REMAIN.value ->
-                "The enroll code on the scanned card does not match the enroll code set in the application. Open the phone Settings app, navigate to Sentry Enroll, and set the enroll code to match the enroll code on the card." +
-                        "\n\n(0x63C1) Enroll code incorrect, one try remaining."
+                "The enroll code on the scanned card does not match the enroll code set in the application (one try remaining)."
 
             APDUResponseCode.ENROLL_CODE_INCORRECT_ZERO_TRIES_REMAIN.value ->
-                "The enroll code on the scanned card does not match the enroll code set in the application. Open the phone settings app, navigate to Sentry Enroll, and set the enroll code to match the enroll code on the card. " +
-                        "Afterward, use the appropriate script file to reset your card.\n\n(0x63C0) Enroll code incorrect, zero tries remaining."
+                "The enroll code on the scanned card does not match the enroll code set in the application (zero tries remaining)."
 
             APDUResponseCode.WRONG_LENGTH.value ->
-                "(0x6700) Length parameter incorrect."
+                "Length parameter incorrect."
 
             APDUResponseCode.FORMAT_NOT_COMPLIANT.value ->
-                "(0x6701) Command APDU format not compliant with this standard."
+                "Command APDU format not compliant with this standard."
 
             APDUResponseCode.LENGTH_VALUE_NOT_THE_ONE_EXPECTED.value ->
-                "(0x6702) The length parameter value is not the one expected."
+                "The length parameter value is not the one expected."
 
             APDUResponseCode.COMMUNICATION_FAILURE.value ->
-                "There was an error communicating with the card. Move the card away from the phone and try again.\n\n(6741) Non-specific communication failure."
+                "Communication with the card has failed.  Please move the phone away from the card briefly to reset the card, then try again."
 
             APDUResponseCode.FINGER_REMOVED.value ->
-                "The finger was removed from the sensor before the scan completed. Please try again.\n\n(6745) Finger removed before scan completed."
+                "The finger was removed from the sensor before the scan completed. Please try again."
 
             APDUResponseCode.POOR_IMAGE_QUALITY.value ->
-                "The image scanned by the sensor was poor quality, please try again.\n\n(6747) Poor image quality."
+                "The image scanned by the sensor was poor quality, please try again."
 
             APDUResponseCode.USER_TIMEOUT_EXPIRED.value ->
-                "No finger was detected on the sensor. Please try again.\n\n(6748) User timeout expired."
+                "No finger was detected on the sensor. Please try again."
 
             APDUResponseCode.HOST_INTERFACE_TIMEOUT_EXPIRED.value ->
-                "The card did not respond in the expected amount of time. Please try again.\n\n(6749) Host interface timeout expired."
+                "Communication with the card has failed.  Please move the phone away from the card briefly to reset the card, then try again."
 
             APDUResponseCode.CONDITION_OF_USE_NOT_SATISFIED.value ->
-                "(6985) Conditions of use not satisfied."
+                "Conditions of use not satisfied."
 
             APDUResponseCode.NOT_ENOUGH_MEMORY.value ->
-                "(6A84) Not enough memory space in the file."
+                "Not enough memory space in the file."
 
             APDUResponseCode.WRONG_PARAMETERS.value ->
-                "(0x6B00) Parameter bytes are invalid."
+                "Parameter bytes are invalid."
 
             APDUResponseCode.INSTRUCTION_BYTE_NOT_SUPPORTED.value ->
-                "(0x6D00) Instruction byte not supported or invalid."
+                "Instruction byte not supported or invalid."
 
             APDUResponseCode.CLASS_BYTE_NOT_SUPPORTED.value ->
-                "(0x6E00) Class byte not supported or invalid."
+                "Class byte not supported or invalid."
 
             APDUResponseCode.COMMAND_ABORTED.value ->
-                "(6F00) Command aborted – more exact diagnosis not possible (e.g. operating system error)."
+                "Command aborted – more exact diagnosis not possible (e.g. operating system error)."
 
             APDUResponseCode.NO_PRECISE_DIAGNOSIS.value ->
-                "An error occurred while communicating with the card. Move the card away from the phone and try again.\n\n(0x6F87) No precise diagnosis."
+                "An error occurred while communicating with the card. Move the card away from the phone and try again."
 
             APDUResponseCode.CARD_DEAD.value ->
-                "(6FFF) Card dead (overuse)."
+                "Card dead (overuse)."
 
-            APDUResponseCode.CALIBRATION_ERROR.value -> "(6744) The fingerprint sensor is returning a calibration error."
+            APDUResponseCode.CALIBRATION_ERROR.value ->
+                "The fingerprint sensor is returning a calibration error."
+
+            APDUResponseCode.NO_INFORMATION_GIVEN.value -> "No information given."
+
+            APDUResponseCode.INCORRECT_COMMAND_PARAMETERS.value ->
+                "Incorrect parameters in the command data field."
+
+            APDUResponseCode.FUNCTION_NOT_SUPPORTED.value ->
+                "Function not supported."
+
+            APDUResponseCode.APPLET_NOT_FOUND.value ->
+                "Applet not found."
+
+            APDUResponseCode.RECORD_NOT_FOUND.value ->
+                "Record not found."
+
+            APDUResponseCode.INCONSISTENT_WITH_TLV.value ->
+                "Inconsistent with TLV structure."
+
+            APDUResponseCode.INCORRECT_PARAMETERS.value ->
+                "Incorrect parameters P1-P2."
+
+            APDUResponseCode.INCONSISTENT_WITH_PARAMETERS.value ->
+                "Inconsistent with parameters P1-P2."
+
+            APDUResponseCode.DATA_NOT_FOUND.value ->
+                "Referenced data or DO not found."
+
+            APDUResponseCode.FILE_ALREADY_EXISTS.value ->
+                "File already exists or sensor is already calibrated."
+
+            APDUResponseCode.NAME_ALREADY_EXISTS.value ->
+                "DF name already exists."
 
             else -> "Unknown Error Code: $code"
         }
@@ -112,10 +145,10 @@ fun SentrySDKError.localizedErrorMessage() = when (this) {
     is DataSizeNotSupported -> "Unable to store data to SentryCard: maximum size supported is 2048 bytes."
     is CvmAppletNotAvailable -> "Unable to initialize the CVM applet on the SentryCard."
     is CvmAppletBlocked -> "The CVM applet on the SentryCard is blocked."
-    is CvmAppletError -> "The biometric verification attempt failed to respond properly. Please try again.\n\nError Code: $code"
+    is CvmAppletError -> "Communication with the card has failed. Please move the phone away from the card briefly to reset the card, then try again."
     is BioverifyAppletNotInstalled -> "The SentryCard does not contain the BioVerify applet. This applet is required. Please run the applet install script to install the required applets."
     is EnrollModeNotAvailable -> "The SentryCard is already enrolled. To re-enroll, go into Options and reset biometric enrollment data."
-    is EnrollVerificationError -> "The system was unable to verify that the enrolled fingerprints match the finger on the sensor. Please restart enrollment and try again.\\n\\n(6300) No match found."
+    is EnrollVerificationError -> "The system was unable to verify that the enrolled fingerprints match the finger on the sensor. Please restart enrollment and try again."
     is BioVerifyAppletWrongVersion -> "This SentryCard has an unsupported version of the BioVerify applet installed."
     is EnrollmentStatusBufferTooSmall -> "The buffer returned from querying the card for its biometric enrollment status was unexpectedly too small."
     is InvalidAPDUCommand -> "The buffer used was not a valid `APDU` command."
