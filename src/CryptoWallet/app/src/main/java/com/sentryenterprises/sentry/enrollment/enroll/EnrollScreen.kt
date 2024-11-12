@@ -244,7 +244,7 @@ fun EnrollScreen(
                 )
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    text = "Please move the phone away from the card and try again.",
+                    text = "Please move the phone away from the card to reset, then try again.",
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
                 )
