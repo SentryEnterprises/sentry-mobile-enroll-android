@@ -1,5 +1,6 @@
 package com.sentryenterprises.sentry.sdk.apdu
 
+import android.nfc.TagLostException
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.ApduCommandError
@@ -24,6 +25,7 @@ import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SecureCommun
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError.SharedSecretExtractionError
 
 fun Throwable?.getDecodedMessage() = when (this) {
+    is TagLostException -> "Lost connection to card."
     is SentrySDKError -> this.localizedErrorMessage()
     else -> this?.localizedMessage ?: "Unknown error $this"
 }
