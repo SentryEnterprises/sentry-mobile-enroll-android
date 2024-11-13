@@ -8,15 +8,14 @@ import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.BiometricProgress
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
+import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import kotlin.concurrent.thread
 
 sealed class ShowStatus {
     data object Hidden : ShowStatus()
@@ -168,8 +167,12 @@ class NfcViewModel : ViewModel() {
                             }.let {
                                 Result.success(it)
                             }
-                        } catch (e: Exception) {
+                        } catch (e: SentrySDKError.EnrollVerificationError) {
                             resetEnrollFingerPrintNeeded.value = true
+                            Timber.e(e)
+                            Result.failure(e)
+                        } catch (e: Exception) {
+
                             _fingerProgress.value = null
                             Timber.e(e)
                             Result.failure(e)

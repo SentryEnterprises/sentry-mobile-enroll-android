@@ -264,7 +264,17 @@ class SentrySdk(
                     )
                     log("SentrySdk verifyEnrolled")
 
-                    biometricsAPI.verifyEnrolledFingerprint(tag = tag)
+                    try {
+                        biometricsAPI.verifyEnrolledFingerprint(tag = tag)
+
+                    } catch (e: SentrySDKError.ApduCommandError) {
+                        if (e.code == APDUResponseCode.NO_MATCH_FOUND.value) {
+                            // expose a custom error if the verify enrolled fingerprint command didn't find a match
+                            throw SentrySDKError.EnrollVerificationError
+                        } else {
+                            throw e
+                        }
+                    }
 
                     if (currentFinger < enrollStatus.maximumFingers) {
                         onBiometricProgressChanged(BiometricProgress.FingerTransition(currentFinger + 1))
