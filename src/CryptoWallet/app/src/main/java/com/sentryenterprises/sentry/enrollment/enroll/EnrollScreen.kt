@@ -1,6 +1,8 @@
 package com.sentryenterprises.sentry.enrollment.enroll
 
 import android.media.MediaPlayer
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
@@ -8,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -26,7 +29,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -139,18 +145,37 @@ fun EnrollScreen(
                         modifier = Modifier
                     )
                 }
-                else -> {
-                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.fingerprint))
-
-                    val animationState by animateLottieCompositionAsState(
-                        iterations = LottieConstants.IterateForever,
-                        composition = composition,
+                progress is BiometricProgress.Progressing -> {
+                    val (dark, light) = when (progress.currentStep) {
+                        1 -> R.drawable.finger_left_dark to R.drawable.finger_left
+                        2 -> R.drawable.finger_bottom_dark to R.drawable.finger_bottom
+                        3 -> R.drawable.finger_right_dark to R.drawable.finger_right
+                        4 -> R.drawable.finger_top_dark to R.drawable.finger_top
+                        else -> R.drawable.finger_center_dark to R.drawable.finger_center
+                    }
+                    Image(
+                        painter = painterResource(
+                            if (isSystemInDarkTheme()) {
+                                dark
+                            } else {
+                                light
+                            }
+                        ),
+                        contentDescription = "Portion of finger to place",
+                        modifier = Modifier.size(200.dp)
                     )
-
-                    LottieAnimation(
-                        composition = composition,
-                        progress = { animationState },
-                        modifier = Modifier
+                }
+                else -> {
+                    Image(
+                        painter = painterResource(
+                            if (isSystemInDarkTheme()) {
+                                R.drawable.finger_center_dark
+                            } else {
+                                R.drawable.finger_center
+                            }
+                        ),
+                        contentDescription = "Portion of finger to place",
+                        modifier = Modifier.size(200.dp)
                     )
                 }
             }
@@ -172,7 +197,8 @@ fun EnrollScreen(
                     } + (1..(progress.remainingTouches)).joinToString("") {
                         "◼️"
                     }
-                Text("Finger ${progress.currentFinger} of 2\n$checkboxes", fontSize = 25.sp)
+                Text("Finger ${progress.currentFinger} of 2\n", fontSize = 25.sp)
+                Text(checkboxes, fontSize = 25.sp)
             }
 
             if (action == null && actionResult == null) {
