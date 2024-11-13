@@ -117,6 +117,7 @@ fun EnrollScreen(
                         modifier = Modifier.size(300.dp)
                     )
                 }
+
                 progress is BiometricProgress.FingerTransition -> {
                     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.checkmark_animation))
 
@@ -131,6 +132,7 @@ fun EnrollScreen(
                         modifier = Modifier.size(300.dp)
                     )
                 }
+
                 action == null -> {
                     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
 
@@ -145,6 +147,7 @@ fun EnrollScreen(
                         modifier = Modifier
                     )
                 }
+
                 progress is BiometricProgress.Progressing -> {
                     val (dark, light) = when (progress.currentStep) {
                         1 -> R.drawable.finger_left_dark to R.drawable.finger_left
@@ -165,6 +168,7 @@ fun EnrollScreen(
                         modifier = Modifier.size(200.dp)
                     )
                 }
+
                 else -> {
                     Image(
                         painter = painterResource(
@@ -197,7 +201,11 @@ fun EnrollScreen(
                     } + (1..(progress.remainingTouches)).joinToString("") {
                         "◼️"
                     }
-                Text("Finger ${progress.currentFinger} of 2\n", fontSize = 25.sp)
+                Text(
+                    "Finger ${progress.currentFinger} of 2\n",
+                    fontSize = 25.sp,
+                    modifier = Modifier.padding(top = 30.dp)
+                )
                 Text(checkboxes, fontSize = 25.sp)
             }
 
