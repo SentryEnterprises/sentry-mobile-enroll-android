@@ -62,7 +62,14 @@ fun EnrollScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(nfcViewModel, onNavigate)
+            TopAppBar(
+                onBack = {
+                    {
+                        nfcViewModel.resetNfcAction()
+                        onNavigate(Screen.EnrollIntro)
+                    }
+                }
+            )
         }
     ) { paddingInsets ->
         Column(
@@ -108,18 +115,35 @@ fun EnrollScreen(
             } else if (action == null && actionResult?.getOrNull() is NfcActionResult.EnrollFingerprint) {
                 when (actionResult.getOrNull()) {
                     is NfcActionResult.EnrollFingerprint.Complete -> {
-                        CompleteEnrollmentSection(nfcViewModel, onNavigate)
+                        CompleteEnrollmentSection(
+                            onOk = {
+                                nfcViewModel.resetNfcAction()
+                                onNavigate(Screen.GetCardState)
+                            }
+                        )
                     }
 
                     is NfcActionResult.EnrollFingerprint.Failed -> {
-                        FailedEnrollmentSection(progress, nfcViewModel)
+                        FailedEnrollmentSection(
+                            progress = progress,
+                            onRetry = {
+                                nfcViewModel.resetNfcAction()
+                                nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
+                            }
+                        )
                     }
 
                     else -> error("Unexpected state: $actionResult")
                 }
 
             } else if (action == null && actionResult?.isFailure == true) {
-                UnknownFailureSection(actionResult, nfcViewModel)
+                UnknownFailureSection(
+                    actionResult = actionResult,
+                    onRetry = {
+                        nfcViewModel.resetNfcAction()
+                        nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
+                    }
+                )
             } else {
                 val instructionText = when (progress) {
                     is BiometricProgress.Progressing -> "Lift your finger and press a " +
@@ -162,7 +186,7 @@ fun EnrollScreen(
 @Composable
 private fun UnknownFailureSection(
     actionResult: Result<NfcActionResult>,
-    nfcViewModel: NfcViewModel
+    onRetry: () -> Unit,
 ) {
     val errorText = actionResult.exceptionOrNull().getDecodedMessage()
 
@@ -180,17 +204,13 @@ private fun UnknownFailureSection(
     )
     SentryButton(
         text = "Retry",
-        onClick = {
-            nfcViewModel.resetNfcAction()
-            nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
-        }
+        onClick = onRetry,
     )
 }
 
 @Composable
 private fun CompleteEnrollmentSection(
-    nfcViewModel: NfcViewModel,
-    onNavigate: (Screen) -> Unit
+    onOk: () -> Unit,
 ) {
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -205,16 +225,13 @@ private fun CompleteEnrollmentSection(
         textAlign = TextAlign.Center,
         fontSize = 17.sp
     )
-    SentryButton(text = "Ok") {
-        nfcViewModel.resetNfcAction()
-        onNavigate(Screen.GetCardState)
-    }
+    SentryButton(text = "Ok", onClick = onOk)
 }
 
 @Composable
 private fun FailedEnrollmentSection(
     progress: BiometricProgress?,
-    nfcViewModel: NfcViewModel
+    onRetry: () -> Unit,
 ) {
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -234,17 +251,13 @@ private fun FailedEnrollmentSection(
         textAlign = TextAlign.Center,
         fontSize = 17.sp
     )
-    SentryButton(text = "Retry") {
-        nfcViewModel.resetNfcAction()
-        nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
-    }
+    SentryButton(text = "Retry", onClick = onRetry)
 }
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 private fun TopAppBar(
-    nfcViewModel: NfcViewModel,
-    onNavigate: (Screen) -> Unit
+    onBack: () -> Unit,
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -252,10 +265,7 @@ private fun TopAppBar(
         },
         navigationIcon = {
             IconButton(
-                onClick = {
-                    nfcViewModel.resetNfcAction()
-                    onNavigate(Screen.EnrollIntro)
-                },
+                onClick = onBack,
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
