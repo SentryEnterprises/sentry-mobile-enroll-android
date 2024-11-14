@@ -38,6 +38,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentryenterprises.sentry.enrollment.NfcViewModel
 import com.sentryenterprises.sentry.enrollment.Screen
 import com.sentryenterprises.sentry.enrollment.util.SentryButton
+import com.sentryenterprises.sentry.sdk.apdu.getDecodedMessage
 import com.sentryenterprises.sentry.sdk.models.NfcAction
 import com.sentryenterprises.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
@@ -157,7 +158,7 @@ fun ResetScreen(
                         }
 
                         is NfcActionResult.ResetBiometrics.Failed -> {
-                            "An error occurred. Please try again. (${nfcActionResult})"
+                            "An error occurred. Please try again. (${nfcActionResult.exceptionOrNull().getDecodedMessage()})"
                         }
 
                         else -> "Unexpected state: $nfcActionResult"
@@ -176,7 +177,7 @@ fun ResetScreen(
                     } else if (progress != null) {
                         "Card found" to true
                     } else {
-                        "Error $nfcActionResult" to false
+                        "Error ${nfcActionResult?.exceptionOrNull().getDecodedMessage()}" to false
                     }
                     if (isProgressing) {
                         CircularProgressIndicator()
