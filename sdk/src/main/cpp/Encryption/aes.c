@@ -245,7 +245,7 @@ void AddRoundKey(uint8_t state[][4], uint32_t w[])
 ** (Inv)SubBytes
 ********************/
 
-// Performs the SubBytes step. All bytes in the state are substituted with a 
+// Performs the SubBytes step. All bytes in the state are substituted with a
 // pre-calculated value from a lookup table.
 void SubBytes(uint8_t state[][4])
 {
@@ -734,7 +734,7 @@ void AES_128(uint8_t* key, uint8_t* plaintext, uint8_t* ciphertext)
 {
     uint32_t key_schedule[60];
 
-    // First set of test vectors. 
+    // First set of test vectors.
     KeyExpansion(key, key_schedule, 128);
     aes_encrypt(plaintext, ciphertext, key_schedule, 128);
 
@@ -751,7 +751,7 @@ void AES_128_CBC_Encrypt(uint8_t* key, uint8_t* plaintext, uint8_t* ciphertext, 
     
 
 
-    // First set of test vectors. 
+    // First set of test vectors.
     KeyExpansion(key, key_schedule, 128);
 
     for (i = 0; i < Block; i++)
@@ -781,7 +781,7 @@ void AES_128_CBC_Decrypt(uint8_t* key, uint8_t* ciphertext, uint8_t* plaintext, 
     uint32_t key_schedule[60];
 
 
-    // First set of test vectors. 
+    // First set of test vectors.
     KeyExpansion(key, key_schedule, 128);
 
     for (i = 0; i < Block; i++)
@@ -792,8 +792,6 @@ void AES_128_CBC_Decrypt(uint8_t* key, uint8_t* ciphertext, uint8_t* plaintext, 
         p1[(i * 4) + 1] ^= p2[1];
         p1[(i * 4) + 2] ^= p2[2];
         p1[(i * 4) + 3] ^= p2[3];
-        memcpy(iv, ciphertextiv, 16);        
+        memcpy(iv, ciphertextiv, 16);
     }
-
-
 }

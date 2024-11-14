@@ -12,7 +12,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # Since this is the top level CMakeLists.txt, the project name is also accessible
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
-project("jcwkit")
+project("libsentrysecurity")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -38,49 +38,36 @@ add_library(
         libsdkmain.h
         libsdkmain.c
 
-        LibSdkWallet/bip39.h
-        LibSdkWallet/hal_hmac.h
-        LibSdkWallet/lib_wallet.h
-        LibSdkWallet/preliminary.h
-        LibSdkWallet/sha512.h
+        Encryption/aes.c
+        Encryption/cmac.c
+        Encryption/uECC.c
+        Encryption/sha.c
 
-        LibSdkWallet/bip39.c
-        LibSdkWallet/hal_hmac.c
-        LibSdkWallet/preliminary.c
-        LibSdkWallet/sha512.c
-        LibSdkWallet/ripemd160.c
-        LibSdkWallet/sha3.c
-        LibSdkWallet/sha3.h
+        include/aes.h
+        include/cmac.h
+        include/constants.h
+        include/curve-specific.h
+        include/libsdkmain.h
+        include/platform-specific.h
+        include/secure.h
+        include/sha.h
+        include/uECC.h
+        include/uecc_types.h
+        include/uECC.h
+        include/uECC_vli.h
+        include/wrapper.h
 
-        LibSecureChannel/aes.h
-        LibSecureChannel/cmac.h
-        LibSecureChannel/secure.h
-        LibSecureChannel/sha.h
-        LibSecureChannel/uECC.h
-        LibSecureChannel/wrapper.h
-
-        LibSecureChannel/curve-specific.h
-        LibSecureChannel/platform-specific.h
-        LibSecureChannel/uecc_types.h
-        LibSecureChannel/uECC_vli.h
-
-        LibSecureChannel/aes.c
-        LibSecureChannel/cmac.c
-        LibSecureChannel/secure.c
-        LibSecureChannel/sha.c
-        LibSecureChannel/uECC.c
-        LibSecureChannel/wrapper.c
-
-
-        )
+        SecureChannel/secure.c
+        SecureChannel/wrapper.c
+)
 
 target_include_directories (
         ${CMAKE_PROJECT_NAME}
 
         PUBLIC
 
-        LibSdkWallet/
-        LibSecureChannel/
+        Encryption/
+        include/
         LibSdkEnrollment/
         LibSupport/
 )

@@ -9,11 +9,11 @@
 
 struct sha_ctx
 {
-	uint16_t hashsize;
-	void (*transform)(struct sha_ctx*, uint32_t[]);
-	uint32_t state[8];
-	uint8_t data[64];
-	uint32_t datalen;
+    uint16_t hashsize;
+    void (*transform)(struct sha_ctx*, uint32_t[]);
+    uint32_t state[8];
+    uint8_t data[64];
+    uint32_t datalen;
 };
 void SHA256(uint8_t* msg, uint16_t msg_len, uint8_t* digest);
 void SHA1(uint8_t* msg, uint16_t msg_len, uint8_t* digest);

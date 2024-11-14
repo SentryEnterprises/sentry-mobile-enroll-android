@@ -1205,7 +1205,7 @@ static void omega_mult_secp256k1(uint8_t * result, const uint8_t * right) {
     result[num_words_secp256k1 + 1] = r1;
     /* add the 2^32 multiple */
     result[4 + num_words_secp256k1] =
-        uECC_vli_add(result + 4, result + 4, right, num_words_secp256k1); 
+        uECC_vli_add(result + 4, result + 4, right, num_words_secp256k1);
 }
 #elif uECC_WORD_SIZE == 4
 static void omega_mult_secp256k1(uint32_t * result, const uint32_t * right) {
@@ -1222,7 +1222,7 @@ static void omega_mult_secp256k1(uint32_t * result, const uint32_t * right) {
     result[num_words_secp256k1] = carry;
     /* add the 2^32 multiple */
     result[1 + num_words_secp256k1] =
-        uECC_vli_add(result + 1, result + 1, right, num_words_secp256k1); 
+        uECC_vli_add(result + 1, result + 1, right, num_words_secp256k1);
 #endif
 
 #if 0

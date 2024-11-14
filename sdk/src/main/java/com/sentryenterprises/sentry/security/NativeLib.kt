@@ -1,4 +1,4 @@
-package com.secure.jnet.jcwkit
+package com.sentryenterprises.sentry.security
 
 import com.sun.jna.Library
 import com.sun.jna.Native
@@ -31,6 +31,6 @@ interface NativeLib : Library {
     ): Int
 
     companion object {
-        val INSTANCE: NativeLib = Native.load("jcwkit", NativeLib::class.java)
+        val INSTANCE: NativeLib = Native.load("libsentrysecurity", NativeLib::class.java)
     }
 }

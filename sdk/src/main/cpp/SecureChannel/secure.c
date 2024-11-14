@@ -49,12 +49,12 @@ int lib_auth_init(uint8_t* o_ApduInternal, int *o_len, uint8_t* o_private_key, u
 
     uECC_Curve curve = uECC_secp256r1();
     ret = uECC_make_key(o_public_key, o_private_key, curve);
-
+    
     do
     {
         ret = uECC_make_key(o_public_key, o_private_key, curve); //to-> *PubKey
         if (ret != 1) return ERROR_KEYGENERATION;
-
+        
         valid = uECC_valid_public_key(o_public_key, curve);
         if (valid == 1)
         {
@@ -77,13 +77,13 @@ int lib_auth_init(uint8_t* o_ApduInternal, int *o_len, uint8_t* o_private_key, u
 
     ret = uECC_shared_secret(sd_public_key, o_private_key, o_secret_shses, curve); //to-> static SecretKey
     if (ret != 1) return ERROR_SHAREDSECRETEXTRACTION;
-
+    
     PubKey[0] = 4;
     memcpy(PubKey + 1, o_public_key, 64);
     memcpy(ApduInternalAuth + 23, PubKey, 65);
     memcpy(o_ApduInternal, ApduInternalAuth, sizeof(ApduInternalAuth));
     o_len[0] = sizeof(ApduInternalAuth);
-
+    
     return SUCCESS;
 }
 
@@ -97,25 +97,25 @@ int lib_auth_ecdh_kdf(uint8_t* apduResponse, uint8_t* secret_shses, uint8_t* pri
     uint8_t SecretKeys[250];
     uint8_t shared_secret[256];
     uint8_t secret_shsee[32];
-
+    
     uint8_t pub[64];
-
+    
     // make sure the preamble is correct
     int p = 0;
     if (apduResponse[p++] != 0x5F) return ERROR_CRITERION;
     if (apduResponse[p++] != 0x49) return ERROR_CRITERION;
     if (apduResponse[p++] != 0x41) return ERROR_CRITERION;
     if (apduResponse[p++] != 0x04) return ERROR_CRITERION;
-
+    
     // make sure the chaining marker is correct
     p += 64;
     if (apduResponse[p++] != 0x86) return ERROR_CRITERION;
     if (apduResponse[p++] != 0x10) return ERROR_CRITERION;
-
+    
     printf("\n\nlib_auth_ecdh_kdf\n");
     //lib_auth_wrapper_init(apdu_out + p);
     memcpy(o_chaining_value, apduResponse + p, 16);
-
+    
     int i;
     printf("\nChaining Value:\n");
     for (i = 0; i < 16; i++)
@@ -129,13 +129,13 @@ int lib_auth_ecdh_kdf(uint8_t* apduResponse, uint8_t* secret_shses, uint8_t* pri
     //PubKey[0] = 4;
     p = 4;
     memcpy(pub, apduResponse + p, 64);
-
+        
     uECC_Curve curve = uECC_secp256r1();
     //ret = uECC_shared_secret(pub, private_key, secret_shsee, curve);
     ret = uECC_shared_secret(pub, privateKey, secret_shsee, curve);
     //if (ret != 1) return -102;
     if (ret != 1) return ERROR_SHAREDSECRETEXTRACTION;
-
+    
     memcpy(shared_secret + 0, secret_shsee, 32);
     memcpy(shared_secret + 32, secret_shses, 32);
 
@@ -155,7 +155,7 @@ int lib_auth_ecdh_kdf(uint8_t* apduResponse, uint8_t* secret_shses, uint8_t* pri
     SHA256(shared_secret, 71, SecretKeys + 64);
 
 //    int i;
-//
+//    
 //    printf("\nKey ENC Before:\n");
 //    for (i = 0; i < 16; i++)
 //    {
@@ -163,10 +163,10 @@ int lib_auth_ecdh_kdf(uint8_t* apduResponse, uint8_t* secret_shses, uint8_t* pri
 //        printf("0x%02X", o_KeyENC[i]);
 //    }
 //    printf("\n");
-
+ 
     memcpy(o_KeyRespt, SecretKeys + 0, 16);
     memcpy(o_KeyENC, SecretKeys + 16, 16);
-
+    
 //    printf("\nKey ENC After:\n");
 //    for (i = 0; i < 16; i++)
 //    {
@@ -177,7 +177,7 @@ int lib_auth_ecdh_kdf(uint8_t* apduResponse, uint8_t* secret_shses, uint8_t* pri
 
     memcpy(o_KeyCMAC, SecretKeys + 32, 16);
     memcpy(o_KeyRMAC, SecretKeys + 48, 16);
-
+    
     return SUCCESS;
 }
 
@@ -191,25 +191,25 @@ int lib_auth_wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t
     {
         apdu_in[0] |= 0x04;
     }
-
+    
     // lib_auth_wrap(DataIn, DataInLen, wrap_apdu_out, &wrap_out_len);
     if (in_len < 5) return ERROR_INVALIDPARAMETER;
-
+    
     wrap(apdu_in, in_len, wrap_apdu_out, &wrap_out_len, keyENC, keyCMAC, inout_chaining_value, inout_encryption_counter);
-
+    
     memcpy(apdu_out, wrap_apdu_out, wrap_out_len);
     out_len[0] = wrap_out_len;
-
+ 
     return SUCCESS;
 }
 
 int lib_auth_unwrap(uint8_t* wrapped_apdu_in, uint32_t in_len, uint8_t* unwrapped_apdu_out, uint32_t* out_len, uint8_t* keyENC, uint8_t* keyRMAC, uint8_t* chaining_value, uint8_t* encryption_counter)
 {
     int ret = 0;
-
+    
 //    uint32_t unwrapped_len = 0;
 //    uint8_t unwrapped_out[300];
-
+    
     if (in_len != 2)
     {
         ret = unwrap(wrapped_apdu_in, in_len, unwrapped_apdu_out, out_len, keyENC, keyRMAC, chaining_value, encryption_counter);
@@ -219,6 +219,87 @@ int lib_auth_unwrap(uint8_t* wrapped_apdu_in, uint32_t in_len, uint8_t* unwrappe
         memcpy(unwrapped_apdu_out, wrapped_apdu_in, in_len);
         out_len[0] = in_len;
     }
-
+    
     return ret;
 }
+
+////--------------------------------------------------------------------------------------------------------------------------------------------------------
+//int lib_auth_wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_len)
+//{
+//    if (in_len < 5) return -1;
+//    wrap(apdu_in, in_len, apdu_out, out_len, KeyENC, KeyCMAC);
+//    return 0;
+//}
+//
+////--------------------------------------------------------------------------------------------------------------------------------------------------------
+//int lib_auth_unwrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_len)
+//{
+//    return  unwrap(apdu_in, in_len, apdu_out, out_len, KeyENC, KeyRMAC);
+//}
+////--------------------------------------------------------------------------------------------------------------------------------------------------------
+//int lib_public_decompress(uint8_t* Compress, uint8_t* Decompress)
+//{
+//    if (Compress[0] != 0x03 && Compress[0] != 0x02)
+//    {
+//        return -1;
+//    }
+//    curve = uECC_secp256k1();
+//    uECC_decompress(Compress, Decompress, curve);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_ripemd160(uint8_t* Data, int DataLen, uint8_t* SHA160)
+//{
+//    ripemd160(Data, DataLen, SHA160);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_sha160(uint8_t* Data, int DataLen, uint8_t* SHA160)
+//{
+//    uint8_t Digest[32];
+//    SHA256(Data, (uint16_t)DataLen, Digest);
+//    ripemd160(Digest, 32, SHA160);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_sha2_256(uint8_t* Data, int DataLen, uint8_t* _SHA256)
+//{
+//    SHA256(Data, (uint16_t)DataLen, _SHA256);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_sha2_256D(uint8_t* Data, int DataLen, uint8_t* _SHA256)
+//{
+//    uint8_t temp32[32];
+//    SHA256(Data, (uint16_t)DataLen, temp32);
+//    SHA256(temp32, 32, _SHA256);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_sha3_256(uint8_t* Data, int DataLen, uint8_t* _SHA256)
+//{
+//    BRKeccak256(_SHA256, Data, DataLen);
+//    return 0;
+//}
+////----------------------------------------------------------------------------------------------------------------------
+//int lib_wallet_public_verify_sign_hash(uint8_t* Compress, uint8_t* Hash, uint8_t* Sign)
+//{
+//    if (Compress[0] != 0x03 && Compress[0] != 0x02)
+//    {
+//        return -1;
+//    }
+//    int Ret;
+//    uint8_t Decompress[64];
+//    uECC_Curve curve2;
+//    curve2 = uECC_secp256k1();
+//    uECC_decompress(Compress, Decompress, curve2);
+//    Ret = uECC_verify(Decompress, Hash, 32, Sign, curve2);
+//    if (Ret == 1)
+//    {
+//
+//        return 0;
+//    }
+//
+//    return 100;
+//}
+////----------------------------------------------------------------------------------------------------------------------

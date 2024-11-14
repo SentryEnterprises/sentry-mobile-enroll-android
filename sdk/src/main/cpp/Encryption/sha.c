@@ -9,9 +9,9 @@
 
 struct sha_initial_ctx
 {
-	uint16_t hashsize;
-	void (*transform)(struct sha_ctx*, uint32_t[]);
-	uint32_t state[8];
+    uint16_t hashsize;
+    void (*transform)(struct sha_ctx*, uint32_t[]);
+    uint32_t state[8];
 };
 
 
@@ -35,10 +35,10 @@ static void sha1_transform(struct sha_ctx *ctx, uint32_t v[]);
 static void sha256_transform(struct sha_ctx *ctx, uint32_t v[]);
 
 static const struct sha_initial_ctx sha256_initial_ctx = {
-	32, sha256_transform, { 0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19 }
+    32, sha256_transform, { 0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19 }
 };
 static const struct sha_initial_ctx sha1_initial_ctx = {
-	20, sha1_transform, { 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 }
+    20, sha1_transform, { 0x67452301,0xEFCDAB89,0x98BADCFE,0x10325476,0xC3D2E1F0 }
 };
 
 static const uint32_t k[64] =
@@ -55,42 +55,42 @@ static const uint32_t k[64] =
 
 static void brev(void *d, const void *s, int n)
 {
-	int i;
-	for (i=0; i<n; i++) {
-		uint32_t v = ((uint32_t *)s)[i];
-		((uint32_t *)d)[i] = (v >> 24) | ((v >> 8) & 0xff00) | ((v << 8) & 0xff0000) | (v << 24);
-	}
+    int i;
+    for (i=0; i<n; i++) {
+        uint32_t v = ((uint32_t *)s)[i];
+        ((uint32_t *)d)[i] = (v >> 24) | ((v >> 8) & 0xff00) | ((v << 8) & 0xff0000) | (v << 24);
+    }
 }
 
 static void sha256_transform(struct sha_ctx *ctx, uint32_t v[])
-{  
-	uint32_t i,t1,t2;
-	uint32_t *m = (uint32_t *)(ctx->data);
+{
+    uint32_t i,t1,t2;
+    uint32_t *m = (uint32_t *)(ctx->data);
 
-		for (i=0; i<64; ++i) {
-			t1 = v[7] + EP1(v[4]) + CH(v[4],v[5],v[6]) + k[i] + m[i%16];
-			t2 = EP0(v[0]) + MAJ(v[0],v[1],v[2]);
-			v[7] = v[6];
-			v[6] = v[5];
-			v[5] = v[4];
-			v[4] = v[3] + t1;
-			v[3] = v[2];
-			v[2] = v[1];
-			v[1] = v[0];
-			v[0] = t1 + t2;
-			m[i%16] = SIG1(m[(i+16-2)%16]) + m[(i+16-7)%16] + SIG0(m[(i+16-15)%16]) + m[i%16];
-		}
+        for (i=0; i<64; ++i) {
+            t1 = v[7] + EP1(v[4]) + CH(v[4],v[5],v[6]) + k[i] + m[i%16];
+            t2 = EP0(v[0]) + MAJ(v[0],v[1],v[2]);
+            v[7] = v[6];
+            v[6] = v[5];
+            v[5] = v[4];
+            v[4] = v[3] + t1;
+            v[3] = v[2];
+            v[2] = v[1];
+            v[1] = v[0];
+            v[0] = t1 + t2;
+            m[i%16] = SIG1(m[(i+16-2)%16]) + m[(i+16-7)%16] + SIG0(m[(i+16-15)%16]) + m[i%16];
+        }
 
 }
 
 static void sha1_transform(struct sha_ctx *ctx, uint32_t v[])
 {
     unsigned int i;
-		uint32_t *m = (uint32_t *)(ctx->data);
+        uint32_t *m = (uint32_t *)(ctx->data);
 
-  	for(i=0; i<80; i++) {
-  		uint32_t t;
-				t = m[i%16] + v[4] + rol(v[0],5);
+      for(i=0; i<80; i++) {
+          uint32_t t;
+                t = m[i%16] + v[4] + rol(v[0],5);
         if(i<40){
             if(i<20) t+= ((v[1]&(v[2]^v[3]))^v[3])    +0x5A827999;
             else     t+= ( v[1]^v[2]     ^v[3])    +0x6ED9EBA1;
@@ -110,29 +110,29 @@ static void sha1_transform(struct sha_ctx *ctx, uint32_t v[])
 
 int sha_init(struct sha_ctx *ctx, uint16_t method)
 {
-	const struct sha_initial_ctx *ictx = (method == METHOD_SHA1) ? &sha1_initial_ctx : &sha256_initial_ctx;
-	MEMCPY((uint8_t *)ctx, (uint8_t *)ictx, sizeof(struct sha_initial_ctx));
-	ctx->datalen = 0; 
-	return sizeof(struct sha_ctx);
+    const struct sha_initial_ctx *ictx = (method == METHOD_SHA1) ? &sha1_initial_ctx : &sha256_initial_ctx;
+    MEMCPY((uint8_t *)ctx, (uint8_t *)ictx, sizeof(struct sha_initial_ctx));
+    ctx->datalen = 0;
+    return sizeof(struct sha_ctx);
 }
 
 void sha_update(struct sha_ctx *ctx, uint8_t*  data, uint16_t len)
 {
     unsigned int i, j, a;
-		uint32_t v[8];
+        uint32_t v[8];
 
     j = ctx->datalen & 63;
     ctx->datalen += len;
 
-  	for( i = 0; i < len; i++ ){
+      for( i = 0; i < len; i++ ){
         ctx->data[ j++ ] = data[i];
         if( 64 == j ){
-						MEMCPY((uint8_t *)v, (uint8_t *)ctx->state, ctx->hashsize);
-						brev(ctx->data, ctx->data, 16);
-						ctx->transform(ctx, v);
-						for (a=0; a<(uint16_t)(ctx->hashsize/4); a++) {
-							ctx->state[a] += v[a];
-						}
+                        MEMCPY((uint8_t *)v, (uint8_t *)ctx->state, ctx->hashsize);
+                        brev(ctx->data, ctx->data, 16);
+                        ctx->transform(ctx, v);
+                        for (a=0; a<(uint16_t)(ctx->hashsize/4); a++) {
+                            ctx->state[a] += v[a];
+                        }
             j = 0;
         }
     }
@@ -140,11 +140,11 @@ void sha_update(struct sha_ctx *ctx, uint8_t*  data, uint16_t len)
 
 void sha_final(struct sha_ctx *ctx, uint8_t* digest)
 {
-		uint32_t finalcount[2];
+        uint32_t finalcount[2];
 
-		finalcount[0] = ctx->datalen >> 29;
+        finalcount[0] = ctx->datalen >> 29;
     finalcount[1] = ctx->datalen << 3;
-		brev(finalcount, finalcount, 2);
+        brev(finalcount, finalcount, 2);
 
     sha_update(ctx, (uint8_t *)"\200", 1);
     while ((ctx->datalen & 63) != 56) {
@@ -152,23 +152,23 @@ void sha_final(struct sha_ctx *ctx, uint8_t* digest)
     }
     sha_update(ctx, (uint8_t *)&finalcount, 8); /* Should cause a transform() */
 
-		brev(&ctx->state, &ctx->state, ctx->hashsize / 4);
-		MEMCPY(digest, (uint8_t *)ctx->state, ctx->hashsize);
+        brev(&ctx->state, &ctx->state, ctx->hashsize / 4);
+        MEMCPY(digest, (uint8_t *)ctx->state, ctx->hashsize);
 }
 
 struct sha_ctx ctx;// __attribute__ ((used)) __attribute__ ((section(".section.workspace")));;;
 
 void SHA256(uint8_t* msg, uint16_t msg_len, uint8_t* digest)
 {
-	sha_init(&ctx, METHOD_SHA256);
-	sha_update(&ctx, msg, msg_len);
-	sha_final(&ctx, digest);
+    sha_init(&ctx, METHOD_SHA256);
+    sha_update(&ctx, msg, msg_len);
+    sha_final(&ctx, digest);
 }
 
 
 void SHA1(uint8_t* msg, uint16_t msg_len, uint8_t* digest)
 {
-	sha_init(&ctx, METHOD_SHA1);
-	sha_update(&ctx, msg, msg_len);
-	sha_final(&ctx, digest);
+    sha_init(&ctx, METHOD_SHA1);
+    sha_update(&ctx, msg, msg_len);
+    sha_final(&ctx, digest);
 }

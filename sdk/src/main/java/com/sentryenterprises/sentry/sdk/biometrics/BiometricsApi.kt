@@ -3,7 +3,7 @@ package com.sentryenterprises.sentry.sdk.biometrics
 
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
-import com.secure.jnet.jcwkit.NativeLib
+import com.sentryenterprises.sentry.security.NativeLib
 import com.sentryenterprises.sentry.sdk.apdu.APDUCommand
 import com.sentryenterprises.sentry.sdk.presentation.SentrySDKError
 import com.sentryenterprises.sentry.sdk.apdu.APDUResponseCode

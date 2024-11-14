@@ -11,7 +11,7 @@
 static int64_t rNd_global=0x123456789089ULL;
 
 int default_RNG(uint8_t *dest, uint16_t size)
-{    
+{
     struct timespec ts;
     ts.tv_sec = 0;
     ts.tv_nsec = 0;
@@ -21,7 +21,7 @@ int default_RNG(uint8_t *dest, uint16_t size)
     int p = 0;
     
 #ifndef _WINDOWS
-    clock_gettime(CLOCK_REALTIME, &ts);    
+    clock_gettime(CLOCK_REALTIME, &ts);
 #endif
     
     rNd_global += (int64_t)(ts.tv_sec + ts.tv_nsec);

@@ -1,4 +1,4 @@
-
+//
 #include "stdint.h"
 #include "string.h"
 #include "aes.h"
@@ -7,7 +7,74 @@
 #include "wrapper.h"
 
 #include "stdio.h"
-
+//
+//uint8_t chaining_value[16];
+//uint8_t encryption_counter[16];
+//uint8_t apdu_new[264];
+//
+//SmartCardApduCallBack pSmartCardApduCallBack = NULL;
+//int ApduIsSecureChannel = 0;
+//
+////----------------------------------------------------------------------------------------------------------------------
+//int apdu_secure_channel(uint8_t* DataIn, uint32_t DataInLen, uint8_t* DataOut, uint32_t* DataOutLen)
+//{
+//    int Ret = 0;
+//    uint32_t    wrap_out_len = 0;
+//    uint8_t        wrap_apdu_out[300];
+//    uint32_t    unwrap_out_len = 0;
+//    uint8_t        unwrap_apdu_out[300];
+//
+//    if (ApduIsSecureChannel > 0)
+//    {
+//        if ((DataIn[0] & 0xF0) == 0x80)
+//        {
+//            DataIn[0] |= 0x04;
+//        }
+//
+//        if ((DataIn[0] & 0xFF) != 0x84)
+//        {
+//            return pSmartCardApduCallBack(DataIn, DataInLen, DataOut, DataOutLen);
+//        }
+//    }
+//
+//
+//    if (ApduIsSecureChannel == 0)
+//    {
+//        return pSmartCardApduCallBack(DataIn, DataInLen, DataOut, DataOutLen);
+//    }
+//    else
+//    {
+//        Ret = lib_auth_wrap(DataIn, DataInLen, wrap_apdu_out, &wrap_out_len);
+//        if (Ret != 0) return Ret;
+//        Ret = pSmartCardApduCallBack(wrap_apdu_out, wrap_out_len, unwrap_apdu_out, &unwrap_out_len);
+//        if (Ret != 0) return Ret;
+//
+//        if (unwrap_out_len != 2)
+//        {
+//            Ret = lib_auth_unwrap(unwrap_apdu_out, unwrap_out_len, DataOut, DataOutLen);
+//        }
+//        else
+//        {
+//            memcpy(DataOut, unwrap_apdu_out, unwrap_out_len);
+//            DataOutLen[0] = unwrap_out_len;
+//
+//        }
+//
+//    }
+//
+//    return Ret;
+//
+//}
+//
+//
+////-----------------------------------------------------------------------------------------------------------
+//void wrapper_init(uint8_t *chaining)
+//{
+//    memcpy(chaining_value, chaining,    16);
+//    memset(encryption_counter, 0,        16);
+//}
+//
+//-----------------------------------------------------------------------------------------------------------
 void buffer_increment(uint8_t* encryption_counter)
 {
     for (int i = 15; i > 0; i--)
@@ -35,18 +102,18 @@ void wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t*out_len
     uint8_t p2 = apdu_in[3];
     uint8_t lc = apdu_in[4];
     uint8_t lcenc = 0;
-
+    
     uint8_t aes_buf[300];
     uint8_t cmac_buf[300];
-
+    
     int p = 0;
     int pw = 0;
-
+    
     int le = -1;
     if (in_len > (uint32_t) (lc + 5)) le = apdu_in[in_len - 1];
-
+    
     buffer_increment(inout_encryption_counter);
-
+    
     int i;
     printf("\nEncryption Counter:\n");
     for (i = 0; i < 16; i++)
@@ -56,11 +123,11 @@ void wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t*out_len
     }
     printf("\n");
 
-
+    
     if (lc > 0)
     {
         uint8_t iv[16];
-
+        
         memset(aes_buf, 0, 300);
         //pad
         int total = ((lc / 16) + 1) * 16;
@@ -71,10 +138,10 @@ void wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t*out_len
         lcenc = (uint8_t)total;
     }
     else
-    if (lc == 0) lcenc = lc;
-
+        if (lc == 0) lcenc = lc;
+    
     memset(cmac_buf, 0, 300);
-
+    
     p = 0;
     memcpy(cmac_buf, inout_chaining_value, 16); p += 16;
     cmac_buf[p] = cla; p++;
@@ -82,25 +149,25 @@ void wrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t*out_len
     cmac_buf[p] = p1; p++;
     cmac_buf[p] = p2; p++;
     cmac_buf[p] = lcenc + 8; p++;
-    if (lc > 0)
+    if (lc > 0) 
     {
         memcpy(cmac_buf + p, aes_buf, lcenc);
         p += lcenc;
     }
-
+    
     AES_CMAC(key_cmac, cmac_buf, p, inout_chaining_value);
-
+    
     pw = 0;
     apdu_out[pw] = cla; pw++;
     apdu_out[pw] = ins; pw++;
     apdu_out[pw] = p1; pw++;
     apdu_out[pw] = p2; pw++;
     apdu_out[pw] = lcenc + 8; pw++;
-
+    
     if (lcenc > 0) { memcpy(apdu_out + pw, aes_buf, lcenc);  pw += lcenc; }
     memcpy(apdu_out + pw, inout_chaining_value, 8);  pw += 8;
     if (le != -1)  apdu_out[pw++] = (uint8_t)le;
-
+    
     out_len[0] = pw;
 }
 
@@ -143,7 +210,7 @@ int unwrap(uint8_t* apdu_in, uint32_t in_len, uint8_t* apdu_out, uint32_t* out_l
         lcenc = in_len - 10;
         if ((lcenc % 16) > 0) return -2;
 
-
+        
         memcpy(ecn_cnt, encryption_counter, 16);
         ecn_cnt[0] = 0x80;
         memset(aes_buf, 0x88, 300);
