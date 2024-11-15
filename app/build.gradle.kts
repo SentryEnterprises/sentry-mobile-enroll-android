@@ -18,14 +18,14 @@ kotlin {
 }
 
 android {
-    namespace = "com.sentryenterprises.sentry.enrollment"
+    namespace = "com.sentrycard.sentry.enrollment"
 
     compileSdk = 34
 
     defaultConfig {
         minSdk = 31
         targetSdk = 34
-        versionCode = 59
+        versionCode = 61
         versionName = "0.0.${versionCode}"
     }
 
@@ -40,7 +40,7 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("../../../deployKey.keystore")
+            storeFile = file("../deployKey.keystore")
             storePassword = System.getenv("SENTRY_KEYSTORE_PASSWORD")
             keyAlias = "key0"
             keyPassword = System.getenv("SENTRY_KEYSTORE_ALIAS_PASSWORD")

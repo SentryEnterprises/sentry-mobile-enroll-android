@@ -19,7 +19,7 @@
         android:theme="@style/Theme.SentryCardEnroll">
 
         <activity
-            android:name="com.sentryenterprises.sentry.enrollment.MainActivity"
+            android:name="com.sentrycard.sentry.enrollment.MainActivity"
             android:exported="true"
             android:launchMode="singleInstance"
             android:screenOrientation="portrait"
