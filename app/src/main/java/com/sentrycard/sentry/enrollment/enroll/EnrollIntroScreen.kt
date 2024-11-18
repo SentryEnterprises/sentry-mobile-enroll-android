@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -38,16 +39,11 @@ fun EnrollIntroScreen(
     nfcViewModel: NfcViewModel,
     onNavigate: (Screen) -> Unit,
 ) {
-
-    val progress = nfcViewModel.fingerProgress.collectAsState().value
-    val action = nfcViewModel.nfcAction.collectAsState().value
-    val actionResult = nfcViewModel.nfcActionResult.collectAsState().value
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Fingerprint Enrollment")
+                    Text(stringResource(R.string.fingerprint_enrollment))
                 },
                 navigationIcon = {
                     IconButton(
@@ -58,7 +54,7 @@ fun EnrollIntroScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
@@ -90,7 +86,7 @@ fun EnrollIntroScreen(
                     .fillMaxHeight()
                     .weight(.1f)
             )
-            SentryButton(text = "Continue") {
+            SentryButton(text = stringResource(R.string.continue_)) {
                 onNavigate(Screen.Enroll)
             }
         }

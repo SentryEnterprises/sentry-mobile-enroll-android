@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,7 +54,6 @@ fun VersionInfoScreen(
 ) {
     val nfcAction = nfcViewModel.nfcAction.collectAsState().value
     val nfcActionResult = nfcViewModel.nfcActionResult.collectAsState().value
-    val progress = nfcViewModel.nfcProgress.collectAsState().value
     val sheetState = rememberModalBottomSheetState()
     val showStatus = nfcViewModel.showStatus.collectAsState(ShowStatus.Hidden).value
 
@@ -77,12 +77,12 @@ fun VersionInfoScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
                 title = {
-                    Text("Version Information")
+                    Text(stringResource(R.string.version_information))
                 },
             )
         }
@@ -98,12 +98,12 @@ fun VersionInfoScreen(
 
                 val info =
                     mapOf(
-                        "Mobile App Version" to BuildConfig.VERSION_NAME,
-                        "SDK Version" to nfcViewModel.sdkVersion,
-                        "OS Version" to actionResult.osVersion,
-                        "Enroll Version" to actionResult.enrollAppletVersion,
-                        "CVM Version" to actionResult.cvmAppletVersion,
-                        "Verify Version" to actionResult.verifyAppletVersion
+                        stringResource(R.string.mobile_app_version) to BuildConfig.VERSION_NAME,
+                        stringResource(R.string.sdk_version) to nfcViewModel.sdkVersion,
+                        stringResource(R.string.os_version) to actionResult.osVersion,
+                        stringResource(R.string.enroll_version) to actionResult.enrollAppletVersion,
+                        stringResource(R.string.cvm_version) to actionResult.cvmAppletVersion,
+                        stringResource(R.string.verify_version) to actionResult.verifyAppletVersion
                     )
 
                 LazyColumn(Modifier.weight(1f)) {

@@ -48,7 +48,9 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -71,7 +73,6 @@ import com.sentrycard.sentry.sdk.models.NfcAction
 import com.sentrycard.sentry.sdk.models.NfcActionResult
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GetCardStateScreen(
     modifier: Modifier = Modifier,
@@ -120,14 +121,14 @@ fun GetCardStateScreenContents(
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    Text("Get Card Status")
+                    Text(stringResource(R.string.get_card_status))
                 },
                 actions = {
                     IconButton(onClick = { onNavigate(Screen.Settings) }) {
                         Icon(
                             tint = MaterialTheme.colorScheme.primary,
                             imageVector = Icons.Filled.Settings,
-                            contentDescription = "Settings"
+                            contentDescription = stringResource(R.string.settings)
                         )
                     }
                 }
@@ -167,15 +168,14 @@ fun GetCardStateScreenContents(
                             modifier = Modifier
                                 .padding(top = 32.dp, bottom = 10.dp)
                                 .fillMaxWidth(),
-                            text = "Getting Started:",
-//                            text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                            text = stringResource(R.string.getting_started),
                             textAlign = TextAlign.Center,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
                         Text(
                             modifier = Modifier.padding(bottom = 22.dp),
-                            text = "• Place card on a flat, non-metallic surface\n• Place phone on top of card as shown\n• Click \"Scan Card\" button below",
+                            text = stringResource(R.string.place_card_on_a_flat_non_metallic_surface_place_phone_on_top_of_card_as_shown_click_scan_card_button_below),
                             fontSize = 17.sp,
                         )
                     }
@@ -192,24 +192,25 @@ fun GetCardStateScreenContents(
                 )
                 Text(
                     modifier = Modifier.padding(bottom = 30.dp),
-                    text = "SentryCard Enroll \uD83D\uDD12 ${BuildConfig.VERSION_NAME}",
+                    text = stringResource(R.string.sentrycard_enroll, BuildConfig.VERSION_NAME),
                     fontSize = 11.sp,
                     color = (if (isSystemInDarkTheme()) Color.White else Color.Black).copy(alpha = .7f)
                 )
             }
         }
 
+        val context = LocalContext.current
         ScanStatusBottomSheet(
             sheetState = sheetState,
             showStatus = showStatus,
             onShowResultText = { result ->
                 if (result is NfcActionResult.BiometricEnrollment) {
                     if (result.isStatusEnrollment) {
-                        "Not Enrolled" to "This card is not enrolled. No fingerprints are recorded on this card. Click OK to continue."
+                        context.getString(R.string.not_enrolled) to context.getString(R.string.this_card_is_not_enrolled_no_fingerprints_are_recorded_on_this_card_click_ok_to_continue)
                     } else {
-                        "Enrolled" to "This card is enrolled. A fingerprint is recorded on this card. Click OK to continue."
+                        context.getString(R.string.enrolled) to context.getString(R.string.this_card_is_enrolled_a_fingerprint_is_recorded_on_this_card_click_ok_to_continue)
                     }
-                } else error("Unexpected state $showStatus")
+                } else error(context.getString(R.string.unexpected_state, showStatus))
             },
             onButtonClicked = {
                 if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
@@ -251,7 +252,7 @@ private fun PlaceCardHere() {
                     R.drawable.card_black
                 }
             ),
-            contentDescription = "Place card here",
+            contentDescription = stringResource(R.string.place_card_here),
             modifier = Modifier
                 .offset((100).dp, (120).dp)
                 .scale(1.4f)
@@ -264,7 +265,7 @@ private fun PlaceCardHere() {
             fontWeight = FontWeight.W400,
         )
         val textLayout = textMeasurer.measure(
-            text = "Place Card Under Phone Here",
+            text = stringResource(R.string.place_card_under_phone_here),
             maxLines = 1,
             style = textStyle,
         )
@@ -345,7 +346,7 @@ private fun PreviewScanning() {
 private fun PreviewGetCardState4() {
     SentryTheme {
         GetCardStateScreenContents(
-            showStatus = ShowStatus.Error("Error"),
+            showStatus = ShowStatus.Error(IllegalStateException()),
             onReset = {},
             onScanClicked = {},
             onNavigate = {},

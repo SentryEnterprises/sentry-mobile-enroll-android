@@ -20,10 +20,13 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sentrycard.sentry.enrollment.NfcViewModel
+import com.sentrycard.sentry.enrollment.R
 import com.sentrycard.sentry.enrollment.Screen
 import com.sentrycard.sentry.enrollment.ShowStatus
 import com.sentrycard.sentry.enrollment.util.ScanStatusBottomSheet
@@ -67,12 +70,12 @@ fun VerifyScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
                 title = {
-                    Text("Verify Fingerprint")
+                    Text(stringResource(R.string.verify_fingerprint))
                 },
             )
         }
@@ -93,24 +96,9 @@ fun VerifyScreen(
                 Locked(modifier = Modifier.size(400.dp))
             }
 
-
-//            val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.attach_card))
-//
-//            val animationState by animateLottieCompositionAsState(
-//                iterations = LottieConstants.IterateForever,
-//                restartOnPlay = true,
-//                composition = composition,
-//                isPlaying = true
-//            )
-//            LottieAnimation(
-//                composition = composition,
-//                progress = { animationState },
-//                modifier = modifier
-//            )
-
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                text = "Place your card on a flat, non-metallic surface then place a phone on top leaving sensor accessible for finger print scanning.",
+                text = stringResource(R.string.place_your_card_on_a_flat_non_metallic_surface_then_place_a_phone_on_top_leaving_sensor_accessible_for_finger_print_scanning),
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp
             )
@@ -123,33 +111,34 @@ fun VerifyScreen(
 
             SentryButton(
                 modifier = Modifier.padding(bottom = 30.dp),
-                text = "Verify Fingerprint",
+                text = stringResource(R.string.verify_fingerprint),
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.VerifyBiometric)
                 }
             )
         }
 
+        val context = LocalContext.current
         ScanStatusBottomSheet(
             sheetState = sheetState,
             showStatus = showStatus,
-            cardFoundText = "Place your finger on the card.",
+            cardFoundText = stringResource(R.string.place_your_finger_on_the_card),
             onShowResultText = { result ->
                 if (result is NfcActionResult.VerifyBiometric) {
-                    "Verification Status" to when (result.fingerprintValidation) {
+                    context.getString(R.string.verification_status) to when (result.fingerprintValidation) {
                         FingerprintValidation.MatchValid -> {
-                            "Fingerprint successfully verified!"
+                            context.getString(R.string.fingerprint_successfully_verified)
                         }
 
                         FingerprintValidation.MatchFailed -> {
-                            "Fingerprint did not match."
+                            context.getString(R.string.fingerprint_did_not_match)
                         }
 
                         else -> {
-                            "This card is not enrolled."
+                            context.getString(R.string.this_card_is_not_enrolled)
                         }
                     }
-                } else error("Unexpected state $showStatus")
+                } else error(context.getString(R.string.unexpected_state, showStatus))
             },
             onButtonClicked = {
                 nfcViewModel.resetNfcAction()

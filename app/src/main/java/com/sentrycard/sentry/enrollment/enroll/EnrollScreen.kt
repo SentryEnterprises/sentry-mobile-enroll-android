@@ -30,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,13 +42,12 @@ import com.sentrycard.sentry.enrollment.NfcViewModel
 import com.sentrycard.sentry.enrollment.R
 import com.sentrycard.sentry.enrollment.Screen
 import com.sentrycard.sentry.enrollment.util.SentryButton
-import com.sentrycard.sentry.sdk.apdu.getDecodedMessage
+import com.sentrycard.sentry.enrollment.util.getDecodedMessage
 import com.sentrycard.sentry.sdk.models.BiometricProgress
 import com.sentrycard.sentry.sdk.models.NfcAction
 import com.sentrycard.sentry.sdk.models.NfcActionResult
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnrollScreen(
     nfcViewModel: NfcViewModel,
@@ -61,10 +61,8 @@ fun EnrollScreen(
         topBar = {
             TopAppBar(
                 onBack = {
-                    {
-                        nfcViewModel.resetNfcAction()
-                        onNavigate(Screen.EnrollIntro)
-                    }
+                    nfcViewModel.resetNfcAction()
+                    onNavigate(Screen.EnrollIntro)
                 }
             )
         }
@@ -88,7 +86,7 @@ fun EnrollScreen(
                 PlaySoundPerStep(progress)
 
                 Text(
-                    "Finger ${progress.currentFinger} of 2\n",
+                    stringResource(R.string.finger_of_2, progress.currentFinger),
                     fontSize = 25.sp,
                     modifier = Modifier.padding(top = 30.dp)
                 )
@@ -104,8 +102,7 @@ fun EnrollScreen(
             if (action == null && actionResult == null) {
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-                    text = "Place your card on a flat, non-metallic surface then place a phone " +
-                            "on top leaving sensor accessible for finger print scanning.",
+                    text = stringResource(R.string.place_your_card_on_a_flat_non_metallic_surface_then_place_a_phone_on_top_leaving_sensor_accessible_for_finger_print_scanning),
                     textAlign = TextAlign.Center,
                     fontSize = 17.sp
                 )
@@ -130,7 +127,7 @@ fun EnrollScreen(
                         )
                     }
 
-                    else -> error("Unexpected state: $actionResult")
+                    else -> error(stringResource(R.string.unexpected_state,actionResult))
                 }
 
             } else if (action == null && actionResult?.isFailure == true) {
@@ -143,16 +140,16 @@ fun EnrollScreen(
                 )
             } else {
                 val instructionText = when (progress) {
-                    is BiometricProgress.Progressing -> "Lift your finger and press a " +
-                            "slightly different part of the same finger."
+                    is BiometricProgress.Progressing -> stringResource(R.string.lift_your_finger_and_press_a_slightly_different_part_of_the_same_finger)
 
-                    is BiometricProgress.Feedback -> "Card status:${progress.status}. " +
-                            "Try again with your finger."
+                    is BiometricProgress.Feedback -> stringResource(
+                        R.string.card_status_try_again_with_your_finger,
+                        progress.status
+                    )
 
-                    is BiometricProgress.FingerTransition -> "Please use your second " +
-                            "finger."
+                    is BiometricProgress.FingerTransition -> stringResource(R.string.please_use_your_second_finger)
 
-                    null -> "Press your finger to the card to get started."
+                    null -> stringResource(R.string.press_your_finger_to_the_card_to_get_started)
                 }
                 Text(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
@@ -170,7 +167,7 @@ fun EnrollScreen(
             if (action == null && actionResult == null) {
                 SentryButton(
                     modifier = Modifier.padding(bottom = 30.dp),
-                    text = "Scan Fingerprint",
+                    text = stringResource(R.string.scan_fingerprint),
                     onClick = {
                         nfcViewModel.startNfcAction(NfcAction.EnrollFingerprint)
                     }
@@ -195,12 +192,12 @@ private fun UnknownFailureSection(
     )
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-        text = "Please move the phone away from the card to reset, then try again.",
+        text = stringResource(R.string.please_move_the_phone_away_from_the_card_to_reset_then_try_again),
         textAlign = TextAlign.Center,
         fontSize = 17.sp
     )
     SentryButton(
-        text = "Retry",
+        text = stringResource(R.string.retry),
         onClick = onRetry,
     )
 }
@@ -211,18 +208,18 @@ private fun CompleteEnrollmentSection(
 ) {
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-        text = "Enrollment Finished",
+        text = stringResource(R.string.enrollment_finished),
         textAlign = TextAlign.Center,
         fontWeight = Bold,
         fontSize = 23.sp,
     )
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-        text = "Your fingerprint is now enrolled. Click Ok to continue.",
+        text = stringResource(R.string.your_fingerprint_is_now_enrolled_click_ok_to_continue),
         textAlign = TextAlign.Center,
         fontSize = 17.sp
     )
-    SentryButton(text = "Ok", onClick = onOk)
+    SentryButton(text = stringResource(R.string.ok), onClick = onOk)
 }
 
 @Composable
@@ -232,13 +229,13 @@ private fun FailedEnrollmentSection(
 ) {
     Text(
         modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-        text = "Unexpected error occurred",
+        text = stringResource(R.string.unexpected_error_occurred),
         textAlign = TextAlign.Center,
         fontWeight = Bold,
         fontSize = 23.sp,
     )
     val errorText = if (BuildConfig.DEBUG) {
-        "Please try again."
+        stringResource(R.string.please_try_again)
     } else {
         "$progress"
     }
@@ -248,7 +245,7 @@ private fun FailedEnrollmentSection(
         textAlign = TextAlign.Center,
         fontSize = 17.sp
     )
-    SentryButton(text = "Retry", onClick = onRetry)
+    SentryButton(text = stringResource(R.string.retry), onClick = onRetry)
 }
 
 @Composable
@@ -258,7 +255,7 @@ private fun TopAppBar(
 ) {
     CenterAlignedTopAppBar(
         title = {
-            Text("Fingerprint scan")
+            Text(stringResource(R.string.fingerprint_scan))
         },
         navigationIcon = {
             IconButton(
@@ -266,7 +263,7 @@ private fun TopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                 )
             }
         },
@@ -304,7 +301,7 @@ private fun FingerGuideImage(currentStep: Int) {
                 light
             }
         ),
-        contentDescription = "Portion of finger to place",
+        contentDescription = stringResource(R.string.portion_of_finger_to_place),
         modifier = Modifier.size(200.dp)
     )
 }

@@ -22,8 +22,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sentrycard.sentry.enrollment.NfcViewModel
+import com.sentrycard.sentry.enrollment.R
 import com.sentrycard.sentry.enrollment.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,12 +47,12 @@ fun SettingsScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
                 title = {
-                    Text("Options")
+                    Text(stringResource(R.string.options))
                 },
             )
         }
@@ -63,18 +65,20 @@ fun SettingsScreen(
         ) {
             Text(
                 modifier = Modifier.padding(17.dp),
-                text = "CARD ACTIONS",
+                text = stringResource(R.string.card_actions),
                 color = Color.Gray
             )
             HorizontalDivider()
             Row(
-                modifier = Modifier.fillMaxWidth().clickable {
-                    onNavigate(Screen.Reset)
-                }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onNavigate(Screen.Reset)
+                    }
             ) {
                 Text(
                     modifier = Modifier.padding(17.dp),
-                    text = "Reset Biometric Data",
+                    text = stringResource(R.string.reset_biometric_data),
                 )
             }
             HorizontalDivider()
@@ -83,18 +87,20 @@ fun SettingsScreen(
 
             Text(
                 modifier = Modifier.padding(17.dp),
-                text = "INFORMATION",
+                text = stringResource(R.string.information),
                 color = Color.Gray
             )
             HorizontalDivider()
             Row(
-                modifier = Modifier.fillMaxWidth().clickable {
-                    onNavigate(Screen.VersionInfo)
-                }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        onNavigate(Screen.VersionInfo)
+                    }
             ) {
                 Text(
                     modifier = Modifier.padding(17.dp),
-                    text = "Retrieve Card Version Information",
+                    text = stringResource(R.string.retrieve_card_version_information),
                 )
             }
         }

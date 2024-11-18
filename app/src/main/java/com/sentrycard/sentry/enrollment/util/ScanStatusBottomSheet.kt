@@ -13,11 +13,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.text.font.FontWeight.Companion.Normal
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sentrycard.sentry.enrollment.R
 import com.sentrycard.sentry.enrollment.ShowStatus
 import com.sentrycard.sentry.sdk.models.NfcActionResult
 
@@ -28,7 +30,7 @@ import com.sentrycard.sentry.sdk.models.NfcActionResult
 fun ScanStatusBottomSheet(
     sheetState: SheetState,
     showStatus: ShowStatus,
-    cardFoundText: String = "Please do not move the phone or card.",
+    cardFoundText: String = stringResource(R.string.please_do_not_move_the_phone_or_card),
     onShowResultText: (NfcActionResult) -> Pair<String, String?>,
     onButtonClicked: (() -> Unit)?,
     onDismiss: (() -> Unit)?,
@@ -44,10 +46,10 @@ fun ScanStatusBottomSheet(
                     CircularProgressIndicator()
                 }
                 val (statusTitle, statusText) = when (showStatus) {
-                    ShowStatus.CardFound -> "Card Found" to cardFoundText
-                    is ShowStatus.Error -> "Communication Failure" to showStatus.message
+                    ShowStatus.CardFound -> stringResource(R.string.card_found)to cardFoundText
+                    is ShowStatus.Error -> stringResource(R.string.communication_failure) to showStatus.error?.getDecodedMessage()
                     is ShowStatus.Result -> onShowResultText(showStatus.result)
-                    ShowStatus.Scanning -> "Ready to Scan" to "Place your card under the phone to establish connection."
+                    ShowStatus.Scanning -> stringResource(R.string.ready_to_scan) to stringResource(R.string.place_your_card_under_the_phone_to_establish_connection)
                     ShowStatus.Hidden -> "" to "" // Nothing
                 }
 
@@ -70,19 +72,19 @@ fun ScanStatusBottomSheet(
                     val okButtonText =
                         if (showStatus is ShowStatus.Result && showStatus.result is NfcActionResult.BiometricEnrollment) {
                             if (showStatus.result.isStatusEnrollment) {
-                                "Enroll"
+                                stringResource(R.string.enroll)
                             } else {
-                                "Verify"
+                                stringResource(R.string.verify)
                             }
                         } else {
                             when (showStatus) {
                                 ShowStatus.Hidden -> "" // Nothing
 
                                 is ShowStatus.Result,
-                                is ShowStatus.Error -> "Ok"
+                                is ShowStatus.Error -> stringResource(R.string.ok)
 
                                 ShowStatus.CardFound,
-                                ShowStatus.Scanning -> "Cancel"
+                                ShowStatus.Scanning -> stringResource(R.string.cancel)
                             }
                         }
                     SentryButton(

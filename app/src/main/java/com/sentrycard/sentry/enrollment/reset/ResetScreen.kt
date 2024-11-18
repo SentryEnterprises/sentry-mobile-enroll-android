@@ -32,13 +32,14 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.sentrycard.sentry.enrollment.NfcViewModel
 import com.sentrycard.sentry.enrollment.Screen
 import com.sentrycard.sentry.enrollment.util.SentryButton
-import com.sentrycard.sentry.sdk.apdu.getDecodedMessage
+import com.sentrycard.sentry.enrollment.util.getDecodedMessage
 import com.sentrycard.sentry.sdk.models.NfcAction
 import com.sentrycard.sentry.sdk.models.NfcActionResult
 import kotlinx.coroutines.launch
@@ -75,12 +76,12 @@ fun ResetScreen(
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
                 title = {
-                    Text("Reset Biometric Data")
+                    Text(stringResource(R.string.reset_biometric_data))
                 },
             )
         }
@@ -108,20 +109,20 @@ fun ResetScreen(
 
             Text(
                 modifier = Modifier.padding(vertical = 32.dp, horizontal = 24.dp),
-                text = "This resets the biometric fingerprint data on the card. The card will not be enrolled after this action.",
+                text = stringResource(R.string.this_resets_the_biometric_fingerprint_data_on_the_card_the_card_will_not_be_enrolled_after_this_action),
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp
             )
             Text(
                 modifier = Modifier.padding(horizontal = 24.dp),
-                text = "Lay the phone over the top of the card so that just the fingerprint is visible.",
+                text = stringResource(R.string.lay_the_phone_over_the_top_of_the_card_so_that_just_the_fingerprint_is_visible),
                 textAlign = TextAlign.Center,
                 fontSize = 17.sp
             )
 
             SentryButton(
                 modifier = Modifier.padding(bottom = 30.dp),
-                text = "Reset Biometric Data",
+                text = stringResource(R.string.reset_biometric_data),
                 onClick = {
                     nfcViewModel.startNfcAction(NfcAction.ResetBiometricData)
                 }
@@ -147,21 +148,24 @@ fun ResetScreen(
 
                     Text(
                         modifier = Modifier.padding(bottom = 25.dp),
-                        text = "Reset Result",
+                        text = stringResource(R.string.reset_result),
                         fontSize = 23.sp,
                         fontWeight = Bold,
                     )
 
                     val resultText = when (nfcActionResult.getOrNull()) {
                         is NfcActionResult.ResetBiometrics.Success -> {
-                            "The reset was successful, this card is no longer enrolled."
+                            stringResource(R.string.the_reset_was_successful_this_card_is_no_longer_enrolled)
                         }
 
                         is NfcActionResult.ResetBiometrics.Failed -> {
-                            "An error occurred. Please try again. (${nfcActionResult.exceptionOrNull().getDecodedMessage()})"
+                            stringResource(
+                                R.string.an_error_occurred_please_try_again,
+                                nfcActionResult.exceptionOrNull().getDecodedMessage()
+                            )
                         }
 
-                        else -> "Unexpected state: $nfcActionResult"
+                        else -> stringResource(R.string.unexpected_state, nfcActionResult)
                     }
 
                     Text(
@@ -173,11 +177,14 @@ fun ResetScreen(
                 } else {
 
                     val (statusText, isProgressing) = if (progress == null && nfcAction is NfcAction.ResetBiometricData) {
-                        "Scanning" to true
+                        stringResource(R.string.scanning) to true
                     } else if (progress != null) {
-                        "Card found" to true
+                        stringResource(R.string.card_found) to true
                     } else {
-                        "Error ${nfcActionResult?.exceptionOrNull().getDecodedMessage()}" to false
+                        stringResource(
+                            R.string.error,
+                            nfcActionResult?.exceptionOrNull().getDecodedMessage()
+                        ) to false
                     }
                     if (isProgressing) {
                         CircularProgressIndicator()
@@ -193,7 +200,7 @@ fun ResetScreen(
                     val coroutine = rememberCoroutineScope()
                     SentryButton(
                         modifier = Modifier.padding(bottom = 30.dp),
-                        text = "Cancel"
+                        text = stringResource(R.string.cancel)
                     ) {
                         coroutine.launch {
                             sheetState.hide()

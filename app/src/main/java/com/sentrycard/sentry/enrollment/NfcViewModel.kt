@@ -4,7 +4,7 @@ import android.nfc.Tag
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sentrycard.sentry.sdk.SentrySdk
-import com.sentrycard.sentry.sdk.apdu.getDecodedMessage
+import com.sentrycard.sentry.enrollment.util.getDecodedMessage
 import com.sentrycard.sentry.sdk.models.BiometricProgress
 import com.sentrycard.sentry.sdk.models.NfcAction
 import com.sentrycard.sentry.sdk.models.NfcActionResult
@@ -21,7 +21,7 @@ sealed class ShowStatus {
     data object Hidden : ShowStatus()
     data object Scanning : ShowStatus()
     data object CardFound : ShowStatus()
-    data class Error(val message: String) : ShowStatus()
+    data class Error(val error: Throwable?) : ShowStatus()
     data class Result(val result: NfcActionResult) : ShowStatus()
 }
 
@@ -59,11 +59,11 @@ class NfcViewModel : ViewModel() {
                 ShowStatus.Result(result.getOrThrow())
             } else {
                 ShowStatus.Error(
-                    result.exceptionOrNull()?.getDecodedMessage() ?: "Unknown error $result"
+                    result.exceptionOrNull()
                 )
             }
         } else {
-            ShowStatus.Error("Unknown error, likely due to incorrect placement.")
+            ShowStatus.Error(IllegalStateException())
         }
     }
 
