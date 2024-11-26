@@ -292,6 +292,7 @@ class SentrySdk(
                 100,
                 102 -> {
                     // ignore these errors
+                    return NfcActionResult.EnrollFingerprint.Failed
                 }
 
                 else -> {
