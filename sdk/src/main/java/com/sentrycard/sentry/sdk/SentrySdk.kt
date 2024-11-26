@@ -224,20 +224,30 @@ class SentrySdk(
                         )
                     )
 
-                    // scan the finger currently on the sensor
-                    enrollmentsLeft = if (resetOnFirstCall) {
-                        biometricsAPI
-                            .resetEnrollAndScanFingerprint(
-                                tag = tag,
-                                fingerIndex = currentFinger
-                            )
-                            .enrollmentByFinger[currentFinger - 1]
-                            .remainingTouches
-                    } else {
-                        biometricsAPI
-                            .enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
-                            .enrollmentByFinger[currentFinger - 1]
-                            .remainingTouches
+                    try {
+                        // scan the finger currently on the sensor
+                        enrollmentsLeft = if (resetOnFirstCall) {
+                            biometricsAPI
+                                .resetEnrollAndScanFingerprint(
+                                    tag = tag,
+                                    fingerIndex = currentFinger
+                                )
+                                .enrollmentByFinger[currentFinger - 1]
+                                .remainingTouches
+                        } else {
+                            biometricsAPI
+                                .enrollScanFingerprint(tag = tag, fingerIndex = currentFinger)
+                                .enrollmentByFinger[currentFinger - 1]
+                                .remainingTouches
+                        }
+                    } catch (e: SentrySDKError.ApduCommandError) {
+
+                        when (e.code) {
+                            APDUResponseCode.POOR_IMAGE_QUALITY.value -> {}// ignore
+                            else -> {
+                                throw e
+                            }
+                        }
                     }
 
                     resetOnFirstCall = false
