@@ -234,8 +234,8 @@ private fun FailedEnrollmentSection(
         fontWeight = Bold,
         fontSize = 23.sp,
     )
-    val errorText = if (BuildConfig.DEBUG) {
-        stringResource(R.string.please_try_again)
+    val errorText = if (!BuildConfig.DEBUG) {
+        stringResource(R.string.communication_with_the_card_has_failed_please_move_the_phone_away_from_the_card_briefly_to_reset_the_card_then_try_again)
     } else {
         "$progress"
     }
